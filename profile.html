@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Профиль мастера</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: #fff;
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .company-badge {
+      font-size: 12px;
+      color: #185FA5;
+      background: #E6F1FB;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+
+    .profile-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #B5D4F4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 600;
+      color: #0C447C;
+      flex-shrink: 0;
+    }
+
+    .name { font-size: 20px; font-weight: 600; color: #111; }
+    .specialty { font-size: 14px; color: #666; margin-top: 2px; }
+
+    .rating-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .stars { color: #EF9F27; font-size: 15px; }
+    .rating-num { font-size: 15px; font-weight: 600; color: #111; }
+    .rating-count { font-size: 13px; color: #999; }
+
+    .cta-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 15px;
+      margin-top: 16px;
+      background: #185FA5;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .section {
+      background: #fff;
+      padding: 16px;
+      margin-top: 8px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: #f8f8f8;
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+
+    .stat-num { font-size: 22px; font-weight: 600; color: #111; }
+    .stat-label { font-size: 12px; color: #888; margin-top: 2px; }
+
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .tag {
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      background: #f0f0f0;
+      color: #555;
+    }
+
+    .review-card {
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .review-card:last-child { border-bottom: none; }
+
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .rev-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #E6F1FB;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #185FA5;
+      flex-shrink: 0;
+    }
+
+    .rev-name { font-size: 14px; font-weight: 600; color: #111; }
+    .rev-stars { color: #EF9F27; font-size: 13px; }
+    .rev-date { font-size: 12px; color: #aaa; margin-left: auto; }
+    .rev-text { font-size: 14px; color: #555; line-height: 1.5; }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: #999;
+      font-size: 15px;
+    }
+
+    .error-msg {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+    .error-msg h2 { font-size: 18px; color: #333; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+<div id="loading" class="loading">Загружаем профиль...</div>
+<div id="content" style="display:none;"></div>
+<div id="error" style="display:none;" class="error-msg">
+  <h2>Профиль не найден</h2>
+  <p>Карточка не привязана или была деактивирована</p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // 🔧 ЗАМЕНИ НА СВОИ ДАННЫЕ ИЗ FIREBASE CONSOLE
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Читаем токен из URL: /c/abc123 → "abc123"
+  const token = window.location.pathname.split("/").pop();
+
+  async function loadProfile() {
+    try {
+      // 1. Находим карточку по токену
+      const cardSnap = await getDoc(doc(db, "nfc_cards", token));
+
+      if (!cardSnap.exists() || !cardSnap.data().handymanId) {
+        showError();
+        return;
+      }
+
+      const { handymanId } = cardSnap.data();
+
+      // 2. Загружаем профиль хенди мена
+      const workerSnap = await getDoc(doc(db, "handymen", handymanId));
+      if (!workerSnap.exists()) { showError(); return; }
+      const worker = workerSnap.data();
+
+      // 3. Загружаем отзывы (последние 5)
+      const reviewsQuery = query(
+        collection(db, "reviews"),
+        where("toId", "==", handymanId),
+        where("toType", "==", "handyman"),
+        orderBy("createdAt", "desc"),
+        limit(5)
+      );
+      const reviewsSnap = await getDocs(reviewsQuery);
+      const reviews = reviewsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // 4. Загружаем компанию
+      const companySnap = await getDoc(doc(db, "companies", worker.companyIds[0]));
+      const company = companySnap.exists() ? companySnap.data() : null;
+
+      renderProfile(worker, reviews, company, handymanId);
+
+    } catch (err) {
+      console.error(err);
+      showError();
+    }
+  }
+
+  function renderProfile(worker, reviews, company, handymanId) {
+    const initials = worker.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+    const fullStars = Math.round(worker.ratingAvg || 0);
+    const starsHtml = "★".repeat(fullStars) + "☆".repeat(5 - fullStars);
+
+    const reviewsHtml = reviews.length === 0
+      ? `<p style="color:#aaa;font-size:14px;">Пока нет отзывов</p>`
+      : reviews.map(r => {
+          const rInitials = (r.fromName || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+          const rStars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+          const date = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString("ru-RU") : "";
+          return `
+            <div class="review-card">
+              <div class="review-header">
+                <div class="rev-avatar">${rInitials}</div>
+                <div>
+                  <div class="rev-name">${r.fromName || "Клиент"}</div>
+                  <div class="rev-stars">${rStars}</div>
+                </div>
+                <div class="rev-date">${date}</div>
+              </div>
+              <div class="rev-text">${r.comment || ""}</div>
+            </div>`;
+        }).join("");
+
+    const skillsHtml = (worker.skills || []).map(s => `<span class="tag">${s}</span>`).join("");
+
+    document.getElementById("content").innerHTML = `
+      <div class="header">
+        ${company ? `<div class="company-badge">${company.name}</div>` : ""}
+        <div class="profile-row">
+          <div class="avatar">${initials}</div>
+          <div>
+            <div class="name">${worker.name}</div>
+            <div class="specialty">${(worker.skills || []).slice(0, 2).join(" · ")}</div>
+            <div class="rating-row">
+              <span class="stars">${starsHtml}</span>
+              <span class="rating-num">${(worker.ratingAvg || 0).toFixed(1)}</span>
+              <span class="rating-count">(${worker.reviewCount || 0} отзывов)</span>
+            </div>
+          </div>
+        </div>
+        <a class="cta-btn" href="/order/${token}">
+          📋 Оставить заявку
+        </a>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Статистика</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-num">${worker.ordersCompleted || 0}</div>
+            <div class="stat-label">Заказов</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">${(worker.ratingAvg || 0).toFixed(1)}</div>
+            <div class="stat-label">Рейтинг</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">${worker.experienceYears || 0} г.</div>
+            <div class="stat-label">Опыт</div>
+          </div>
+        </div>
+      </div>
+
+      ${skillsHtml ? `
+      <div class="section">
+        <div class="section-title">Навыки</div>
+        <div class="skill-tags">${skillsHtml}</div>
+      </div>` : ""}
+
+      <div class="section">
+        <div class="section-title">Последние отзывы</div>
+        ${reviewsHtml}
+      </div>
+    `;
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("content").style.display = "block";
+  }
+
+  function showError() {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("error").style.display = "block";
+  }
+
+  loadProfile();
+</script>
+</body>
+</html>
