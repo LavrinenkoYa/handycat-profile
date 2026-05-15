@@ -123,6 +123,7 @@
 
   <div class="page active" id="page-companies">
     <div class="ph" style="margin-top:8px"><div><h2>Компании</h2><p>Управление компаниями-клиентами</p></div><button class="btn bp" onclick="openAddCompany()">+ Добавить</button></div>
+    <input placeholder="🔍 Поиск по названию..." oninput="searchCos(this.value)" style="display:block;width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none" />
     <div class="cgrid" id="coGrid"><div class="muted" style="padding:16px">Загружаем...</div></div>
   </div>
 
@@ -148,6 +149,7 @@
         <div class="fl">
           <button class="fb active" onclick="filterCards('all',this)">Все</button>
           <button class="fb" onclick="filterCards('unassigned',this)">Свободные</button>
+          <button class="fb" onclick="filterCards('assigned',this)">У мастеров</button>
           <button class="fb" onclick="filterCards('active',this)">Активные</button>
           <button class="fb" onclick="filterCards('deactivated',this)">Деактивированные</button>
         </div>
@@ -164,11 +166,30 @@
 
   <div class="page" id="page-handymen">
     <div class="ph" style="margin-top:8px"><div><h2>Все мастера</h2><p>Полный список хенди менов</p></div></div>
-    <div class="card"><div class="tw"><table><thead><tr><th>Имя</th><th>Компания</th><th>Телефон</th><th>Навыки</th><th>Рейтинг</th><th>Заказов</th><th>Статус</th></tr></thead><tbody id="hmBody"></tbody></table></div></div>
+    <input class="search-input" id="hmSearch" placeholder="🔍 Поиск по имени..." oninput="searchHM(this.value)" style="display:block;width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none" />
+    <div class="card"><div class="tw"><table><thead><tr><th>Имя</th><th>Компания</th><th>Телефон</th><th>Навыки</th><th>Рейтинг</th><th>Заказов</th><th>Статус</th><th></th></tr></thead><tbody id="hmBody"></tbody></table></div></div>
+  </div>
+
+  <div class="page" id="page-hm-detail">
+    <div class="back" id="hmDetailBack" onclick="nav('handymen')">← Назад</div>
+    <div class="ph">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div id="hmDetailAvatar" style="width:56px;height:56px;border-radius:50%;background:#B5D4F4;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#0C447C;flex-shrink:0"></div>
+        <div><h2 id="hmDetailName">—</h2><p id="hmDetailMeta">—</p></div>
+      </div>
+      <button class="btn bs bsm" id="hmDetailEditBtn">✏️ Редактировать</button>
+    </div>
+    <div class="sr" id="hmDetailStats"></div>
+    <div class="di" id="hmDetailInfo" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px"></div>
+    <div class="card">
+      <div class="ch"><h3>История заказов</h3></div>
+      <div class="tw"><table><thead><tr><th>Дата</th><th>Клиент</th><th>Категория</th><th>Статус</th><th>Оценка</th><th>Цена</th></tr></thead><tbody id="hmDetailOrders"></tbody></table></div>
+    </div>
   </div>
 
   <div class="page" id="page-clients">
     <div class="ph" style="margin-top:8px"><div><h2>Клиенты</h2><p>Все зарегистрированные клиенты</p></div></div>
+    <input class="search-input" id="clSearch" placeholder="🔍 Поиск по имени или телефону..." oninput="searchCl(this.value)" style="display:block;width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none" />
     <div class="card"><div class="tw"><table><thead><tr><th>Имя</th><th>Телефон</th><th>Email</th><th>Адрес</th><th>Заказов</th><th>Зарег.</th><th></th></tr></thead><tbody id="clBody"></tbody></table></div></div>
   </div>
 
@@ -306,13 +327,27 @@ async function loadCos(){
   CC.cos={};cos.forEach(function(c){CC.cos[c.id]=c;});
   var cs={};cards.forEach(function(c){if(!cs[c.companyId])cs[c.companyId]={t:0,a:0,u:0};cs[c.companyId].t++;if(c.status==="active")cs[c.companyId].a++;if(c.status==="unassigned")cs[c.companyId].u++;});
   if(!cos.length){g.innerHTML='<div class="empty">Нет компаний</div>';return;}
-  g.innerHTML=cos.map(function(c){var s=cs[c.id]||{t:0,a:0,u:0};var ok=c.status!=="inactive";var nm=c.name||c.id||"Без названия";
+  CC._coStats=cs;
+  CC._allCos=cos;
+  renderCos(cos,cs);
+}
+function renderCos(cos,cs){
+  var g=document.getElementById("coGrid");
+  if(!cos.length){g.innerHTML='<div class="empty">Нет компаний</div>';return;}
+  g.innerHTML=cos.map(function(c){var s=(cs||CC._coStats||{})[c.id]||{t:0,a:0,u:0};var ok=c.status!=="inactive";var nm=c.name||c.id||"Без названия";
     return'<div class="coc'+(ok?"":" off")+'" onclick="openCo(\''+c.id+'\')">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="cn">'+nm+'</div>'+bdg(ok?"active":"inactive")+'</div>'+
       '<div class="cm">'+(c.location||"")+(c.email?" · "+c.email:"")+'</div>'+
       '<div class="cst"><div class="cst"><div class="sn">'+s.t+'</div><div class="sl">Карточек</div></div><div style="margin-left:14px"><div class="sn">'+s.a+'</div><div class="sl">Активных</div></div><div style="margin-left:14px"><div class="sn">'+s.u+'</div><div class="sl">Свободных</div></div></div>'+
     '</div>';
   }).join("");
+}
+function searchCos(q){
+  var all=CC._allCos||[];
+  if(!q){renderCos(all);return;}
+  q=q.toLowerCase();
+  renderCos(all.filter(function(c){return(c.name||"").toLowerCase().includes(q)||(c.location||"").toLowerCase().includes(q);}));
+}
 }
 
 function openAddCompany(){document.getElementById("mCoT").textContent="Новая компания";document.getElementById("editCoId").value="";["coName","coLoc","coEmail","coPhone","coDesc"].forEach(function(id){document.getElementById(id).value="";});openModal("mAddCo");}
@@ -341,7 +376,8 @@ async function loadCDHM(){
   cdHM=hm;
   if(!hm.length){tb.innerHTML='<tr><td colspan="6" class="empty">Нет мастеров</td></tr>';return;}
   tb.innerHTML=hm.map(function(h){
-    return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(h.name)+'</div>'+h.name+'</div></td>'+
+    return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(h.name)+'</div>'+
+      '<span style="color:#185FA5;cursor:pointer;font-weight:500" onclick="openHMDetail(\''+h.id+'\',\'co-detail\')">'+h.name+'</span></div></td>'+
       '<td class="muted">'+(h.phone||"—")+'</td>'+
       '<td class="muted">'+(h.skills||[]).join(", ")+'</td>'+
       '<td>'+(h.assignedCardToken?'<span class="mono">'+h.assignedCardToken+'</span>':"<span class='muted'>—</span>")+'</td>'+
@@ -354,13 +390,18 @@ async function loadCDCards(){
   var tb=document.getElementById("cdCardsBody");tb.innerHTML='<tr><td colspan="7" class="empty">Загружаем...</td></tr>';
   cdCards=await fsQ("nfc_cards",[{field:"companyId",value:cdId}]);
   document.getElementById("cdCCnt").textContent="("+cdCards.length+")";
-  var s={t:cdCards.length,a:0,u:0,d:0};
-  cdCards.forEach(function(c){if(c.status==="active")s.a++;if(c.status==="unassigned")s.u++;if(c.status==="deactivated")s.d++;});
+  var s={t:cdCards.length,a:0,u:0,d:0,as:0};
+  cdCards.forEach(function(c){
+    if(c.status==="active")s.a++;
+    if(c.status==="unassigned")s.u++;
+    if(c.status==="deactivated")s.d++;
+    if(c.status==="assigned")s.as++;
+  });
   document.getElementById("cdStats").innerHTML=
     '<div class="sb"><div class="sn">'+s.t+'</div><div class="sl">Всего</div></div>'+
-    '<div class="sb"><div class="sn">'+s.a+'</div><div class="sl">Активных</div></div>'+
     '<div class="sb"><div class="sn">'+s.u+'</div><div class="sl">Свободных</div></div>'+
-    '<div class="sb"><div class="sn">'+s.d+'</div><div class="sl">Деактивированных</div></div>';
+    '<div class="sb"><div class="sn">'+s.as+'</div><div class="sl">Выдано мастерам</div></div>'+
+    '<div class="sb"><div class="sn">'+s.a+'</div><div class="sl">Активировано</div></div>';
   renderCDCards();
 }
 
@@ -399,19 +440,75 @@ async function fillFreeCards(cur){var sel=document.getElementById("hmCard");sel.
 async function saveHM(){var name=document.getElementById("hmName").value.trim();if(!name){toast("Введите имя");return;}var eid=document.getElementById("editHMId").value;var id=eid||(name.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")+"-"+Date.now().toString(36));var sk=document.getElementById("hmSkills").value.split(",").map(function(s){return s.trim();}).filter(Boolean);var ct=document.getElementById("hmCard").value;var ok=await fsP("handymen",id,{name:sv(name),phone:sv(document.getElementById("hmPhone").value),email:sv(document.getElementById("hmEmail").value),experienceYears:nv(document.getElementById("hmExp").value),skills:av(sk),companyIds:av(cdId?[cdId]:[]),assignedCardToken:sv(ct),ratingAvg:nv(0),reviewCount:nv(0),ordersCompleted:nv(0),status:sv("active"),createdAt:sv(new Date().toISOString())});if(ok&&ct)await fsP("nfc_cards",ct,{status:sv("assigned"),handymanId:sv(id)});if(ok){closeModal("mAddHM");toast(eid?"Обновлён!":"Добавлен!");await loadCDHM();await loadCDCards();}else toast("Ошибка");}
 function delHM(id){cfm("Удалить мастера?","Нельзя отменить.",async function(){var ok=await fsDel("handymen",id);if(ok){toast("Удалён");await loadCDHM();}else toast("Ошибка");});}
 async function loadHMs(){
-  var tb=document.getElementById("hmBody");tb.innerHTML='<tr><td colspan="7" class="empty">Загружаем...</td></tr>';
+  var tb=document.getElementById("hmBody");tb.innerHTML='<tr><td colspan="8" class="empty">Загружаем...</td></tr>';
   var [hm,cos]=await Promise.all([fsL("handymen"),fsL("companies")]);
   cos.forEach(function(c){CC.cos[c.id]=c;});
-  if(!hm.length){tb.innerHTML='<tr><td colspan="7" class="empty">Нет мастеров</td></tr>';return;}
+  CC._allHM=hm;
+  renderHMs(hm);
+}
+function renderHMs(hm){
+  var tb=document.getElementById("hmBody");
+  if(!hm.length){tb.innerHTML='<tr><td colspan="8" class="empty">Нет мастеров</td></tr>';return;}
   tb.innerHTML=hm.map(function(h){
     var coId=(h.companyIds||[])[0]||"";
     var cn=(CC.cos[coId]||{}).name||coId||"—";
-    return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(h.name)+'</div>'+(h.name||"—")+'</div></td>'+
+    return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(h.name)+'</div>'+
+      '<span style="color:#185FA5;cursor:pointer;font-weight:500" onclick="openHMDetail(\''+h.id+'\',\'handymen\')">'+( h.name||"—")+'</span></div></td>'+
       '<td class="muted">'+cn+'</td><td class="muted">'+(h.phone||"—")+'</td>'+
       '<td class="muted">'+(h.skills||[]).slice(0,2).join(", ")+'</td>'+
       '<td>'+(h.ratingAvg||0).toFixed(1)+' ★</td><td>'+(h.ordersCompleted||0)+'</td>'+
       '<td>'+bdg(h.status||"active")+'</td>'+
       '<td><button class="btn bs bsm" onclick="editHMGlobal(\''+h.id+'\',\''+coId+'\')">✏️</button></td>'+
+    '</tr>';
+  }).join("");
+}
+function searchHM(q){
+  var all=CC._allHM||[];
+  if(!q){renderHMs(all);return;}
+  q=q.toLowerCase();
+  renderHMs(all.filter(function(h){return(h.name||"").toLowerCase().includes(q)||(h.phone||"").includes(q);}));
+}
+
+async function openHMDetail(hmId,backPage){
+  sp("hm-detail");
+  document.getElementById("hmDetailBack").setAttribute("onclick","sp('"+backPage+"')");
+  document.getElementById("hmDetailName").textContent="Загружаем...";
+  var [hm,orders]=await Promise.all([
+    fsGet("handymen",hmId),
+    fsQ("orders",[{field:"handymanId",value:hmId}])
+  ]);
+  if(!hm){toast("Мастер не найден");return;}
+  document.getElementById("hmDetailAvatar").textContent=ini(hm.name);
+  document.getElementById("hmDetailName").textContent=hm.name||"—";
+  document.getElementById("hmDetailMeta").textContent=(hm.phone||"")+(hm.email?" · "+hm.email:"");
+  document.getElementById("hmDetailEditBtn").onclick=function(){
+    cdHM=[hm];cdId=(hm.companyIds||[])[0]||"";
+    editHM(hmId);
+  };
+  var stars="★".repeat(Math.round(hm.ratingAvg||0))+"☆".repeat(5-Math.round(hm.ratingAvg||0));
+  document.getElementById("hmDetailStats").innerHTML=
+    '<div class="sb"><div class="sn">'+(hm.ratingAvg||0).toFixed(1)+'</div><div class="sl">'+stars+' Рейтинг</div></div>'+
+    '<div class="sb"><div class="sn">'+(hm.reviewCount||0)+'</div><div class="sl">Отзывов</div></div>'+
+    '<div class="sb"><div class="sn">'+(hm.ordersCompleted||0)+'</div><div class="sl">Заказов</div></div>'+
+    '<div class="sb"><div class="sn">'+(hm.experienceYears||0)+'</div><div class="sl">Лет опыта</div></div>';
+  document.getElementById("hmDetailInfo").innerHTML=
+    '<div><div class="dl">Телефон</div><div class="dv">'+(hm.phone||"—")+'</div></div>'+
+    '<div><div class="dl">Email</div><div class="dv">'+(hm.email||"—")+'</div></div>'+
+    '<div><div class="dl">Навыки</div><div class="dv">'+(hm.skills||[]).join(", ")||"—"+'</div></div>'+
+    '<div><div class="dl">Карточка</div><div class="dv mono">'+(hm.assignedCardToken||"—")+'</div></div>'+
+    '<div><div class="dl">Статус</div><div class="dv">'+bdg(hm.status||"active")+'</div></div>'+
+    '<div><div class="dl">Зарегистрирован</div><div class="dv">'+fd(hm.createdAt)+'</div></div>';
+  var ordTb=document.getElementById("hmDetailOrders");
+  if(!orders.length){ordTb.innerHTML='<tr><td colspan="6" class="empty">Нет заказов</td></tr>';return;}
+  var clMap={};
+  try{var cls=await fsL("clients");cls.forEach(function(c){clMap[c.id]=c.name;});}catch(e){}
+  ordTb.innerHTML=orders.map(function(o){
+    return'<tr><td class="muted">'+fd(o.createdAt)+'</td>'+
+      '<td>'+(clMap[o.clientId]||o.clientId||"—")+'</td>'+
+      '<td>'+(o.category||"—")+'</td>'+
+      '<td>'+bdg(o.status||"new")+'</td>'+
+      '<td style="color:#EF9F27">'+(o.rating?"★".repeat(o.rating):"—")+'</td>'+
+      '<td>'+(o.price?o.price+" ₴":"—")+'</td>'+
     '</tr>';
   }).join("");
 }
@@ -436,7 +533,24 @@ async function editHMGlobal(hmId,coId){
 async function genCards(){var cnt=parseInt(document.getElementById("genCnt").value);var pfx=document.getElementById("genPfx").value.trim();if(!cnt){toast("Введите количество");return;}var btn=document.getElementById("genBtn");btn.disabled=true;var prog=document.getElementById("genProg");var chars="abcdefghijklmnopqrstuvwxyz0123456789";var saved=0;for(var i=0;i<cnt;i++){var t=pfx?pfx+"-":"";for(var j=0;j<8;j++)t+=chars[Math.floor(Math.random()*chars.length)];var ok=await fsP("nfc_cards",t,{companyId:sv(cdId),status:sv("unassigned"),clientId:sv(""),handymanId:sv(""),createdAt:sv(new Date().toISOString())});if(ok)saved++;prog.textContent="Сохранено "+saved+" из "+cnt+"...";}btn.disabled=false;closeModal("mGenCards");toast("Создано "+saved+"!");await loadCDCards();}
 
 // CLIENTS
-async function loadCls(){var tb=document.getElementById("clBody");tb.innerHTML='<tr><td colspan="7" class="empty">Загружаем...</td></tr>';var cls=await fsL("clients");CC.cl={};cls.forEach(function(c){CC.cl[c.id]=c;});if(!cls.length){tb.innerHTML='<tr><td colspan="7" class="empty">Нет клиентов</td></tr>';return;}var oc={};try{var ords=await fsL("orders");ords.forEach(function(o){oc[o.clientId]=(oc[o.clientId]||0)+1;});}catch(e){}tb.innerHTML=cls.map(function(c){return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(c.name)+'</div>'+(c.name||"—")+'</div></td><td class="muted">'+(c.phone||"—")+'</td><td class="muted">'+(c.email||"—")+'</td><td class="muted">'+(c.address||"—")+'</td><td>'+(oc[c.id]||0)+'</td><td class="muted">'+fd(c.createdAt)+'</td><td><button class="btn bs bsm" onclick="openCl(\''+c.id+'\')">История →</button></td></tr>';}).join("");}
+async function loadCls(){
+  var tb=document.getElementById("clBody");tb.innerHTML='<tr><td colspan="7" class="empty">Загружаем...</td></tr>';
+  var cls=await fsL("clients");CC.cl={};cls.forEach(function(c){CC.cl[c.id]=c;});
+  var oc={};try{var ords=await fsL("orders");ords.forEach(function(o){oc[o.clientId]=(oc[o.clientId]||0)+1;});}catch(e){}
+  CC._allCl=cls;CC._clOC=oc;
+  renderCls(cls,oc);
+}
+function renderCls(cls,oc){
+  var tb=document.getElementById("clBody");
+  if(!cls.length){tb.innerHTML='<tr><td colspan="7" class="empty">Нет клиентов</td></tr>';return;}
+  tb.innerHTML=cls.map(function(c){return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(c.name)+'</div>'+(c.name||"—")+'</div></td><td class="muted">'+(c.phone||"—")+'</td><td class="muted">'+(c.email||"—")+'</td><td class="muted">'+(c.address||"—")+'</td><td>'+(oc[c.id]||0)+'</td><td class="muted">'+fd(c.createdAt)+'</td><td><button class="btn bs bsm" onclick="openCl(\''+c.id+'\')">История →</button></td></tr>';}).join("");
+}
+function searchCl(q){
+  var all=CC._allCl||[];var oc=CC._clOC||{};
+  if(!q){renderCls(all,oc);return;}
+  q=q.toLowerCase();
+  renderCls(all.filter(function(c){return(c.name||"").toLowerCase().includes(q)||(c.phone||"").includes(q);}),oc);
+}
 async function openCl(id){sp("cl-detail");var c=CC.cl[id]||{};document.getElementById("clName").textContent=c.name||id;document.getElementById("clMeta").textContent=(c.phone||"")+(c.email?" · "+c.email:"");document.getElementById("clInfo").innerHTML='<div><div class="dl">Телефон</div><div class="dv">'+(c.phone||"—")+'</div></div><div><div class="dl">Email</div><div class="dv">'+(c.email||"—")+'</div></div><div><div class="dl">Адрес</div><div class="dv">'+(c.address||"—")+'</div></div><div><div class="dl">Зарегистрирован</div><div class="dv">'+fd(c.createdAt)+'</div></div>';var tb=document.getElementById("clOBody");tb.innerHTML='<tr><td colspan="5" class="empty">Загружаем...</td></tr>';var ords=await fsQ("orders",[{field:"clientId",value:id}]);if(!ords.length){tb.innerHTML='<tr><td colspan="5" class="empty">Нет заказов</td></tr>';return;}var hma={};try{var hms=await fsL("handymen");hms.forEach(function(h){hma[h.id]=h.name;});}catch(e){}tb.innerHTML=ords.map(function(o){return'<tr><td class="muted">'+fd(o.createdAt)+'</td><td>'+(o.category||"—")+'</td><td>'+(hma[o.handymanId]||"—")+'</td><td>'+bdg(o.status||"new")+'</td><td>'+(o.price?o.price+" ₴":"—")+'</td></tr>';}).join("");}
 
 // ORDERS
