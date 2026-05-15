@@ -510,26 +510,45 @@ async function showOrderDetail(orderId){
       '<div class="oc-head"><span class="oc-badge '+badgeMap[order.status]+'">'+statusMap[order.status]+'</span><span class="oc-date">'+fd(order.createdAt)+'</span></div>'+
       '<div style="font-size:18px;font-weight:700;color:#111;margin:8px 0 6px">'+order.category+'</div>'+
       (order.description?'<div style="font-size:14px;color:#555;line-height:1.6;margin-bottom:8px">'+order.description+'</div>':"")+
-    '</div>'+
-    (hm?'<div class="detail-section" style="margin:0 12px 10px">'+
-      '<div class="section-title">Handyman</div>'+
-      '<div style="display:flex;align-items:center;gap:12px">'+
-        '<div class="hm-av">'+ini(hm.name)+'</div>'+
-        '<div><div style="font-size:15px;font-weight:600;color:#111">'+hm.name+'</div>'+
-          '<div style="font-size:13px;color:#888;margin-top:2px">'+(hm.skills||[]).slice(0,2).join(" · ")+'</div>'+
-          (hm.ratingAvg?'<div>'+starsHtml(hm.ratingAvg,13)+' <span style="font-size:12px;color:#888">'+hm.ratingAvg.toFixed(1)+' ('+hm.reviewCount+' reviews)</span></div>':"")+
+    '</div>';
+
+  if(hm){
+    content.innerHTML+=
+      '<div class="detail-section" style="margin:0 12px 10px">'+
+        '<div class="section-title">Handyman</div>'+
+        '<div style="display:flex;align-items:center;gap:12px">'+
+          '<div class="hm-av">'+ini(hm.name)+'</div>'+
+          '<div>'+
+            '<div style="font-size:15px;font-weight:600;color:#111">'+hm.name+'</div>'+
+            '<div style="font-size:13px;color:#888;margin-top:2px">'+(hm.skills||[]).slice(0,2).join(" · ")+'</div>'+
+            (hm.ratingAvg?'<div>'+starsHtml(hm.ratingAvg,13)+' <span style="font-size:12px;color:#888">'+Number(hm.ratingAvg).toFixed(1)+' ('+(hm.reviewCount||0)+' reviews)</span></div>':"")+
+          '</div>'+
         '</div>'+
-      '</div>'+
-    '</div>':(order.isPublic?'<div class="detail-section" style="margin:0 12px 10px;text-align:center"><div style="font-size:28px;margin-bottom:6px">🔍</div><div style="font-size:14px;color:#8B5CF6;font-weight:500">Looking for an available handyman</div><div style="font-size:12px;color:#aaa;margin-top:4px">We\'ll notify you when someone accepts</div></div>':"")+
+      '</div>';
+  } else if(order.isPublic){
+    content.innerHTML+=
+      '<div class="detail-section" style="margin:0 12px 10px;text-align:center">'+
+        '<div style="font-size:28px;margin-bottom:6px">&#x1F50D;</div>'+
+        '<div style="font-size:14px;color:#8B5CF6;font-weight:500">Looking for an available handyman</div>'+
+        '<div style="font-size:12px;color:#aaa;margin-top:4px">We will notify you when someone accepts</div>'+
+      '</div>';
+  }
+
+  content.innerHTML+=
     '<div class="detail-section" style="margin:0 12px 10px">'+
       '<div class="section-title">Status</div>'+
-      '<div class="status-timeline">'+tl.map(function(t,i){
-        var isActive=!t.done&&(i===0||(tl[i-1]&&tl[i-1].done));
-        return'<div class="tl-item"><div class="tl-dot'+(t.done?" done":isActive?" active":"")+'"></div>'+
-          '<div class="tl-label'+(t.done?" done":"")+'">'+t.label+'</div></div>';
-      }).join("")+'</div>'+
-    '</div>'+
-    photosHtml+reviewHtml+'<div style="height:10px"></div>'+actionHtml;
+      '<div class="status-timeline">'+
+        tl.map(function(t,i){
+          var isActive=!t.done&&(i===0||(i>0&&tl[i-1]&&tl[i-1].done));
+          return '<div class="tl-item">'+
+            '<div class="tl-dot'+(t.done?" done":isActive?" active":"")+'"></div>'+
+            '<div class="tl-label'+(t.done?" done":"")+'">'+t.label+'</div>'+
+          '</div>';
+        }).join("")+
+      '</div>'+
+    '</div>';
+
+  content.innerHTML+=photosHtml+reviewHtml+'<div style="height:10px"></div>'+actionHtml;
 }
 
 async function markComplete(orderId){
