@@ -152,7 +152,13 @@
           <button class="fb" onclick="filterCards('deactivated',this)">Деактивированные</button>
         </div>
       </div>
-      <div class="tw"><table><thead><tr><th>Токен</th><th>URL</th><th>Статус</th><th>Мастер</th><th>Клиент</th><th>Создана</th><th></th></tr></thead><tbody id="cdCardsBody"></tbody></table></div>
+      <div id="bulkBar" style="display:none;padding:10px 18px;background:#EFF6FF;border-bottom:1px solid #DBEAFE;display:none;align-items:center;gap:10px;flex-wrap:wrap">
+        <span id="bulkCount" style="font-size:13px;font-weight:600;color:#1E40AF"></span>
+        <button class="btn bd bsm" onclick="bulkDelete()">🗑 Удалить выбранные</button>
+        <button class="btn bw bsm" onclick="bulkDeactivate()">⏸ Деактивировать</button>
+        <button class="btn bs bsm" onclick="clearSelection()">✕ Отмена</button>
+      </div>
+      <div class="tw"><table><thead><tr><th style="width:36px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" /></th><th>Токен</th><th>URL</th><th>Статус</th><th>Мастер</th><th>Клиент</th><th>Создана</th><th></th></tr></thead><tbody id="cdCardsBody"></tbody></table></div>
     </div>
   </div>
 
@@ -254,8 +260,9 @@ async function fsGet(c,id){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY);if(!r
 async function fsL(c,ps){var r=await fetch(FS+"/"+c+"?key="+AKEY+"&pageSize="+(ps||300));if(!r.ok)return[];var d=await r.json();if(!d.documents)return[];return d.documents.map(function(x){return{id:x.name.split("/").pop(),...pf(x.fields)};});}
 async function fsQ(c,filters,lim){
   var body={structuredQuery:{from:[{collectionId:c}],limit:lim||500}};
-  if(filters&&filters.length===1) body.structuredQuery.where={fieldFilter:{field:{fieldPath:filters[0].field},op:"EQUAL",value:{stringValue:filters[0].value}}};
-  else if(filters&&filters.length>1) body.structuredQuery.where={compositeFilter:{op:"AND",filters:filters.map(function(f){return{fieldFilter:{field:{fieldPath:f.field},op:"EQUAL",value:{stringValue:f.value}}};})}}
+  function mkFilter(f){return{fieldFilter:{field:{fieldPath:f.field},op:f.op||"EQUAL",value:{stringValue:f.value}}};}
+  if(filters&&filters.length===1) body.structuredQuery.where=mkFilter(filters[0]);
+  else if(filters&&filters.length>1) body.structuredQuery.where={compositeFilter:{op:"AND",filters:filters.map(mkFilter)}}
   var r=await fetch(FS+":runQuery?key="+AKEY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   if(!r.ok)return[];var rows=await r.json();return rows.filter(function(x){return x.document;}).map(function(x){return{id:x.document.name.split("/").pop(),...pf(x.document.fields)};});
 }
@@ -295,13 +302,13 @@ function cp(t){navigator.clipboard.writeText(t);toast("Скопировано!")
 // COMPANIES
 async function loadCos(){
   var g=document.getElementById("coGrid");g.innerHTML='<div class="muted" style="padding:16px">Загружаем...</div>';
-  var cos=await fsL("companies");CC.cos={};cos.forEach(function(c){CC.cos[c.id]=c;});
-  var cards=await fsL("nfc_cards");
+  var [cos,cards]=await Promise.all([fsL("companies"),fsL("nfc_cards")]);
+  CC.cos={};cos.forEach(function(c){CC.cos[c.id]=c;});
   var cs={};cards.forEach(function(c){if(!cs[c.companyId])cs[c.companyId]={t:0,a:0,u:0};cs[c.companyId].t++;if(c.status==="active")cs[c.companyId].a++;if(c.status==="unassigned")cs[c.companyId].u++;});
   if(!cos.length){g.innerHTML='<div class="empty">Нет компаний</div>';return;}
-  g.innerHTML=cos.map(function(c){var s=cs[c.id]||{t:0,a:0,u:0};var ok=c.status!=="inactive";
+  g.innerHTML=cos.map(function(c){var s=cs[c.id]||{t:0,a:0,u:0};var ok=c.status!=="inactive";var nm=c.name||c.id||"Без названия";
     return'<div class="coc'+(ok?"":" off")+'" onclick="openCo(\''+c.id+'\')">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="cn">'+c.name+'</div>'+bdg(ok?"active":"inactive")+'</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="cn">'+nm+'</div>'+bdg(ok?"active":"inactive")+'</div>'+
       '<div class="cm">'+(c.location||"")+(c.email?" · "+c.email:"")+'</div>'+
       '<div class="cst"><div class="cst"><div class="sn">'+s.t+'</div><div class="sl">Карточек</div></div><div style="margin-left:14px"><div class="sn">'+s.a+'</div><div class="sl">Активных</div></div><div style="margin-left:14px"><div class="sn">'+s.u+'</div><div class="sl">Свободных</div></div></div>'+
     '</div>';
@@ -330,7 +337,7 @@ async function openCo(id){
 
 async function loadCDHM(){
   var tb=document.getElementById("cdHMBody");tb.innerHTML='<tr><td colspan="6" class="empty">Загружаем...</td></tr>';
-  var hm=await fsQ("handymen",[{field:"companyIds",value:cdId}]);
+  var hm=await fsQ("handymen",[{field:"companyIds",value:cdId,op:"ARRAY_CONTAINS"}]);
   cdHM=hm;
   if(!hm.length){tb.innerHTML='<tr><td colspan="6" class="empty">Нет мастеров</td></tr>';return;}
   tb.innerHTML=hm.map(function(h){
@@ -360,16 +367,25 @@ async function loadCDCards(){
 function renderCDCards(){
   var tb=document.getElementById("cdCardsBody");
   var fil=cdCards.filter(function(c){return cdCF==="all"||c.status===cdCF;});
-  if(!fil.length){tb.innerHTML='<tr><td colspan="7" class="empty">Нет карточек</td></tr>';return;}
+  if(!fil.length){tb.innerHTML='<tr><td colspan="8" class="empty">Нет карточек</td></tr>';return;}
   var hmap={};cdHM.forEach(function(h){if(h.assignedCardToken)hmap[h.assignedCardToken]=h.name;});
   tb.innerHTML=fil.map(function(c){var url=BURL+"/c/"+c.id;
-    return'<tr><td class="mono">'+c.id+'</td><td><span class="uc" title="'+url+'">'+url+'</span></td><td>'+bdg(c.status||"unassigned")+'</td>'+
+    return'<tr><td><input type="checkbox" class="card-cb" value="'+c.id+'" onchange="onCBChange()" /></td>'+
+      '<td class="mono">'+c.id+'</td><td><span class="uc" title="'+url+'">'+url+'</span></td><td>'+bdg(c.status||"unassigned")+'</td>'+
       '<td class="muted">'+(hmap[c.id]||"—")+'</td><td class="muted">'+(c.clientId||"—")+'</td><td class="muted">'+fd(c.createdAt)+'</td>'+
       '<td><div style="display:flex;gap:4px"><button class="btn bs bsm" onclick="cp(\''+url+'\')">📋</button>'+
       (c.status==="active"?'<button class="btn bw bsm" onclick="deactCard(\''+c.id+'\')">⏸</button>':"")+
       '<button class="btn bd bsm" onclick="delCard(\''+c.id+'\')">🗑</button></div></td></tr>';
   }).join("");
+  updateBulkBar();
 }
+function onCBChange(){updateBulkBar();}
+function toggleSelectAll(cb){document.querySelectorAll(".card-cb").forEach(function(x){x.checked=cb.checked;});updateBulkBar();}
+function getSelected(){return Array.from(document.querySelectorAll(".card-cb:checked")).map(function(x){return x.value;});}
+function clearSelection(){document.querySelectorAll(".card-cb").forEach(function(x){x.checked=false;});var sa=document.getElementById("selectAll");if(sa)sa.checked=false;updateBulkBar();}
+function updateBulkBar(){var sel=getSelected();var bar=document.getElementById("bulkBar");if(sel.length>0){bar.style.display="flex";document.getElementById("bulkCount").textContent=sel.length+" выбрано";}else{bar.style.display="none";}}
+async function bulkDelete(){var sel=getSelected();if(!sel.length)return;cfm("Удалить "+sel.length+" карточек?","Это действие нельзя отменить.",async function(){for(var i=0;i<sel.length;i++)await fsDel("nfc_cards",sel[i]);toast("Удалено "+sel.length);await loadCDCards();});}
+async function bulkDeactivate(){var sel=getSelected();if(!sel.length)return;for(var i=0;i<sel.length;i++)await fsP("nfc_cards",sel[i],{status:sv("deactivated")});toast("Деактивировано "+sel.length);await loadCDCards();}
 
 function filterCards(s,btn){cdCF=s;document.querySelectorAll("#page-co-detail .fb").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");renderCDCards();}
 function exportFreeCSV(){var f=cdCards.filter(function(c){return c.status==="unassigned";});if(!f.length){toast("Нет свободных карточек");return;}var rows=["Токен,URL,Статус,Создана"];f.forEach(function(c){rows.push([c.id,BURL+"/c/"+c.id,"unassigned",fd(c.createdAt)].join(","));});var blob=new Blob(["\uFEFF"+rows.join("\n")],{type:"text/csv;charset=utf-8;"});var l=document.createElement("a");l.href=URL.createObjectURL(blob);l.download="free-"+cdId+".csv";l.click();toast("CSV скачан ("+f.length+")");}
@@ -382,7 +398,39 @@ async function editHM(id){var h=cdHM.find(function(x){return x.id===id;})||{};do
 async function fillFreeCards(cur){var sel=document.getElementById("hmCard");sel.innerHTML='<option value="">— без карточки —</option>';cdCards.filter(function(c){return c.status==="unassigned"||(cur&&c.id===cur);}).forEach(function(c){var o=document.createElement("option");o.value=c.id;o.textContent=c.id;if(cur&&c.id===cur)o.selected=true;sel.appendChild(o);});}
 async function saveHM(){var name=document.getElementById("hmName").value.trim();if(!name){toast("Введите имя");return;}var eid=document.getElementById("editHMId").value;var id=eid||(name.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")+"-"+Date.now().toString(36));var sk=document.getElementById("hmSkills").value.split(",").map(function(s){return s.trim();}).filter(Boolean);var ct=document.getElementById("hmCard").value;var ok=await fsP("handymen",id,{name:sv(name),phone:sv(document.getElementById("hmPhone").value),email:sv(document.getElementById("hmEmail").value),experienceYears:nv(document.getElementById("hmExp").value),skills:av(sk),companyIds:av(cdId?[cdId]:[]),assignedCardToken:sv(ct),ratingAvg:nv(0),reviewCount:nv(0),ordersCompleted:nv(0),status:sv("active"),createdAt:sv(new Date().toISOString())});if(ok&&ct)await fsP("nfc_cards",ct,{status:sv("assigned"),handymanId:sv(id)});if(ok){closeModal("mAddHM");toast(eid?"Обновлён!":"Добавлен!");await loadCDHM();await loadCDCards();}else toast("Ошибка");}
 function delHM(id){cfm("Удалить мастера?","Нельзя отменить.",async function(){var ok=await fsDel("handymen",id);if(ok){toast("Удалён");await loadCDHM();}else toast("Ошибка");});}
-async function loadHMs(){var tb=document.getElementById("hmBody");tb.innerHTML='<tr><td colspan="7" class="empty">Загружаем...</td></tr>';var hm=await fsL("handymen");if(!hm.length){tb.innerHTML='<tr><td colspan="7" class="empty">Нет мастеров</td></tr>';return;}tb.innerHTML=hm.map(function(h){var cn=(CC.cos[(h.companyIds||[])[0]]||{}).name||(h.companyIds||[])[0]||"—";return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(h.name)+'</div>'+h.name+'</div></td><td class="muted">'+cn+'</td><td class="muted">'+(h.phone||"—")+'</td><td class="muted">'+(h.skills||[]).slice(0,2).join(", ")+'</td><td>'+(h.ratingAvg||0).toFixed(1)+' ★</td><td>'+(h.ordersCompleted||0)+'</td><td>'+bdg(h.status||"active")+'</td></tr>';}).join("");}
+async function loadHMs(){
+  var tb=document.getElementById("hmBody");tb.innerHTML='<tr><td colspan="7" class="empty">Загружаем...</td></tr>';
+  var [hm,cos]=await Promise.all([fsL("handymen"),fsL("companies")]);
+  cos.forEach(function(c){CC.cos[c.id]=c;});
+  if(!hm.length){tb.innerHTML='<tr><td colspan="7" class="empty">Нет мастеров</td></tr>';return;}
+  tb.innerHTML=hm.map(function(h){
+    var coId=(h.companyIds||[])[0]||"";
+    var cn=(CC.cos[coId]||{}).name||coId||"—";
+    return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(h.name)+'</div>'+(h.name||"—")+'</div></td>'+
+      '<td class="muted">'+cn+'</td><td class="muted">'+(h.phone||"—")+'</td>'+
+      '<td class="muted">'+(h.skills||[]).slice(0,2).join(", ")+'</td>'+
+      '<td>'+(h.ratingAvg||0).toFixed(1)+' ★</td><td>'+(h.ordersCompleted||0)+'</td>'+
+      '<td>'+bdg(h.status||"active")+'</td>'+
+      '<td><button class="btn bs bsm" onclick="editHMGlobal(\''+h.id+'\',\''+coId+'\')">✏️</button></td>'+
+    '</tr>';
+  }).join("");
+}
+async function editHMGlobal(hmId,coId){
+  cdId=coId;
+  cdCards=await fsQ("nfc_cards",[{field:"companyId",value:coId}]);
+  var hm=await fsGet("handymen",hmId);
+  if(!hm)return;
+  cdHM=[hm];
+  document.getElementById("mHMT").textContent="Редактировать мастера";
+  document.getElementById("editHMId").value=hmId;
+  document.getElementById("hmName").value=hm.name||"";
+  document.getElementById("hmPhone").value=hm.phone||"";
+  document.getElementById("hmEmail").value=hm.email||"";
+  document.getElementById("hmSkills").value=(hm.skills||[]).join(", ");
+  document.getElementById("hmExp").value=hm.experienceYears||"";
+  await fillFreeCards(hm.assignedCardToken);
+  openModal("mAddHM");
+}
 
 // GEN CARDS
 async function genCards(){var cnt=parseInt(document.getElementById("genCnt").value);var pfx=document.getElementById("genPfx").value.trim();if(!cnt){toast("Введите количество");return;}var btn=document.getElementById("genBtn");btn.disabled=true;var prog=document.getElementById("genProg");var chars="abcdefghijklmnopqrstuvwxyz0123456789";var saved=0;for(var i=0;i<cnt;i++){var t=pfx?pfx+"-":"";for(var j=0;j<8;j++)t+=chars[Math.floor(Math.random()*chars.length)];var ok=await fsP("nfc_cards",t,{companyId:sv(cdId),status:sv("unassigned"),clientId:sv(""),handymanId:sv(""),createdAt:sv(new Date().toISOString())});if(ok)saved++;prog.textContent="Сохранено "+saved+" из "+cnt+"...";}btn.disabled=false;closeModal("mGenCards");toast("Создано "+saved+"!");await loadCDCards();}
