@@ -506,14 +506,17 @@ async function openCo(id) {
   btn.textContent = ok ? "⏸ Deactivate" : "▶ Activate";
   btn.className = "btn bsm " + (ok ? "bw" : "bg");
   document.querySelectorAll("#page-co-detail .fb").forEach(function(b, i) { b.classList.toggle("active", i === 0); });
-  await Promise.all([loadCDHM(), loadCDCards()]);
+  await loadCDCards();
 }
 
 async function loadCDHM() {
-  var tb = document.getElementById("cdHMBody");
-  tb.innerHTML = '<tr><td colspan="6" class="empty">Loading...</td></tr>';
   var hm = await fsQ("handymen", [{ field: "companyIds", value: cdId, op: "ARRAY_CONTAINS" }]);
   cdHM = hm;
+  renderCDHMTable(hm);
+}
+
+function renderCDHMTable(hm) {
+  var tb = document.getElementById("cdHMBody");
   if (!hm.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No handymen yet</td></tr>'; return; }
   tb.innerHTML = hm.map(function(h) {
     return '<tr>' +
@@ -535,37 +538,64 @@ async function loadCDHM() {
 async function loadCDCards() {
   var tb = document.getElementById("cdCardsBody");
   tb.innerHTML = '<tr><td colspan="8" class="empty">Loading...</td></tr>';
-  cdCards = await fsQ("nfc_cards", [{ field: "companyId", value: cdId }]);
+  var results = await Promise.all([
+    fsQ("nfc_cards", [{ field: "companyId", value: cdId }]),
+    fsQ("handymen", [{ field: "companyIds", value: cdId, op: "ARRAY_CONTAINS" }])
+  ]);
+  cdCards = results[0];
+  cdHM = results[1];
+  renderCDHMTable(cdHM);
+
+  // Build lookup: token → handyman name (from handyman records)
+  var hmByToken = {};
+  cdHM.forEach(function(h) { if (h.assignedCardToken) hmByToken[h.assignedCardToken] = h.name; });
+  // Also build lookup: handymanId → name (for cards that have handymanId field)
+  var hmById = {};
+  cdHM.forEach(function(h) { hmById[h.id] = h.name; });
+
   document.getElementById("cdCCnt").textContent = "(" + cdCards.length + ")";
-  var s = { t: cdCards.length, a: 0, u: 0, d: 0, as: 0 };
+  var s = { t: cdCards.length, u: 0, wh: 0, a: 0, d: 0 };
   cdCards.forEach(function(c) {
-    if (c.status === "active") s.a++;
-    if (c.status === "unassigned") s.u++;
-    if (c.status === "deactivated") s.d++;
-    if (c.status === "assigned") s.as++;
+    var isWithHM = c.status === "assigned" || !!hmByToken[c.id];
+    if (isWithHM) s.wh++;
+    else if (c.status === "active") s.a++;
+    else if (c.status === "deactivated") s.d++;
+    else s.u++;
   });
   document.getElementById("cdStats").innerHTML =
     '<div class="sb"><div class="sn">' + s.t + '</div><div class="sl">Total Cards</div></div>' +
     '<div class="sb"><div class="sn">' + s.u + '</div><div class="sl">Available</div></div>' +
-    '<div class="sb"><div class="sn">' + s.as + '</div><div class="sl">With Handymen</div></div>' +
+    '<div class="sb"><div class="sn">' + s.wh + '</div><div class="sl">With Handymen</div></div>' +
     '<div class="sb"><div class="sn">' + s.a + '</div><div class="sl">Activated by Clients</div></div>';
+  CC._hmByToken = hmByToken;
+  CC._hmById = hmById;
   renderCDCards();
 }
 
 function renderCDCards() {
   var tb = document.getElementById("cdCardsBody");
-  var fil = cdCards.filter(function(c) { return cdCF === "all" || c.status === cdCF; });
+  var hmByToken = CC._hmByToken || {};
+  var hmById = CC._hmById || {};
+  var fil = cdCards.filter(function(c) {
+    var isWithHM = c.status === "assigned" || !!hmByToken[c.id];
+    if (cdCF === "all") return true;
+    if (cdCF === "assigned") return isWithHM;
+    if (cdCF === "unassigned") return !isWithHM && c.status !== "active" && c.status !== "deactivated";
+    return c.status === cdCF;
+  });
   if (!fil.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No cards found</td></tr>'; return; }
-  var hmap = {};
-  cdHM.forEach(function(h) { if (h.assignedCardToken) hmap[h.assignedCardToken] = h.name; });
   tb.innerHTML = fil.map(function(c) {
     var url = BURL + "/c/" + c.id;
+    var isWithHM = c.status === "assigned" || !!hmByToken[c.id];
+    var displayStatus = isWithHM ? "assigned" : (c.status || "unassigned");
+    // Get handyman name: first try token lookup, then id lookup
+    var hmName = hmByToken[c.id] || (c.handymanId ? hmById[c.handymanId] : "") || "—";
     return '<tr>' +
       '<td><input type="checkbox" class="card-cb" value="' + c.id + '" onchange="onCBChange()" /></td>' +
       '<td class="mono">' + c.id + '</td>' +
       '<td><span class="uc" title="' + url + '">' + url + '</span></td>' +
-      '<td>' + bdg(c.status || "unassigned") + '</td>' +
-      '<td class="muted">' + (hmap[c.id] || "—") + '</td>' +
+      '<td>' + bdg(displayStatus) + '</td>' +
+      '<td class="muted">' + hmName + '</td>' +
       '<td class="muted">' + (c.clientId || "—") + '</td>' +
       '<td class="muted">' + fd(c.createdAt) + '</td>' +
       '<td><div style="display:flex;gap:4px">' +
