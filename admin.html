@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HandyCat Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+    /* LAYOUT */
+    .topbar { background: #fff; border-bottom: 1px solid #e8e8e8; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .topbar-logo { font-size: 17px; font-weight: 700; color: #111; display: flex; align-items: center; gap: 8px; }
+    .topbar-logo span { color: #185FA5; }
+    .topbar-nav { display: flex; gap: 4px; }
+    .nav-btn { padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: #666; transition: all 0.15s; }
+    .nav-btn:hover { background: #f0f2f5; color: #111; }
+    .nav-btn.active { background: #185FA5; color: #fff; }
+
+    .page { display: none; padding: 24px; max-width: 1000px; margin: 0 auto; }
+    .page.active { display: block; }
+
+    /* CARDS */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 18px; font-weight: 600; color: #111; }
+    .section-sub { font-size: 13px; color: #888; margin-top: 2px; }
+
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: #185FA5; color: #fff; }
+    .btn-danger { background: #fff; color: #D93025; border: 1px solid #f0c0bc; }
+    .btn-secondary { background: #fff; color: #333; border: 1px solid #e0e0e0; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+    .company-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 24px; }
+
+    .company-card { background: #fff; border-radius: 14px; border: 2px solid transparent; padding: 18px; cursor: pointer; transition: all 0.15s; }
+    .company-card:hover { border-color: #185FA5; box-shadow: 0 2px 12px rgba(24,95,165,0.1); }
+    .company-card.selected { border-color: #185FA5; background: #f0f6ff; }
+
+    .company-name { font-size: 15px; font-weight: 600; color: #111; margin-bottom: 4px; }
+    .company-meta { font-size: 13px; color: #888; }
+    .company-stats { display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+    .stat { text-align: center; }
+    .stat-num { font-size: 18px; font-weight: 600; color: #111; }
+    .stat-lbl { font-size: 11px; color: #aaa; }
+
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-unassigned { background: #FFF3CD; color: #856404; }
+    .badge-active { background: #D1FAE5; color: #065F46; }
+    .badge-deactivated { background: #F3F4F6; color: #6B7280; }
+
+    /* TABLE */
+    .table-card { background: #fff; border-radius: 14px; overflow: hidden; border: 1px solid #eee; }
+    .table-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 10px 16px; color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #f0f0f0; background: #fafafa; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f8f8f8; color: #333; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafeff; }
+
+    .token-text { font-family: monospace; font-size: 12px; color: #185FA5; }
+    .url-text { font-family: monospace; font-size: 11px; color: #888; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 16px; padding: 24px; width: 90%; max-width: 440px; }
+    .modal-title { font-size: 16px; font-weight: 600; color: #111; margin-bottom: 8px; }
+    .modal-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: #555; margin-bottom: 6px; }
+    .form-group input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+    .form-group input:focus { border-color: #185FA5; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    .empty-state { text-align: center; padding: 48px 20px; color: #bbb; }
+    .empty-state h3 { font-size: 16px; color: #888; margin-bottom: 6px; }
+
+    .loading-row td { text-align: center; padding: 32px; color: #aaa; }
+
+    .confirm-modal .modal { max-width: 360px; }
+    .confirm-modal .modal-title { color: #D93025; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 13px; z-index: 300; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+
+    .filter-row { display: flex; gap: 8px; align-items: center; }
+    .filter-btn { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid #e0e0e0; background: #fff; color: #666; transition: all 0.15s; }
+    .filter-btn.active { background: #185FA5; color: #fff; border-color: #185FA5; }
+
+    .back-btn { display: inline-flex; align-items: center; gap: 6px; color: #185FA5; font-size: 14px; font-weight: 500; cursor: pointer; margin-bottom: 16px; }
+    .back-btn:hover { opacity: 0.7; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">🪪 Handy<span>Cat</span> Admin</div>
+  <div class="topbar-nav">
+    <button class="nav-btn active" onclick="showPage('companies')">Компании</button>
+    <button class="nav-btn" onclick="showPage('cards')">Все карточки</button>
+  </div>
+</div>
+
+<!-- COMPANIES PAGE -->
+<div class="page active" id="page-companies">
+  <div class="section-header" style="margin-top:8px;">
+    <div>
+      <div class="section-title">Компании</div>
+      <div class="section-sub">Управление компаниями и их карточками</div>
+    </div>
+    <button class="btn btn-primary" onclick="openAddCompany()">+ Добавить компанию</button>
+  </div>
+
+  <div class="company-grid" id="companyGrid">
+    <div style="color:#aaa;font-size:14px;padding:16px;">Загружаем...</div>
+  </div>
+</div>
+
+<!-- COMPANY DETAIL PAGE -->
+<div class="page" id="page-company-detail">
+  <div class="back-btn" onclick="showPage('companies')">← Назад к компаниям</div>
+
+  <div class="section-header">
+    <div>
+      <div class="section-title" id="detailCompanyName">Компания</div>
+      <div class="section-sub" id="detailCompanyMeta"></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-secondary" onclick="exportCompanyCSV()">📥 CSV</button>
+      <button class="btn btn-primary" onclick="openGenerateCards()">+ Добавить карточки</button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div style="font-size:14px;font-weight:600;color:#111;">Карточки <span id="cardsCount" style="color:#888;font-weight:400;font-size:13px;"></span></div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="filterCards('all', this)">Все</button>
+        <button class="filter-btn" onclick="filterCards('unassigned', this)">Свободные</button>
+        <button class="filter-btn" onclick="filterCards('active', this)">Активные</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Токен</th>
+            <th>URL</th>
+            <th>Статус</th>
+            <th>Клиент</th>
+            <th>Создана</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody id="cardsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ALL CARDS PAGE -->
+<div class="page" id="page-cards">
+  <div class="section-header" style="margin-top:8px;">
+    <div>
+      <div class="section-title">Все карточки</div>
+      <div class="section-sub">Общий список всех NFC карточек</div>
+    </div>
+  </div>
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Токен</th>
+            <th>Компания</th>
+            <th>Статус</th>
+            <th>Клиент</th>
+            <th>Создана</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody id="allCardsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ADD COMPANY MODAL -->
+<div class="modal-overlay" id="modalAddCompany">
+  <div class="modal">
+    <div class="modal-title">Новая компания</div>
+    <div class="modal-sub">Заполните данные компании</div>
+    <div class="form-group"><label>Название *</label><input id="newCompanyName" placeholder="FixPro Services" /></div>
+    <div class="form-group"><label>Email</label><input id="newCompanyEmail" placeholder="info@fixpro.com" /></div>
+    <div class="form-group"><label>Телефон</label><input id="newCompanyPhone" placeholder="+380501234567" /></div>
+    <div class="form-group"><label>Локация</label><input id="newCompanyLocation" placeholder="Kyiv" /></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modalAddCompany')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveCompany()">Создать</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATE CARDS MODAL -->
+<div class="modal-overlay" id="modalGenerateCards">
+  <div class="modal">
+    <div class="modal-title">Добавить карточки</div>
+    <div class="modal-sub">Сгенерировать новые NFC карточки для компании</div>
+    <div class="form-group"><label>Количество карточек</label><input id="genCount" type="number" min="1" max="500" value="10" /></div>
+    <div class="form-group"><label>Префикс токена</label><input id="genPrefix" value="hc" /></div>
+    <div id="genStatus" style="font-size:13px;color:#888;margin-top:8px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modalGenerateCards')">Отмена</button>
+      <button class="btn btn-primary" id="genBtn" onclick="generateAndSave()">Создать</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay confirm-modal" id="modalConfirm">
+  <div class="modal">
+    <div class="modal-title" id="confirmTitle">Удалить карточку?</div>
+    <div class="modal-sub" id="confirmSub">Это действие нельзя отменить.</div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modalConfirm')">Отмена</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  var PROJECT_ID = "handycat-98416";
+  var API_KEY = "AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
+  var BASE_URL = "https://project-2i6ok.vercel.app";
+  var BASE = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents";
+
+  var currentCompanyId = null;
+  var currentCompanyCards = [];
+  var allCompanies = {};
+  var cardFilter = "all";
+
+  // ── FIRESTORE HELPERS ──────────────────────────────────────────
+  async function fsGet(col, id) {
+    var res = await fetch(BASE + "/" + col + "/" + id + "?key=" + API_KEY);
+    if (!res.ok) return null;
+    var d = await res.json();
+    return { id: d.name.split("/").pop(), ...parseFields(d.fields) };
+  }
+
+  async function fsList(col) {
+    var res = await fetch(BASE + "/" + col + "?key=" + API_KEY + "&pageSize=300");
+    if (!res.ok) return [];
+    var d = await res.json();
+    if (!d.documents) return [];
+    return d.documents.map(function(doc) {
+      return { id: doc.name.split("/").pop(), ...parseFields(doc.fields) };
+    });
+  }
+
+  async function fsQuery(col, filters) {
+    var body = {
+      structuredQuery: {
+        from: [{ collectionId: col }],
+        where: filters.length === 1 ? {
+          fieldFilter: { field: { fieldPath: filters[0].field }, op: "EQUAL", value: { stringValue: filters[0].value } }
+        } : {
+          compositeFilter: {
+            op: "AND",
+            filters: filters.map(function(f) {
+              return { fieldFilter: { field: { fieldPath: f.field }, op: "EQUAL", value: { stringValue: f.value } } };
+            })
+          }
+        },
+        limit: 500
+      }
+    };
+    var res = await fetch(BASE + ":runQuery?key=" + API_KEY, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) return [];
+    var rows = await res.json();
+    return rows.filter(function(r) { return r.document; }).map(function(r) {
+      return { id: r.document.name.split("/").pop(), ...parseFields(r.document.fields) };
+    });
+  }
+
+  async function fsPatch(col, id, fields) {
+    var body = { fields: fields };
+    var res = await fetch(BASE + "/" + col + "/" + id + "?key=" + API_KEY, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    return res.ok;
+  }
+
+  async function fsDelete(col, id) {
+    var res = await fetch(BASE + "/" + col + "/" + id + "?key=" + API_KEY, { method: "DELETE" });
+    return res.ok;
+  }
+
+  function parseFields(fields) {
+    if (!fields) return {};
+    var result = {};
+    Object.keys(fields).forEach(function(key) {
+      var val = fields[key];
+      if (val.stringValue !== undefined) result[key] = val.stringValue;
+      else if (val.integerValue !== undefined) result[key] = Number(val.integerValue);
+      else if (val.doubleValue !== undefined) result[key] = Number(val.doubleValue);
+      else if (val.booleanValue !== undefined) result[key] = val.booleanValue;
+      else if (val.arrayValue) result[key] = (val.arrayValue.values || []).map(function(v) { return v.stringValue || String(v.integerValue || ""); });
+      else result[key] = null;
+    });
+    return result;
+  }
+
+  function toStringValue(v) { return { stringValue: String(v || "") }; }
+
+  // ── UI HELPERS ─────────────────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+    document.querySelectorAll(".nav-btn").forEach(function(b) { b.classList.remove("active"); });
+    document.getElementById("page-" + name).classList.add("active");
+    if (name === "companies") { loadCompanies(); }
+    if (name === "cards") { loadAllCards(); }
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add("open"); }
+  function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+  function toast(msg) {
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(function() { el.classList.remove("show"); }, 2500);
+  }
+
+  function badgeHtml(status) {
+    var map = { unassigned: ["badge-unassigned", "Свободна"], active: ["badge-active", "Активна"], deactivated: ["badge-deactivated", "Деактивирована"] };
+    var s = map[status] || ["badge-deactivated", status || "—"];
+    return '<span class="badge ' + s[0] + '">' + s[1] + '</span>';
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleDateString("ru-RU");
+  }
+
+  // ── COMPANIES ──────────────────────────────────────────────────
+  async function loadCompanies() {
+    var grid = document.getElementById("companyGrid");
+    grid.innerHTML = '<div style="color:#aaa;font-size:14px;padding:16px;">Загружаем...</div>';
+    var companies = await fsList("companies");
+    allCompanies = {};
+    companies.forEach(function(c) { allCompanies[c.id] = c; });
+
+    if (companies.length === 0) {
+      grid.innerHTML = '<div class="empty-state"><h3>Нет компаний</h3><p>Добавьте первую компанию</p></div>';
+      return;
+    }
+
+    // Загружаем кол-во карточек для каждой компании
+    var cardsAll = await fsList("nfc_cards");
+    var cardsByCompany = {};
+    cardsAll.forEach(function(c) {
+      if (!cardsByCompany[c.companyId]) cardsByCompany[c.companyId] = { total: 0, active: 0, unassigned: 0 };
+      cardsByCompany[c.companyId].total++;
+      if (c.status === "active") cardsByCompany[c.companyId].active++;
+      if (c.status === "unassigned") cardsByCompany[c.companyId].unassigned++;
+    });
+
+    grid.innerHTML = companies.map(function(c) {
+      var stats = cardsByCompany[c.id] || { total: 0, active: 0, unassigned: 0 };
+      return '<div class="company-card" onclick="openCompany(\'' + c.id + '\')">' +
+        '<div class="company-name">' + (c.name || c.id) + '</div>' +
+        '<div class="company-meta">' + (c.email || "") + (c.location ? " · " + c.location : "") + '</div>' +
+        '<div class="company-stats">' +
+          '<div class="stat"><div class="stat-num">' + stats.total + '</div><div class="stat-lbl">Карточек</div></div>' +
+          '<div class="stat"><div class="stat-num">' + stats.active + '</div><div class="stat-lbl">Активных</div></div>' +
+          '<div class="stat"><div class="stat-num">' + stats.unassigned + '</div><div class="stat-lbl">Свободных</div></div>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  function openAddCompany() { openModal("modalAddCompany"); }
+
+  async function saveCompany() {
+    var name = document.getElementById("newCompanyName").value.trim();
+    if (!name) { toast("Введите название компании"); return; }
+    var id = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now().toString(36);
+    var ok = await fsPatch("companies", id, {
+      name: toStringValue(name),
+      email: toStringValue(document.getElementById("newCompanyEmail").value),
+      phone: toStringValue(document.getElementById("newCompanyPhone").value),
+      location: toStringValue(document.getElementById("newCompanyLocation").value),
+      createdAt: toStringValue(new Date().toISOString())
+    });
+    if (ok) { closeModal("modalAddCompany"); toast("Компания создана!"); loadCompanies(); }
+    else toast("Ошибка при создании");
+  }
+
+  // ── COMPANY DETAIL ─────────────────────────────────────────────
+  async function openCompany(companyId) {
+    currentCompanyId = companyId;
+    cardFilter = "all";
+    document.querySelectorAll(".filter-btn").forEach(function(b) { b.classList.remove("active"); });
+    document.querySelector(".filter-btn").classList.add("active");
+
+    showPage("company-detail");
+    var c = allCompanies[companyId] || { name: companyId };
+    document.getElementById("detailCompanyName").textContent = c.name || companyId;
+    document.getElementById("detailCompanyMeta").textContent = (c.email || "") + (c.phone ? " · " + c.phone : "");
+
+    await loadCompanyCards();
+  }
+
+  async function loadCompanyCards() {
+    var tbody = document.getElementById("cardsTableBody");
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="6">Загружаем карточки...</td></tr>';
+    currentCompanyCards = await fsQuery("nfc_cards", [{ field: "companyId", value: currentCompanyId }]);
+    document.getElementById("cardsCount").textContent = "(" + currentCompanyCards.length + ")";
+    renderCompanyCards();
+  }
+
+  function renderCompanyCards() {
+    var tbody = document.getElementById("cardsTableBody");
+    var filtered = currentCompanyCards.filter(function(c) {
+      if (cardFilter === "all") return true;
+      return c.status === cardFilter;
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:#aaa;">Нет карточек</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(function(card) {
+      var url = BASE_URL + "/c/" + card.id;
+      return '<tr>' +
+        '<td class="token-text">' + card.id + '</td>' +
+        '<td><span class="url-text" title="' + url + '">' + url + '</span></td>' +
+        '<td>' + badgeHtml(card.status) + '</td>' +
+        '<td style="color:#888;font-size:12px;">' + (card.clientId || "—") + '</td>' +
+        '<td style="color:#888;font-size:12px;">' + fmtDate(card.createdAt) + '</td>' +
+        '<td>' +
+          '<div style="display:flex;gap:6px;">' +
+            '<button class="btn btn-secondary btn-sm" onclick="copyUrl(\'' + url + '\')">📋</button>' +
+            (card.status === "active" ? '<button class="btn btn-secondary btn-sm" onclick="deactivateCard(\'' + card.id + '\')">⏸</button>' : '') +
+            '<button class="btn btn-danger btn-sm" onclick="confirmDelete(\'' + card.id + '\')">🗑</button>' +
+          '</div>' +
+        '</td>' +
+      '</tr>';
+    }).join("");
+  }
+
+  function filterCards(status, btn) {
+    cardFilter = status;
+    document.querySelectorAll(".filter-btn").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    renderCompanyCards();
+  }
+
+  function copyUrl(url) {
+    navigator.clipboard.writeText(url);
+    toast("URL скопирован!");
+  }
+
+  async function deactivateCard(cardId) {
+    var ok = await fsPatch("nfc_cards", cardId, { status: toStringValue("deactivated") });
+    if (ok) { toast("Карточка деактивирована"); await loadCompanyCards(); }
+  }
+
+  function confirmDelete(cardId) {
+    document.getElementById("confirmTitle").textContent = "Удалить карточку?";
+    document.getElementById("confirmSub").textContent = "Токен: " + cardId + ". Это действие нельзя отменить.";
+    openModal("modalConfirm");
+    document.getElementById("confirmOkBtn").onclick = async function() {
+      closeModal("modalConfirm");
+      var ok = await fsDelete("nfc_cards", cardId);
+      if (ok) { toast("Карточка удалена"); await loadCompanyCards(); }
+      else toast("Ошибка при удалении");
+    };
+  }
+
+  function exportCompanyCSV() {
+    var rows = ["Токен,URL,Статус,Клиент,Создана"];
+    currentCompanyCards.forEach(function(c) {
+      rows.push([c.id, BASE_URL + "/c/" + c.id, c.status || "", c.clientId || "", fmtDate(c.createdAt)].join(","));
+    });
+    var blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "cards-" + currentCompanyId + ".csv";
+    link.click();
+  }
+
+  // ── GENERATE CARDS ─────────────────────────────────────────────
+  function openGenerateCards() { openModal("modalGenerateCards"); }
+
+  async function generateAndSave() {
+    var count = parseInt(document.getElementById("genCount").value);
+    var prefix = document.getElementById("genPrefix").value.trim();
+    var btn = document.getElementById("genBtn");
+    var status = document.getElementById("genStatus");
+
+    if (!count || count < 1) { toast("Введите количество"); return; }
+    btn.disabled = true;
+    status.textContent = "Создаём...";
+
+    var chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    var saved = 0;
+
+    for (var i = 0; i < count; i++) {
+      var token = prefix ? prefix + "-" : "";
+      for (var j = 0; j < 8; j++) token += chars[Math.floor(Math.random() * chars.length)];
+
+      var ok = await fsPatch("nfc_cards", token, {
+        companyId: toStringValue(currentCompanyId),
+        status: toStringValue("unassigned"),
+        clientId: toStringValue(""),
+        createdAt: toStringValue(new Date().toISOString())
+      });
+      if (ok) saved++;
+      status.textContent = "Сохранено " + saved + " из " + count + "...";
+    }
+
+    btn.disabled = false;
+    closeModal("modalGenerateCards");
+    toast("Создано " + saved + " карточек!");
+    await loadCompanyCards();
+  }
+
+  // ── ALL CARDS ──────────────────────────────────────────────────
+  async function loadAllCards() {
+    var tbody = document.getElementById("allCardsBody");
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="6">Загружаем...</td></tr>';
+    var cards = await fsList("nfc_cards");
+    if (!Object.keys(allCompanies).length) {
+      var companies = await fsList("companies");
+      companies.forEach(function(c) { allCompanies[c.id] = c; });
+    }
+    if (cards.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:#aaa;">Нет карточек</td></tr>';
+      return;
+    }
+    tbody.innerHTML = cards.map(function(card) {
+      var url = BASE_URL + "/c/" + card.id;
+      var company = allCompanies[card.companyId];
+      return '<tr>' +
+        '<td class="token-text">' + card.id + '</td>' +
+        '<td style="font-size:13px;">' + (company ? company.name : card.companyId || "—") + '</td>' +
+        '<td>' + badgeHtml(card.status) + '</td>' +
+        '<td style="color:#888;font-size:12px;">' + (card.clientId || "—") + '</td>' +
+        '<td style="color:#888;font-size:12px;">' + fmtDate(card.createdAt) + '</td>' +
+        '<td><button class="btn btn-secondary btn-sm" onclick="copyUrl(\'' + url + '\')">📋 URL</button></td>' +
+      '</tr>';
+    }).join("");
+  }
+
+  // ── INIT ───────────────────────────────────────────────────────
+  loadCompanies();
+</script>
+</body>
+</html>
