@@ -339,6 +339,13 @@ async function fsP(c, id, fields) {
   var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields }) });
   return r.ok;
 }
+// Patch only specific fields without overwriting the whole document
+async function fsPatchFields(c, id, fields) {
+  var fieldPaths = Object.keys(fields).map(function(k) { return "updateMask.fieldPaths=" + k; }).join("&");
+  var url = FS + "/" + c + "/" + id + "?" + fieldPaths + "&key=" + AKEY;
+  var r = await fetch(url, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields }) });
+  return r.ok;
+}
 async function fsDel(c, id) {
   var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, { method: "DELETE" });
   return r.ok;
@@ -490,7 +497,7 @@ async function saveCo() {
 async function toggleCo() {
   var c = CC.cos[cdId];
   var ns = c.status === "inactive" ? "active" : "inactive";
-  var ok = await fsP("companies", cdId, { status: sv(ns) });
+  var ok = await fsPatchFields("companies", cdId, { status: sv(ns) });
   if (ok) { CC.cos[cdId].status = ns; openCo(cdId); toast("Status updated"); }
 }
 
@@ -634,7 +641,7 @@ async function bulkDelete() {
 }
 async function bulkDeactivate() {
   var sel = getSel(); if (!sel.length) return;
-  for (var i = 0; i < sel.length; i++) await fsP("nfc_cards", sel[i], { status: sv("deactivated") });
+  for (var i = 0; i < sel.length; i++) await fsPatchFields("nfc_cards", sel[i], { status: sv("deactivated") });
   toast("Deactivated " + sel.length + " cards"); await loadCDCards();
 }
 
@@ -649,7 +656,7 @@ function exportFreeCSV() {
   toast("CSV downloaded (" + f.length + " cards)");
 }
 
-async function deactCard(id) { var ok = await fsP("nfc_cards", id, { status: sv("deactivated") }); if (ok) { toast("Card deactivated"); await loadCDCards(); } }
+async function deactCard(id) { var ok = await fsPatchFields("nfc_cards", id, { status: sv("deactivated") }); if (ok) { toast("Card deactivated"); await loadCDCards(); } }
 function delCard(id) {
   cfm("Delete card?", "Token: " + id + ". This cannot be undone.", async function() {
     var ok = await fsDel("nfc_cards", id); if (ok) { toast("Card deleted"); await loadCDCards(); } else toast("Error deleting card");
@@ -704,7 +711,7 @@ async function saveHM() {
     assignedCardToken: sv(ct), ratingAvg: nv(0), reviewCount: nv(0),
     ordersCompleted: nv(0), status: sv("active"), createdAt: sv(new Date().toISOString())
   });
-  if (ok && ct) await fsP("nfc_cards", ct, { status: sv("assigned"), handymanId: sv(id) });
+  if (ok && ct) await fsPatchFields("nfc_cards", ct, { status: sv("assigned"), handymanId: sv(id) });
   if (ok) { closeModal("mAddHM"); toast(eid ? "Handyman updated!" : "Handyman added!"); await loadCDHM(); await loadCDCards(); }
   else toast("Error saving handyman");
 }
