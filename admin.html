@@ -241,7 +241,11 @@
       <div class="fg"><label>Phone</label><input id="coPhone" placeholder="+1 (555) 000-0000" /></div>
     </div>
     <div class="fg"><label>Description</label><textarea id="coDesc" placeholder="Brief description of the company..."></textarea></div>
-    <div class="ma"><button class="btn bs" onclick="closeModal('mAddCo')">Cancel</button><button class="btn bp" onclick="saveCo()">Save</button></div>
+    <div class="ma">
+      <button class="btn bd" id="deleteCoBtn" style="display:none;margin-right:auto" onclick="deleteCo()">🗑 Delete Company</button>
+      <button class="btn bs" onclick="closeModal('mAddCo')">Cancel</button>
+      <button class="btn bp" onclick="saveCo()">Save</button>
+    </div>
   </div>
 </div>
 
@@ -471,6 +475,7 @@ function searchCos(q) {
 function openAddCompany() {
   document.getElementById("mCoT").textContent = "New Company";
   document.getElementById("editCoId").value = "";
+  document.getElementById("deleteCoBtn").style.display = "none";
   ["coName", "coLoc", "coEmail", "coPhone", "coDesc"].forEach(function(id) { document.getElementById(id).value = ""; });
   openModal("mAddCo");
 }
@@ -479,6 +484,7 @@ function editCompany() {
   var c = CC.cos[cdId] || {};
   document.getElementById("mCoT").textContent = "Edit Company";
   document.getElementById("editCoId").value = cdId;
+  document.getElementById("deleteCoBtn").style.display = "flex";
   document.getElementById("coName").value = c.name || "";
   document.getElementById("coLoc").value = c.location || "";
   document.getElementById("coEmail").value = c.email || "";
@@ -508,6 +514,20 @@ async function toggleCo() {
   var ns = c.status === "inactive" ? "active" : "inactive";
   var ok = await fsPatchFields("companies", cdId, { status: sv(ns) });
   if (ok) { CC.cos[cdId].status = ns; openCo(cdId); toast("Status updated"); }
+}
+
+function deleteCo() {
+  var name = (CC.cos[cdId] || {}).name || cdId;
+  closeModal("mAddCo");
+  cfm(
+    "Delete \"" + name + "\"?",
+    "This will permanently delete the company. Cards and handymen data will remain but be unlinked.",
+    async function() {
+      var ok = await fsDel("companies", cdId);
+      if (ok) { toast("Company deleted"); nav("companies"); }
+      else toast("Error deleting company");
+    }
+  );
 }
 
 // ── COMPANY DETAIL ────────────────────────────────────────────
