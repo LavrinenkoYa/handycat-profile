@@ -379,89 +379,61 @@ async function registerClient(){
   var phone=document.getElementById("regPhone").value.trim();
   if(!name||!phone){toast("Please enter your name and phone number");return;}
   var btn=document.getElementById("regBtn");setLoading(btn,true);
-  var cid="client-"+Date.now().toString(36);
-  var now=new Date().toISOString();
-  var ok=await fsP("clients",cid,{name:sv(name),phone:sv(phone),email:sv(document.getElementById("regEmail").value),address:sv(document.getElementById("regAddress").value),ratingAvg:nv(0),reviewCount:nv(0),ordersCount:nv(0),createdAt:sv(now)});
-  if(!ok){setLoading(btn,false);toast("Something went wrong. Please try again.");return;}
-  await fsMerge("nfc_cards",S.token,{clientId:sv(cid),status:sv("active"),activatedAt:sv(now)});
-  S.client={id:cid,name:name,phone:phone,ratingAvg:0,reviewCount:0,ordersCount:0};
-  toast("Welcome to HandyCat! 🎉");
-  await loadProfile();
+  try {
+    var cid="client-"+Date.now().toString(36);
+    var now=new Date().toISOString();
+    var ok=await fsP("clients",cid,{name:sv(name),phone:sv(phone),email:sv(document.getElementById("regEmail").value),address:sv(document.getElementById("regAddress").value),ratingAvg:nv(0),reviewCount:nv(0),ordersCount:nv(0),createdAt:sv(now)});
+    if(!ok){setLoading(btn,false);toast("Something went wrong. Please try again.");return;}
+    await fsMerge("nfc_cards",S.token,{clientId:sv(cid),status:sv("active"),activatedAt:sv(now)});
+    S.client={id:cid,name:name,phone:phone,ratingAvg:0,reviewCount:0,ordersCount:0};
+    toast("Welcome to HandyCat! \uD83C\uDF89");
+    await loadProfile();
+  } catch(e) {
+    console.error("Register error:",e);
+    setLoading(btn,false);
+    toast("Connection error. Please try again.");
+  }
 }
 
 // ── PROFILE ───────────────────────────────────────────────────
 async function loadProfile(){
-  var c=S.client;
-  var orders=await fsQ("orders",[{field:"clientId",value:c.id}]);
-  orders.sort(function(a,b){return(b.createdAt||"").localeCompare(a.createdAt||"");});
-  S.orders=orders;
-  var hmIds={};
-  orders.forEach(function(o){if(o.handymanId&&o.handymanId!=="any")hmIds[o.handymanId]=true;});
-  var hmMap={};
-  await Promise.all(Object.keys(hmIds).map(async function(id){var h=await fsGet("handymen",id);if(h)hmMap[id]=h;}));
-  S.hmMap=hmMap;
-  var realOrds=orders.filter(function(o){return!o.isOnboarding;});
-  document.getElementById("profAv").textContent=ini(c.name);
-  document.getElementById("profName").textContent=c.name;
-  document.getElementById("profPhone").textContent=c.phone;
-  document.getElementById("profOrdCount").textContent=realOrds.length;
-  document.getElementById("profHMCount").textContent=Object.keys(hmIds).length;
-  var rat=c.ratingAvg||0,cnt=c.reviewCount||0,full=Math.round(rat);
-  document.getElementById("profStars").textContent="★".repeat(full)+"☆".repeat(5-full);
-  document.getElementById("profRatingN").textContent=cnt>0?rat.toFixed(1):"";
-  document.getElementById("profRatingC").textContent=cnt>0?"("+cnt+" reviews)":"No ratings yet";
-  document.getElementById("profRatingStat").textContent=cnt>0?rat.toFixed(1):"—";
-
-  // Pending review banner
-  var pending=orders.filter(function(o){return o.status==="completed"&&!o.clientRating&&!o.isOnboarding;});
-  var ps=document.getElementById("pendingSection");
-  if(pending.length){
-    var o=pending[0];var hm=hmMap[o.handymanId]||{};
-    ps.innerHTML='<div class="order-card pending-r" style="margin:10px 12px 0" onclick="showRate(\''+o.id+'\')">'+
-      '<div class="oc-head"><span class="oc-badge b-review">⭐ Rate this job</span><span class="oc-date">'+fd(o.completedAt)+'</span></div>'+
-      '<div class="oc-cat">'+o.category+'</div>'+
-      (hm.name?'<div class="oc-hm-row"><div class="oc-hm"><div class="av-xs">'+ini(hm.name)+'</div><span class="oc-hm-name">'+hm.name+'</span></div><span style="font-size:12px;color:#185FA5;font-weight:500">Leave review →</span></div>':"")+
-    '</div>';
-  } else ps.innerHTML="";
-
-  // Active
-  var active=orders.filter(function(o){return o.status==="new"||o.status==="in_progress";});
-  var as=document.getElementById("activeSection");
-  if(active.length){
-    as.innerHTML='<div style="padding:10px 12px 4px;font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em">Active</div>'+
-      active.map(function(o){
-        var hm=hmMap[o.handymanId]||{};
-        var isPublic=o.isPublic;
-        return'<div class="order-card active-o" style="margin:0 12px 8px" onclick="showOrderDetail(\''+o.id+'\')">'+
-          '<div class="oc-head"><span class="oc-badge '+(o.status==="new"?"b-new":"b-progress")+'">'+(o.status==="new"?"New":"In Progress")+'</span><span class="oc-date">'+fd(o.createdAt)+'</span></div>'+
-          '<div class="oc-cat">'+o.category+'</div>'+
-          '<div class="oc-hm-row">'+
-            (isPublic?'<div style="font-size:12px;color:#8B5CF6;font-weight:500">🔍 Finding a handyman...</div>':
-              (hm.name?'<div class="oc-hm"><div class="av-xs">'+ini(hm.name)+'</div><span class="oc-hm-name">'+hm.name+'</span></div>':"")+
-            '')+
-            '<span style="font-size:12px;color:#185FA5">View →</span>'+
-          '</div>'+
-        '</div>';
-      }).join("");
-  } else as.innerHTML="";
-
-  // History
-  var hist=orders.filter(function(o){return o.status==="completed"&&!o.isOnboarding;});
-  var hl=document.getElementById("historyList");
-  if(!hist.length){hl.innerHTML='<div class="empty-state"><div class="ei">📋</div><p>No completed orders yet.</p></div>';return;}
-  hl.innerHTML=hist.map(function(o){
-    var hm=hmMap[o.handymanId]||{};
-    return'<div class="order-card" onclick="showOrderDetail(\''+o.id+'\')">'+
-      '<div class="oc-head"><span class="oc-badge b-done">Completed</span><span class="oc-date">'+fd(o.completedAt||o.createdAt)+'</span></div>'+
-      '<div class="oc-cat">'+o.category+'</div>'+
-      (o.description?'<div class="oc-desc">'+(o.description).slice(0,80)+(o.description.length>80?"...":"")+'</div>':"")+
-      '<div class="oc-hm-row">'+
-        (hm.name?'<div class="oc-hm"><div class="av-xs">'+ini(hm.name)+'</div><span class="oc-hm-name">'+hm.name+'</span></div>':'<div></div>')+
-        (o.clientRating?'<span class="oc-stars">'+starsHtml(o.clientRating,12)+'</span>':'<span style="font-size:12px;color:#aaa">Not rated</span>')+
-      '</div>'+
-    '</div>';
-  }).join("");
-  show("s-profile");
+  try {
+    var c=S.client;
+    var orders=await fsQ("orders",[{field:"clientId",value:c.id}]);
+    orders.sort(function(a,b){return(b.createdAt||"").localeCompare(a.createdAt||"");});
+    S.orders=orders;
+    var hmIds={};
+    orders.forEach(function(o){if(o.handymanId&&o.handymanId!=="any")hmIds[o.handymanId]=true;});
+    var hmMap={};
+    await Promise.all(Object.keys(hmIds).map(async function(id){var h=await fsGet("handymen",id);if(h)hmMap[id]=h;}));
+    S.hmMap=hmMap;
+    var realOrds=orders.filter(function(o){return!o.isOnboarding;});
+    document.getElementById("profAv").textContent=ini(c.name);
+    document.getElementById("profName").textContent=c.name;
+    document.getElementById("profPhone").textContent=c.phone;
+    document.getElementById("profOrdCount").textContent=realOrds.length;
+    document.getElementById("profHMCount").textContent=Object.keys(hmIds).length;
+    var rat=c.ratingAvg||0,cnt=c.reviewCount||0,full=Math.round(rat);
+    document.getElementById("profStars").textContent="★".repeat(full)+"☆".repeat(5-full);
+    document.getElementById("profRatingN").textContent=cnt>0?rat.toFixed(1):"";
+    document.getElementById("profRatingC").textContent=cnt>0?"("+cnt+" reviews)":"No ratings yet";
+    document.getElementById("profRatingStat").textContent=cnt>0?rat.toFixed(1):"—";
+    var pending=orders.filter(function(o){return o.status==="completed"&&!o.clientRating&&!o.isOnboarding;});
+    var ps=document.getElementById("pendingSection");
+    if(pending.length){var o=pending[0];var hm=hmMap[o.handymanId]||{};ps.innerHTML='<div class="order-card pending-r" style="margin:10px 12px 0" onclick="showRate(\''+o.id+'\')"><div class="oc-head"><span class="oc-badge b-review">&#x2B50; Rate this job</span><span class="oc-date">'+fd(o.completedAt)+'</span></div><div class="oc-cat">'+o.category+'</div>'+(hm.name?'<div class="oc-hm-row"><div class="oc-hm"><div class="av-xs">'+ini(hm.name)+'</div><span class="oc-hm-name">'+hm.name+'</span></div><span style="font-size:12px;color:#185FA5;font-weight:500">Leave review &#x2192;</span></div>':"")+' </div>';}else ps.innerHTML="";
+    var active=orders.filter(function(o){return o.status==="new"||o.status==="in_progress";});
+    var as=document.getElementById("activeSection");
+    if(active.length){as.innerHTML='<div style="padding:10px 12px 4px;font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em">Active</div>'+active.map(function(o){var hm=hmMap[o.handymanId]||{};return'<div class="order-card active-o" style="margin:0 12px 8px" onclick="showOrderDetail(\''+o.id+'\')"><div class="oc-head"><span class="oc-badge '+(o.status==="new"?"b-new":"b-progress")+'">'+(o.status==="new"?"New":"In Progress")+'</span><span class="oc-date">'+fd(o.createdAt)+'</span></div><div class="oc-cat">'+o.category+'</div><div class="oc-hm-row">'+(o.isPublic?'<div style="font-size:12px;color:#8B5CF6;font-weight:500">&#x1F50D; Finding a handyman...</div>':(hm.name?'<div class="oc-hm"><div class="av-xs">'+ini(hm.name)+'</div><span class="oc-hm-name">'+hm.name+'</span></div>':""))+'<span style="font-size:12px;color:#185FA5">View &#x2192;</span></div></div>';}).join("");}else as.innerHTML="";
+    var hist=orders.filter(function(o){return o.status==="completed"&&!o.isOnboarding;});
+    var hl=document.getElementById("historyList");
+    if(!hist.length){hl.innerHTML='<div class="empty-state"><div class="ei">&#x1F4CB;</div><p>No completed orders yet.</p></div>';}
+    else{hl.innerHTML=hist.map(function(o){var hm=hmMap[o.handymanId]||{};return'<div class="order-card" onclick="showOrderDetail(\''+o.id+'\')"><div class="oc-head"><span class="oc-badge b-done">Completed</span><span class="oc-date">'+fd(o.completedAt||o.createdAt)+'</span></div><div class="oc-cat">'+o.category+'</div>'+(o.description?'<div class="oc-desc">'+(o.description).slice(0,80)+(o.description.length>80?"...":"")+'</div>':"")+' <div class="oc-hm-row">'+(hm.name?'<div class="oc-hm"><div class="av-xs">'+ini(hm.name)+'</div><span class="oc-hm-name">'+hm.name+'</span></div>':'<div></div>')+(o.clientRating?'<span class="oc-stars">'+starsHtml(o.clientRating,12)+'</span>':'<span style="font-size:12px;color:#aaa">Not rated</span>')+'</div></div>';}).join("");}
+    show("s-profile");
+  } catch(e) {
+    console.error("loadProfile error:",e);
+    // Still show profile even if something fails
+    show("s-profile");
+  }
 }
 
 function showProfile(){show("s-profile");}
