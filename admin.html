@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -43,7 +43,6 @@
     .bi{background:#F3F4F6;color:#6B7280}
     .bu{background:#FEF3C7;color:#92400E}
     .bbl{background:#DBEAFE;color:#1E40AF}
-    .bred{background:#FEE2E2;color:#991B1B}
     table{width:100%;border-collapse:collapse;font-size:13px}
     th{text-align:left;padding:9px 14px;color:#888;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #f0f0f0;background:#fafafa}
     td{padding:11px 14px;border-bottom:1px solid #f8f8f8;color:#333;vertical-align:middle}
@@ -87,14 +86,17 @@
     .sb .sn{font-size:22px;font-weight:600;color:#111}
     .sb .sl{font-size:12px;color:#888;margin-top:2px}
     .av{width:32px;height:32px;border-radius:50%;background:#B5D4F4;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#0C447C;flex-shrink:0}
-    .di{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+    .di{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
     .di .dl{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.04em}
     .di .dv{font-size:14px;color:#111;margin-top:2px}
     .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:500;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
     .toast.show{opacity:1}
     .empty{text-align:center;padding:36px;color:#bbb;font-size:14px}
-    .sdiv{font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;padding:14px 0 8px}
-    @media(max-width:600px){.sr{grid-template-columns:1fr 1fr}.fgr{grid-template-columns:1fr}.di{grid-template-columns:1fr}}
+    .search-input{display:block;width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none;background:#fff}
+    .search-input:focus{border-color:#185FA5}
+    .bulk-bar{display:none;padding:10px 18px;background:#EFF6FF;border-bottom:1px solid #DBEAFE;align-items:center;gap:10px;flex-wrap:wrap}
+    .bulk-bar.show{display:flex}
+    @media(max-width:600px){.sr{grid-template-columns:1fr 1fr}.fgr{grid-template-columns:1fr}.di{grid-template-columns:1fr 1fr}}
   </style>
 </head>
 <body>
@@ -102,10 +104,10 @@
 <div class="auth-screen show" id="authScreen">
   <div class="auth-box">
     <div class="auth-logo">🪪 Handy<span>Cat</span></div>
-    <div class="auth-sub">Панель управления</div>
-    <div class="auth-err" id="authErr">Неверный пароль</div>
-    <div class="fg"><label>Пароль</label><input type="password" id="authPass" placeholder="Введите пароль" onkeydown="if(event.key==='Enter')login()" /></div>
-    <button class="btn bp" style="width:100%;justify-content:center;padding:13px" onclick="login()">Войти</button>
+    <div class="auth-sub">Admin Dashboard</div>
+    <div class="auth-err" id="authErr">Incorrect password. Please try again.</div>
+    <div class="fg"><label>Password</label><input type="password" id="authPass" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')login()" /></div>
+    <button class="btn bp" style="width:100%;justify-content:center;padding:13px" onclick="login()">Sign In</button>
   </div>
 </div>
 
@@ -113,450 +115,793 @@
   <div class="topbar">
     <div class="topbar-logo">🪪 Handy<span>Cat</span></div>
     <div class="topbar-nav">
-      <button class="nb active" onclick="nav('companies')">Компании</button>
-      <button class="nb" onclick="nav('handymen')">Мастера</button>
-      <button class="nb" onclick="nav('clients')">Клиенты</button>
-      <button class="nb" onclick="nav('orders')">Заказы</button>
+      <button class="nb active" onclick="nav('companies')">Companies</button>
+      <button class="nb" onclick="nav('handymen')">Handymen</button>
+      <button class="nb" onclick="nav('clients')">Clients</button>
+      <button class="nb" onclick="nav('orders')">Orders</button>
     </div>
-    <button class="btn bs bsm" onclick="logout()">Выйти</button>
+    <button class="btn bs bsm" onclick="logout()">Sign Out</button>
   </div>
 
+  <!-- COMPANIES -->
   <div class="page active" id="page-companies">
-    <div class="ph" style="margin-top:8px"><div><h2>Компании</h2><p>Управление компаниями-клиентами</p></div><button class="btn bp" onclick="openAddCompany()">+ Добавить</button></div>
-    <input placeholder="🔍 Поиск по названию..." oninput="searchCos(this.value)" style="display:block;width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none" />
-    <div class="cgrid" id="coGrid"><div class="muted" style="padding:16px">Загружаем...</div></div>
+    <div class="ph" style="margin-top:8px">
+      <div><h2>Companies</h2><p>Manage client companies</p></div>
+      <button class="btn bp" onclick="openAddCompany()">+ Add Company</button>
+    </div>
+    <input class="search-input" placeholder="🔍 Search by name or location..." oninput="searchCos(this.value)" />
+    <div class="cgrid" id="coGrid"><div class="muted" style="padding:16px">Loading...</div></div>
   </div>
 
+  <!-- COMPANY DETAIL -->
   <div class="page" id="page-co-detail">
-    <div class="back" onclick="nav('companies')">← Назад</div>
+    <div class="back" onclick="nav('companies')">← Back to Companies</div>
     <div class="ph">
       <div><h2 id="cdName">—</h2><p id="cdMeta">—</p></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn bs bsm" onclick="editCompany()">✏️ Изменить</button>
-        <button class="btn bsm" id="cdToggleBtn" onclick="toggleCo()">⏸ Деактивировать</button>
-        <button class="btn bs bsm" onclick="exportFreeCSV()">📥 CSV (свободные)</button>
-        <button class="btn bp bsm" onclick="openModal('mGenCards')">+ Карточки</button>
+        <button class="btn bs bsm" onclick="editCompany()">✏️ Edit</button>
+        <button class="btn bsm" id="cdToggleBtn" onclick="toggleCo()">⏸ Deactivate</button>
+        <button class="btn bs bsm" onclick="exportFreeCSV()">📥 CSV (available)</button>
+        <button class="btn bp bsm" onclick="openModal('mGenCards')">+ Add Cards</button>
       </div>
     </div>
     <div class="sr" id="cdStats"></div>
     <div class="card">
-      <div class="ch"><h3>Мастера компании</h3><button class="btn bp bsm" onclick="openAddHM()">+ Добавить мастера</button></div>
-      <div class="tw"><table><thead><tr><th>Имя</th><th>Телефон</th><th>Навыки</th><th>Карточка</th><th>Статус</th><th></th></tr></thead><tbody id="cdHMBody"></tbody></table></div>
+      <div class="ch"><h3>Handymen</h3><button class="btn bp bsm" onclick="openAddHM()">+ Add Handyman</button></div>
+      <div class="tw"><table><thead><tr><th>Name</th><th>Phone</th><th>Skills</th><th>Card Token</th><th>Status</th><th></th></tr></thead><tbody id="cdHMBody"></tbody></table></div>
     </div>
     <div class="card">
       <div class="ch">
-        <h3>NFC Карточки <span id="cdCCnt" class="muted"></span></h3>
+        <h3>NFC Cards <span id="cdCCnt" class="muted"></span></h3>
         <div class="fl">
-          <button class="fb active" onclick="filterCards('all',this)">Все</button>
-          <button class="fb" onclick="filterCards('unassigned',this)">Свободные</button>
-          <button class="fb" onclick="filterCards('assigned',this)">У мастеров</button>
-          <button class="fb" onclick="filterCards('active',this)">Активные</button>
-          <button class="fb" onclick="filterCards('deactivated',this)">Деактивированные</button>
+          <button class="fb active" onclick="filterCards('all',this)">All</button>
+          <button class="fb" onclick="filterCards('unassigned',this)">Available</button>
+          <button class="fb" onclick="filterCards('assigned',this)">With Handymen</button>
+          <button class="fb" onclick="filterCards('active',this)">Activated</button>
+          <button class="fb" onclick="filterCards('deactivated',this)">Deactivated</button>
         </div>
       </div>
-      <div id="bulkBar" style="display:none;padding:10px 18px;background:#EFF6FF;border-bottom:1px solid #DBEAFE;display:none;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="bulk-bar" id="bulkBar">
         <span id="bulkCount" style="font-size:13px;font-weight:600;color:#1E40AF"></span>
-        <button class="btn bd bsm" onclick="bulkDelete()">🗑 Удалить выбранные</button>
-        <button class="btn bw bsm" onclick="bulkDeactivate()">⏸ Деактивировать</button>
-        <button class="btn bs bsm" onclick="clearSelection()">✕ Отмена</button>
+        <button class="btn bd bsm" onclick="bulkDelete()">🗑 Delete Selected</button>
+        <button class="btn bw bsm" onclick="bulkDeactivate()">⏸ Deactivate Selected</button>
+        <button class="btn bs bsm" onclick="clearSel()">✕ Clear</button>
       </div>
-      <div class="tw"><table><thead><tr><th style="width:36px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" /></th><th>Токен</th><th>URL</th><th>Статус</th><th>Мастер</th><th>Клиент</th><th>Создана</th><th></th></tr></thead><tbody id="cdCardsBody"></tbody></table></div>
+      <div class="tw"><table><thead><tr><th style="width:36px"><input type="checkbox" id="selAll" onchange="toggleSelAll(this)" /></th><th>Token</th><th>URL</th><th>Status</th><th>Handyman</th><th>Client</th><th>Created</th><th></th></tr></thead><tbody id="cdCardsBody"></tbody></table></div>
     </div>
   </div>
 
+  <!-- HANDYMEN -->
   <div class="page" id="page-handymen">
-    <div class="ph" style="margin-top:8px"><div><h2>Все мастера</h2><p>Полный список хенди менов</p></div></div>
-    <input class="search-input" id="hmSearch" placeholder="🔍 Поиск по имени..." oninput="searchHM(this.value)" style="display:block;width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none" />
-    <div class="card"><div class="tw"><table><thead><tr><th>Имя</th><th>Компания</th><th>Телефон</th><th>Навыки</th><th>Рейтинг</th><th>Заказов</th><th>Статус</th><th></th></tr></thead><tbody id="hmBody"></tbody></table></div></div>
+    <div class="ph" style="margin-top:8px"><div><h2>All Handymen</h2><p>Full list of service professionals</p></div></div>
+    <input class="search-input" placeholder="🔍 Search by name or phone..." oninput="searchHM(this.value)" />
+    <div class="card"><div class="tw"><table><thead><tr><th>Name</th><th>Company</th><th>Phone</th><th>Skills</th><th>Rating</th><th>Jobs</th><th>Status</th><th></th></tr></thead><tbody id="hmBody"></tbody></table></div></div>
   </div>
 
+  <!-- HANDYMAN DETAIL -->
   <div class="page" id="page-hm-detail">
-    <div class="back" id="hmDetailBack" onclick="nav('handymen')">← Назад</div>
+    <div class="back" id="hmBackBtn">← Back</div>
     <div class="ph">
       <div style="display:flex;align-items:center;gap:14px">
-        <div id="hmDetailAvatar" style="width:56px;height:56px;border-radius:50%;background:#B5D4F4;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#0C447C;flex-shrink:0"></div>
-        <div><h2 id="hmDetailName">—</h2><p id="hmDetailMeta">—</p></div>
+        <div id="hmDetAvatar" style="width:56px;height:56px;border-radius:50%;background:#B5D4F4;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#0C447C;flex-shrink:0"></div>
+        <div><h2 id="hmDetName">—</h2><p id="hmDetMeta">—</p></div>
       </div>
-      <button class="btn bs bsm" id="hmDetailEditBtn">✏️ Редактировать</button>
+      <button class="btn bs bsm" id="hmDetEditBtn">✏️ Edit</button>
     </div>
-    <div class="sr" id="hmDetailStats"></div>
-    <div class="di" id="hmDetailInfo" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px"></div>
+    <div class="sr" id="hmDetStats"></div>
+    <div class="di" id="hmDetInfo"></div>
     <div class="card">
-      <div class="ch"><h3>История заказов</h3></div>
-      <div class="tw"><table><thead><tr><th>Дата</th><th>Клиент</th><th>Категория</th><th>Статус</th><th>Оценка</th><th>Цена</th></tr></thead><tbody id="hmDetailOrders"></tbody></table></div>
+      <div class="ch"><h3>Job History</h3></div>
+      <div class="tw"><table><thead><tr><th>Date</th><th>Client</th><th>Category</th><th>Status</th><th>Rating</th><th>Price</th></tr></thead><tbody id="hmDetOrders"></tbody></table></div>
     </div>
   </div>
 
+  <!-- CLIENTS -->
   <div class="page" id="page-clients">
-    <div class="ph" style="margin-top:8px"><div><h2>Клиенты</h2><p>Все зарегистрированные клиенты</p></div></div>
-    <input class="search-input" id="clSearch" placeholder="🔍 Поиск по имени или телефону..." oninput="searchCl(this.value)" style="display:block;width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none" />
-    <div class="card"><div class="tw"><table><thead><tr><th>Имя</th><th>Телефон</th><th>Email</th><th>Адрес</th><th>Заказов</th><th>Зарег.</th><th></th></tr></thead><tbody id="clBody"></tbody></table></div></div>
+    <div class="ph" style="margin-top:8px"><div><h2>Clients</h2><p>All registered clients</p></div></div>
+    <input class="search-input" placeholder="🔍 Search by name or phone..." oninput="searchCl(this.value)" />
+    <div class="card"><div class="tw"><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Orders</th><th>Registered</th><th></th></tr></thead><tbody id="clBody"></tbody></table></div></div>
   </div>
 
+  <!-- CLIENT DETAIL -->
   <div class="page" id="page-cl-detail">
-    <div class="back" onclick="nav('clients')">← Назад к клиентам</div>
+    <div class="back" onclick="nav('clients')">← Back to Clients</div>
     <div class="ph"><div><h2 id="clName">—</h2><p id="clMeta">—</p></div></div>
     <div class="di" id="clInfo"></div>
-    <div class="sdiv">История заказов</div>
-    <div class="card"><div class="tw"><table><thead><tr><th>Дата</th><th>Категория</th><th>Мастер</th><th>Статус</th><th>Цена</th></tr></thead><tbody id="clOBody"></tbody></table></div></div>
+    <div style="font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;padding:14px 0 8px">Order History</div>
+    <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Category</th><th>Handyman</th><th>Status</th><th>Price</th></tr></thead><tbody id="clOBody"></tbody></table></div></div>
   </div>
 
+  <!-- ORDERS -->
   <div class="page" id="page-orders">
     <div class="ph" style="margin-top:8px">
-      <div><h2>Заказы</h2><p>Все заказы в системе</p></div>
+      <div><h2>Orders</h2><p>All service orders</p></div>
       <div class="fl">
-        <button class="fb active" onclick="filterOrders('all',this)">Все</button>
-        <button class="fb" onclick="filterOrders('new',this)">Новые</button>
-        <button class="fb" onclick="filterOrders('in_progress',this)">В работе</button>
-        <button class="fb" onclick="filterOrders('completed',this)">Завершены</button>
+        <button class="fb active" onclick="filterOrds('all',this)">All</button>
+        <button class="fb" onclick="filterOrds('new',this)">New</button>
+        <button class="fb" onclick="filterOrds('in_progress',this)">In Progress</button>
+        <button class="fb" onclick="filterOrds('completed',this)">Completed</button>
       </div>
     </div>
-    <div class="card"><div class="tw"><table><thead><tr><th>Дата</th><th>Клиент</th><th>Мастер</th><th>Компания</th><th>Категория</th><th>Статус</th><th>Цена</th></tr></thead><tbody id="ordBody"></tbody></table></div></div>
+    <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Client</th><th>Handyman</th><th>Company</th><th>Category</th><th>Status</th><th>Price</th></tr></thead><tbody id="ordBody"></tbody></table></div></div>
   </div>
 </div>
 
-<!-- MODALS -->
+<!-- ADD/EDIT COMPANY -->
 <div class="overlay" id="mAddCo">
   <div class="modal">
-    <div class="mt" id="mCoT">Новая компания</div><div class="ms">Заполните данные</div>
+    <div class="mt" id="mCoT">New Company</div><div class="ms">Fill in company details</div>
     <input type="hidden" id="editCoId" />
-    <div class="fgr"><div class="fg"><label>Название *</label><input id="coName" placeholder="FixPro Services" /></div><div class="fg"><label>Локация</label><input id="coLoc" placeholder="Kyiv" /></div></div>
-    <div class="fgr"><div class="fg"><label>Email</label><input id="coEmail" placeholder="info@company.com" /></div><div class="fg"><label>Телефон</label><input id="coPhone" placeholder="+380501234567" /></div></div>
-    <div class="fg"><label>Описание</label><textarea id="coDesc" placeholder="Кратко о компании..."></textarea></div>
-    <div class="ma"><button class="btn bs" onclick="closeModal('mAddCo')">Отмена</button><button class="btn bp" onclick="saveCo()">Сохранить</button></div>
+    <div class="fgr">
+      <div class="fg"><label>Company Name *</label><input id="coName" placeholder="FixPro Services" /></div>
+      <div class="fg"><label>Location / City</label><input id="coLoc" placeholder="New York, NY" /></div>
+    </div>
+    <div class="fgr">
+      <div class="fg"><label>Email</label><input id="coEmail" placeholder="info@fixpro.com" /></div>
+      <div class="fg"><label>Phone</label><input id="coPhone" placeholder="+1 (555) 000-0000" /></div>
+    </div>
+    <div class="fg"><label>Description</label><textarea id="coDesc" placeholder="Brief description of the company..."></textarea></div>
+    <div class="ma"><button class="btn bs" onclick="closeModal('mAddCo')">Cancel</button><button class="btn bp" onclick="saveCo()">Save</button></div>
   </div>
 </div>
 
+<!-- ADD/EDIT HANDYMAN -->
 <div class="overlay" id="mAddHM">
   <div class="modal">
-    <div class="mt" id="mHMT">Новый мастер</div><div class="ms">Данные хенди мена</div>
+    <div class="mt" id="mHMT">New Handyman</div><div class="ms">Enter professional's details</div>
     <input type="hidden" id="editHMId" />
-    <div class="fgr"><div class="fg"><label>Имя *</label><input id="hmName" placeholder="Иван Петров" /></div><div class="fg"><label>Телефон</label><input id="hmPhone" placeholder="+380501234567" /></div></div>
-    <div class="fgr"><div class="fg"><label>Email</label><input id="hmEmail" placeholder="ivan@mail.com" /></div><div class="fg"><label>Опыт (лет)</label><input id="hmExp" type="number" min="0" placeholder="3" /></div></div>
-    <div class="fg"><label>Навыки (через запятую)</label><input id="hmSkills" placeholder="Сантехника, Электрика, Плитка" /></div>
-    <div class="fg"><label>Назначить свободную карточку</label><select id="hmCard"><option value="">— без карточки —</option></select></div>
-    <div class="ma"><button class="btn bs" onclick="closeModal('mAddHM')">Отмена</button><button class="btn bp" onclick="saveHM()">Сохранить</button></div>
+    <div class="fgr">
+      <div class="fg"><label>Full Name *</label><input id="hmName" placeholder="John Smith" /></div>
+      <div class="fg"><label>Phone</label><input id="hmPhone" placeholder="+1 (555) 000-0000" /></div>
+    </div>
+    <div class="fgr">
+      <div class="fg"><label>Email</label><input id="hmEmail" placeholder="john@email.com" /></div>
+      <div class="fg"><label>Years of Experience</label><input id="hmExp" type="number" min="0" placeholder="5" /></div>
+    </div>
+    <div class="fg"><label>Skills (comma separated)</label><input id="hmSkills" placeholder="Plumbing, Electrical, Painting" /></div>
+    <div class="fg"><label>Assign Available Card</label><select id="hmCard"><option value="">— No card assigned —</option></select></div>
+    <div class="ma"><button class="btn bs" onclick="closeModal('mAddHM')">Cancel</button><button class="btn bp" onclick="saveHM()">Save</button></div>
   </div>
 </div>
 
+<!-- GENERATE CARDS -->
 <div class="overlay" id="mGenCards">
   <div class="modal">
-    <div class="mt">Добавить карточки</div><div class="ms" id="mGenSub">Для компании</div>
-    <div class="fgr"><div class="fg"><label>Количество</label><input id="genCnt" type="number" min="1" max="500" value="10" /></div><div class="fg"><label>Префикс токена</label><input id="genPfx" value="hc" /></div></div>
+    <div class="mt">Generate NFC Cards</div><div class="ms" id="mGenSub">Create a batch of cards</div>
+    <div class="fgr">
+      <div class="fg"><label>Number of Cards</label><input id="genCnt" type="number" min="1" max="500" value="10" /></div>
+      <div class="fg"><label>Token Prefix</label><input id="genPfx" value="hc" /></div>
+    </div>
     <div id="genProg" style="font-size:13px;color:#888;min-height:18px"></div>
-    <div class="ma"><button class="btn bs" onclick="closeModal('mGenCards')">Отмена</button><button class="btn bp" id="genBtn" onclick="genCards()">Создать</button></div>
+    <div class="ma"><button class="btn bs" onclick="closeModal('mGenCards')">Cancel</button><button class="btn bp" id="genBtn" onclick="genCards()">Generate</button></div>
   </div>
 </div>
 
+<!-- CONFIRM -->
 <div class="overlay" id="mConfirm">
   <div class="modal">
-    <div class="mt" id="cfTitle" style="color:#D93025">Подтвердите</div><div class="ms" id="cfSub"></div>
-    <div class="ma"><button class="btn bs" onclick="closeModal('mConfirm')">Отмена</button><button class="btn bd" id="cfOk">Подтвердить</button></div>
+    <div class="mt" id="cfTitle" style="color:#D93025">Confirm Action</div><div class="ms" id="cfSub"></div>
+    <div class="ma"><button class="btn bs" onclick="closeModal('mConfirm')">Cancel</button><button class="btn bd" id="cfOk">Confirm</button></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-var PASS="handycat2024";
-var PID="handycat-98416";
-var AKEY="AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
-var BURL="https://project-2i6ok.vercel.app";
-var FS="https://firestore.googleapis.com/v1/projects/"+PID+"/databases/(default)/documents";
+var PASS = "handycat2024";
+var PID = "handycat-98416";
+var AKEY = "AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
+var BURL = "https://project-2i6ok.vercel.app";
+var FS = "https://firestore.googleapis.com/v1/projects/" + PID + "/databases/(default)/documents";
 
-// AUTH
-function login(){
-  if(document.getElementById("authPass").value===PASS){
-    sessionStorage.setItem("hca","1");
+// ── AUTH ──────────────────────────────────────────────────────
+function login() {
+  if (document.getElementById("authPass").value === PASS) {
+    sessionStorage.setItem("hca", "1");
     document.getElementById("authScreen").classList.remove("show");
-    document.getElementById("app").style.display="block";
+    document.getElementById("app").style.display = "block";
     loadCos();
-  } else { document.getElementById("authErr").style.display="block"; }
+  } else {
+    document.getElementById("authErr").style.display = "block";
+  }
 }
-function logout(){sessionStorage.removeItem("hca");location.reload();}
-if(sessionStorage.getItem("hca")){document.getElementById("authScreen").classList.remove("show");document.getElementById("app").style.display="block";}
-
-// FS HELPERS
-async function fsGet(c,id){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY);if(!r.ok)return null;var d=await r.json();return{id:d.name.split("/").pop(),...pf(d.fields)};}
-async function fsL(c,ps){var r=await fetch(FS+"/"+c+"?key="+AKEY+"&pageSize="+(ps||300));if(!r.ok)return[];var d=await r.json();if(!d.documents)return[];return d.documents.map(function(x){return{id:x.name.split("/").pop(),...pf(x.fields)};});}
-async function fsQ(c,filters,lim){
-  var body={structuredQuery:{from:[{collectionId:c}],limit:lim||500}};
-  function mkFilter(f){return{fieldFilter:{field:{fieldPath:f.field},op:f.op||"EQUAL",value:{stringValue:f.value}}};}
-  if(filters&&filters.length===1) body.structuredQuery.where=mkFilter(filters[0]);
-  else if(filters&&filters.length>1) body.structuredQuery.where={compositeFilter:{op:"AND",filters:filters.map(mkFilter)}}
-  var r=await fetch(FS+":runQuery?key="+AKEY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-  if(!r.ok)return[];var rows=await r.json();return rows.filter(function(x){return x.document;}).map(function(x){return{id:x.document.name.split("/").pop(),...pf(x.document.fields)};});
+function logout() { sessionStorage.removeItem("hca"); location.reload(); }
+if (sessionStorage.getItem("hca")) {
+  document.getElementById("authScreen").classList.remove("show");
+  document.getElementById("app").style.display = "block";
 }
-async function fsP(c,id,fields){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:fields})});return r.ok;}
-async function fsDel(c,id){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,{method:"DELETE"});return r.ok;}
-function pf(f){if(!f)return{};var res={};Object.keys(f).forEach(function(k){var v=f[k];if(v.stringValue!==undefined)res[k]=v.stringValue;else if(v.integerValue!==undefined)res[k]=Number(v.integerValue);else if(v.doubleValue!==undefined)res[k]=Number(v.doubleValue);else if(v.booleanValue!==undefined)res[k]=v.booleanValue;else if(v.arrayValue)res[k]=(v.arrayValue.values||[]).map(function(x){return x.stringValue||String(x.integerValue||x.doubleValue||"");});else res[k]=null;});return res;}
-function sv(v){return{stringValue:String(v||"")};}
-function nv(v){return{doubleValue:Number(v||0)};}
-function av(a){return{arrayValue:{values:(a||[]).map(function(x){return{stringValue:x};})}};}
 
-// CACHE
-var CC={cos:{},hm:{},cl:{}};
-var cdId=null,cdCards=[],cdCF="all",cdHM=[];
-var allOrds=[],ordF="all";
-
-// UI
-function nav(n){
-  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active");});
-  document.querySelectorAll(".nb").forEach(function(b){b.classList.remove("active");});
-  document.getElementById("page-"+n).classList.add("active");
-  document.querySelectorAll(".nb").forEach(function(b){if(b.getAttribute("onclick").includes("'"+n+"'"))b.classList.add("active");});
-  if(n==="companies")loadCos();
-  if(n==="handymen")loadHMs();
-  if(n==="clients")loadCls();
-  if(n==="orders")loadOrds();
+// ── FIRESTORE ─────────────────────────────────────────────────
+async function fsGet(c, id) {
+  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY);
+  if (!r.ok) return null;
+  var d = await r.json();
+  return { id: d.name.split("/").pop(), ...pf(d.fields) };
 }
-function sp(n){document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active");});document.getElementById("page-"+n).classList.add("active");}
-function openModal(id){document.getElementById(id).classList.add("open");}
-function closeModal(id){document.getElementById(id).classList.remove("open");}
-function toast(m){var e=document.getElementById("toast");e.textContent=m;e.classList.add("show");setTimeout(function(){e.classList.remove("show");},2500);}
-function cfm(t,s,cb){document.getElementById("cfTitle").textContent=t;document.getElementById("cfSub").textContent=s;openModal("mConfirm");document.getElementById("cfOk").onclick=function(){closeModal("mConfirm");cb();};}
-function bdg(s){var m={active:["ba","Активна"],inactive:["bi","Неактивна"],unassigned:["bu","Свободна"],assigned:["bbl","Выдана"],deactivated:["bi","Деактив."],new:["bu","Новый"],in_progress:["bbl","В работе"],completed:["ba","Завершён"],cancelled:["bi","Отменён"]};var x=m[s]||["bi",s||"—"];return'<span class="badge '+x[0]+'">'+x[1]+"</span>";}
-function fd(iso){return iso?new Date(iso).toLocaleDateString("ru-RU"):"—";}
-function ini(n){return(n||"?").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase();}
-function cp(t){navigator.clipboard.writeText(t);toast("Скопировано!");}
-
-// COMPANIES
-async function loadCos(){
-  var g=document.getElementById("coGrid");g.innerHTML='<div class="muted" style="padding:16px">Загружаем...</div>';
-  var [cos,cards]=await Promise.all([fsL("companies"),fsL("nfc_cards")]);
-  CC.cos={};cos.forEach(function(c){CC.cos[c.id]=c;});
-  var cs={};cards.forEach(function(c){if(!cs[c.companyId])cs[c.companyId]={t:0,a:0,u:0};cs[c.companyId].t++;if(c.status==="active")cs[c.companyId].a++;if(c.status==="unassigned")cs[c.companyId].u++;});
-  if(!cos.length){g.innerHTML='<div class="empty">Нет компаний</div>';return;}
-  CC._coStats=cs;
-  CC._allCos=cos;
-  renderCos(cos,cs);
+async function fsL(c, ps) {
+  var r = await fetch(FS + "/" + c + "?key=" + AKEY + "&pageSize=" + (ps || 300));
+  if (!r.ok) return [];
+  var d = await r.json();
+  if (!d.documents) return [];
+  return d.documents.map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
 }
-function renderCos(cos,cs){
-  var g=document.getElementById("coGrid");
-  if(!cos.length){g.innerHTML='<div class="empty">Нет компаний</div>';return;}
-  g.innerHTML=cos.map(function(c){var s=(cs||CC._coStats||{})[c.id]||{t:0,a:0,u:0};var ok=c.status!=="inactive";var nm=c.name||c.id||"Без названия";
-    return'<div class="coc'+(ok?"":" off")+'" onclick="openCo(\''+c.id+'\')">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="cn">'+nm+'</div>'+bdg(ok?"active":"inactive")+'</div>'+
-      '<div class="cm">'+(c.location||"")+(c.email?" · "+c.email:"")+'</div>'+
-      '<div class="cst"><div class="cst"><div class="sn">'+s.t+'</div><div class="sl">Карточек</div></div><div style="margin-left:14px"><div class="sn">'+s.a+'</div><div class="sl">Активных</div></div><div style="margin-left:14px"><div class="sn">'+s.u+'</div><div class="sl">Свободных</div></div></div>'+
+async function fsQ(c, filters, lim) {
+  var body = { structuredQuery: { from: [{ collectionId: c }], limit: lim || 500 } };
+  function mkF(f) { return { fieldFilter: { field: { fieldPath: f.field }, op: f.op || "EQUAL", value: { stringValue: f.value } } }; }
+  if (filters && filters.length === 1) body.structuredQuery.where = mkF(filters[0]);
+  else if (filters && filters.length > 1) body.structuredQuery.where = { compositeFilter: { op: "AND", filters: filters.map(mkF) } };
+  var r = await fetch(FS + ":runQuery?key=" + AKEY, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) return [];
+  var rows = await r.json();
+  return rows.filter(function(x) { return x.document; }).map(function(x) { return { id: x.document.name.split("/").pop(), ...pf(x.document.fields) }; });
+}
+async function fsP(c, id, fields) {
+  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields }) });
+  return r.ok;
+}
+async function fsDel(c, id) {
+  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, { method: "DELETE" });
+  return r.ok;
+}
+function pf(f) {
+  if (!f) return {};
+  var res = {};
+  Object.keys(f).forEach(function(k) {
+    var v = f[k];
+    if (v.stringValue !== undefined) res[k] = v.stringValue;
+    else if (v.integerValue !== undefined) res[k] = Number(v.integerValue);
+    else if (v.doubleValue !== undefined) res[k] = Number(v.doubleValue);
+    else if (v.booleanValue !== undefined) res[k] = v.booleanValue;
+    else if (v.arrayValue) res[k] = (v.arrayValue.values || []).map(function(x) { return x.stringValue || String(x.integerValue || x.doubleValue || ""); });
+    else res[k] = null;
+  });
+  return res;
+}
+function sv(v) { return { stringValue: String(v || "") }; }
+function nv(v) { return { doubleValue: Number(v || 0) }; }
+function av(a) { return { arrayValue: { values: (a || []).map(function(x) { return { stringValue: x }; }) } }; }
+
+// ── CACHE ─────────────────────────────────────────────────────
+var CC = { cos: {}, cl: {} };
+var cdId = null, cdCards = [], cdCF = "all", cdHM = [];
+var allOrds = [], ordF = "all";
+
+// ── UI HELPERS ────────────────────────────────────────────────
+function nav(n) {
+  document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+  document.querySelectorAll(".nb").forEach(function(b) { b.classList.remove("active"); });
+  document.getElementById("page-" + n).classList.add("active");
+  document.querySelectorAll(".nb").forEach(function(b) { if (b.getAttribute("onclick").includes("'" + n + "'")) b.classList.add("active"); });
+  if (n === "companies") loadCos();
+  if (n === "handymen") loadHMs();
+  if (n === "clients") loadCls();
+  if (n === "orders") loadOrds();
+}
+function sp(n) {
+  document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+  document.getElementById("page-" + n).classList.add("active");
+}
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+function toast(m) {
+  var e = document.getElementById("toast");
+  e.textContent = m; e.classList.add("show");
+  setTimeout(function() { e.classList.remove("show"); }, 2500);
+}
+function cfm(t, s, cb) {
+  document.getElementById("cfTitle").textContent = t;
+  document.getElementById("cfSub").textContent = s;
+  openModal("mConfirm");
+  document.getElementById("cfOk").onclick = function() { closeModal("mConfirm"); cb(); };
+}
+function bdg(status) {
+  var m = { active: ["ba", "Active"], inactive: ["bi", "Inactive"], unassigned: ["bu", "Available"], assigned: ["bbl", "With Handyman"], deactivated: ["bi", "Deactivated"], new: ["bu", "New"], in_progress: ["bbl", "In Progress"], completed: ["ba", "Completed"], cancelled: ["bi", "Cancelled"] };
+  var x = m[status] || ["bi", status || "—"];
+  return '<span class="badge ' + x[0] + '">' + x[1] + "</span>";
+}
+function fd(iso) { return iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"; }
+function ini(n) { return (n || "?").split(" ").map(function(w) { return w[0]; }).join("").slice(0, 2).toUpperCase(); }
+function cp(t) { navigator.clipboard.writeText(t); toast("Copied!"); }
+
+// ── COMPANIES ─────────────────────────────────────────────────
+async function loadCos() {
+  var g = document.getElementById("coGrid");
+  g.innerHTML = '<div class="muted" style="padding:16px">Loading...</div>';
+  var results = await Promise.all([fsL("companies"), fsL("nfc_cards")]);
+  var cos = results[0], cards = results[1];
+  CC.cos = {};
+  cos.forEach(function(c) { CC.cos[c.id] = c; });
+  var cs = {};
+  cards.forEach(function(c) {
+    if (!cs[c.companyId]) cs[c.companyId] = { t: 0, a: 0, u: 0 };
+    cs[c.companyId].t++;
+    if (c.status === "active") cs[c.companyId].a++;
+    if (c.status === "unassigned") cs[c.companyId].u++;
+  });
+  CC._coStats = cs;
+  CC._allCos = cos;
+  renderCos(cos);
+}
+
+function renderCos(cos) {
+  var g = document.getElementById("coGrid");
+  if (!cos.length) { g.innerHTML = '<div class="empty">No companies yet. Add your first one!</div>'; return; }
+  var cs = CC._coStats || {};
+  g.innerHTML = cos.map(function(c) {
+    var s = cs[c.id] || { t: 0, a: 0, u: 0 };
+    var ok = c.status !== "inactive";
+    var nm = c.name || c.id || "Unnamed";
+    return '<div class="coc' + (ok ? "" : " off") + '" onclick="openCo(\'' + c.id + '\')">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
+        '<div class="cn">' + nm + '</div>' + bdg(ok ? "active" : "inactive") +
+      '</div>' +
+      '<div class="cm">' + (c.location || "") + (c.email ? " · " + c.email : "") + '</div>' +
+      '<div class="cst">' +
+        '<div><div class="sn">' + s.t + '</div><div class="sl">Cards</div></div>' +
+        '<div style="margin-left:14px"><div class="sn">' + s.a + '</div><div class="sl">Active</div></div>' +
+        '<div style="margin-left:14px"><div class="sn">' + s.u + '</div><div class="sl">Available</div></div>' +
+      '</div>' +
     '</div>';
   }).join("");
 }
-function searchCos(q){
-  var all=CC._allCos||[];
-  if(!q){renderCos(all);return;}
-  q=q.toLowerCase();
-  renderCos(all.filter(function(c){return(c.name||"").toLowerCase().includes(q)||(c.location||"").toLowerCase().includes(q);}));
-}
+
+function searchCos(q) {
+  var all = CC._allCos || [];
+  if (!q) { renderCos(all); return; }
+  q = q.toLowerCase();
+  renderCos(all.filter(function(c) { return (c.name || "").toLowerCase().includes(q) || (c.location || "").toLowerCase().includes(q); }));
 }
 
-function openAddCompany(){document.getElementById("mCoT").textContent="Новая компания";document.getElementById("editCoId").value="";["coName","coLoc","coEmail","coPhone","coDesc"].forEach(function(id){document.getElementById(id).value="";});openModal("mAddCo");}
-function editCompany(){var c=CC.cos[cdId]||{};document.getElementById("mCoT").textContent="Редактировать компанию";document.getElementById("editCoId").value=cdId;document.getElementById("coName").value=c.name||"";document.getElementById("coLoc").value=c.location||"";document.getElementById("coEmail").value=c.email||"";document.getElementById("coPhone").value=c.phone||"";document.getElementById("coDesc").value=c.description||"";openModal("mAddCo");}
-async function saveCo(){var name=document.getElementById("coName").value.trim();if(!name){toast("Введите название");return;}var eid=document.getElementById("editCoId").value;var id=eid||(name.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")+"-"+Date.now().toString(36));var ec=CC.cos[eid]||{};var ok=await fsP("companies",id,{name:sv(name),location:sv(document.getElementById("coLoc").value),email:sv(document.getElementById("coEmail").value),phone:sv(document.getElementById("coPhone").value),description:sv(document.getElementById("coDesc").value),status:sv(ec.status||"active"),createdAt:sv(ec.createdAt||new Date().toISOString())});if(ok){closeModal("mAddCo");toast(eid?"Обновлено!":"Создано!");if(eid)openCo(eid);else loadCos();}else toast("Ошибка");}
-async function toggleCo(){var c=CC.cos[cdId];var ns=c.status==="inactive"?"active":"inactive";var ok=await fsP("companies",cdId,{status:sv(ns)});if(ok){CC.cos[cdId].status=ns;openCo(cdId);toast("Статус обновлён");}}
+function openAddCompany() {
+  document.getElementById("mCoT").textContent = "New Company";
+  document.getElementById("editCoId").value = "";
+  ["coName", "coLoc", "coEmail", "coPhone", "coDesc"].forEach(function(id) { document.getElementById(id).value = ""; });
+  openModal("mAddCo");
+}
 
-// CO DETAIL
-async function openCo(id){
-  cdId=id;cdCF="all";
+function editCompany() {
+  var c = CC.cos[cdId] || {};
+  document.getElementById("mCoT").textContent = "Edit Company";
+  document.getElementById("editCoId").value = cdId;
+  document.getElementById("coName").value = c.name || "";
+  document.getElementById("coLoc").value = c.location || "";
+  document.getElementById("coEmail").value = c.email || "";
+  document.getElementById("coPhone").value = c.phone || "";
+  document.getElementById("coDesc").value = c.description || "";
+  openModal("mAddCo");
+}
+
+async function saveCo() {
+  var name = document.getElementById("coName").value.trim();
+  if (!name) { toast("Please enter a company name"); return; }
+  var eid = document.getElementById("editCoId").value;
+  var id = eid || (name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now().toString(36));
+  var ec = CC.cos[eid] || {};
+  var ok = await fsP("companies", id, {
+    name: sv(name), location: sv(document.getElementById("coLoc").value),
+    email: sv(document.getElementById("coEmail").value), phone: sv(document.getElementById("coPhone").value),
+    description: sv(document.getElementById("coDesc").value),
+    status: sv(ec.status || "active"), createdAt: sv(ec.createdAt || new Date().toISOString())
+  });
+  if (ok) { closeModal("mAddCo"); toast(eid ? "Company updated!" : "Company created!"); if (eid) openCo(eid); else loadCos(); }
+  else toast("Error saving company");
+}
+
+async function toggleCo() {
+  var c = CC.cos[cdId];
+  var ns = c.status === "inactive" ? "active" : "inactive";
+  var ok = await fsP("companies", cdId, { status: sv(ns) });
+  if (ok) { CC.cos[cdId].status = ns; openCo(cdId); toast("Status updated"); }
+}
+
+// ── COMPANY DETAIL ────────────────────────────────────────────
+async function openCo(id) {
+  cdId = id; cdCF = "all";
   sp("co-detail");
-  var c=CC.cos[id]||{name:id};
-  document.getElementById("cdName").textContent=c.name||id;
-  document.getElementById("cdMeta").textContent=(c.email||"")+(c.phone?" · "+c.phone:"")+(c.location?" · "+c.location:"");
-  var ok=c.status!=="inactive";
-  var btn=document.getElementById("cdToggleBtn");
-  btn.textContent=ok?"⏸ Деактивировать":"▶ Активировать";
-  btn.className="btn bsm "+(ok?"bw":"bg");
-  document.querySelectorAll("#page-co-detail .fb").forEach(function(b,i){b.classList.toggle("active",i===0);});
-  await Promise.all([loadCDHM(),loadCDCards()]);
+  var c = CC.cos[id] || { name: id };
+  document.getElementById("cdName").textContent = c.name || id;
+  document.getElementById("cdMeta").textContent = (c.email || "") + (c.phone ? " · " + c.phone : "") + (c.location ? " · " + c.location : "");
+  var ok = c.status !== "inactive";
+  var btn = document.getElementById("cdToggleBtn");
+  btn.textContent = ok ? "⏸ Deactivate" : "▶ Activate";
+  btn.className = "btn bsm " + (ok ? "bw" : "bg");
+  document.querySelectorAll("#page-co-detail .fb").forEach(function(b, i) { b.classList.toggle("active", i === 0); });
+  await Promise.all([loadCDHM(), loadCDCards()]);
 }
 
-async function loadCDHM(){
-  var tb=document.getElementById("cdHMBody");tb.innerHTML='<tr><td colspan="6" class="empty">Загружаем...</td></tr>';
-  var hm=await fsQ("handymen",[{field:"companyIds",value:cdId,op:"ARRAY_CONTAINS"}]);
-  cdHM=hm;
-  if(!hm.length){tb.innerHTML='<tr><td colspan="6" class="empty">Нет мастеров</td></tr>';return;}
-  tb.innerHTML=hm.map(function(h){
-    return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(h.name)+'</div>'+
-      '<span style="color:#185FA5;cursor:pointer;font-weight:500" onclick="openHMDetail(\''+h.id+'\',\'co-detail\')">'+h.name+'</span></div></td>'+
-      '<td class="muted">'+(h.phone||"—")+'</td>'+
-      '<td class="muted">'+(h.skills||[]).join(", ")+'</td>'+
-      '<td>'+(h.assignedCardToken?'<span class="mono">'+h.assignedCardToken+'</span>':"<span class='muted'>—</span>")+'</td>'+
-      '<td>'+bdg(h.status||"active")+'</td>'+
-      '<td><div style="display:flex;gap:4px"><button class="btn bs bsm" onclick="editHM(\''+h.id+'\')">✏️</button><button class="btn bd bsm" onclick="delHM(\''+h.id+'\')">🗑</button></div></td></tr>';
+async function loadCDHM() {
+  var tb = document.getElementById("cdHMBody");
+  tb.innerHTML = '<tr><td colspan="6" class="empty">Loading...</td></tr>';
+  var hm = await fsQ("handymen", [{ field: "companyIds", value: cdId, op: "ARRAY_CONTAINS" }]);
+  cdHM = hm;
+  if (!hm.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No handymen yet</td></tr>'; return; }
+  tb.innerHTML = hm.map(function(h) {
+    return '<tr>' +
+      '<td><div style="display:flex;align-items:center;gap:8px"><div class="av">' + ini(h.name) + '</div>' +
+        '<span style="color:#185FA5;cursor:pointer;font-weight:500" onclick="openHMDetail(\'' + h.id + '\',\'co-detail\')">' + (h.name || "—") + '</span>' +
+      '</div></td>' +
+      '<td class="muted">' + (h.phone || "—") + '</td>' +
+      '<td class="muted">' + (h.skills || []).join(", ") + '</td>' +
+      '<td>' + (h.assignedCardToken ? '<span class="mono">' + h.assignedCardToken + '</span>' : '<span class="muted">—</span>') + '</td>' +
+      '<td>' + bdg(h.status || "active") + '</td>' +
+      '<td><div style="display:flex;gap:4px">' +
+        '<button class="btn bs bsm" onclick="editHM(\'' + h.id + '\')">✏️</button>' +
+        '<button class="btn bd bsm" onclick="delHM(\'' + h.id + '\')">🗑</button>' +
+      '</div></td>' +
+    '</tr>';
   }).join("");
 }
 
-async function loadCDCards(){
-  var tb=document.getElementById("cdCardsBody");tb.innerHTML='<tr><td colspan="7" class="empty">Загружаем...</td></tr>';
-  cdCards=await fsQ("nfc_cards",[{field:"companyId",value:cdId}]);
-  document.getElementById("cdCCnt").textContent="("+cdCards.length+")";
-  var s={t:cdCards.length,a:0,u:0,d:0,as:0};
-  cdCards.forEach(function(c){
-    if(c.status==="active")s.a++;
-    if(c.status==="unassigned")s.u++;
-    if(c.status==="deactivated")s.d++;
-    if(c.status==="assigned")s.as++;
+async function loadCDCards() {
+  var tb = document.getElementById("cdCardsBody");
+  tb.innerHTML = '<tr><td colspan="8" class="empty">Loading...</td></tr>';
+  cdCards = await fsQ("nfc_cards", [{ field: "companyId", value: cdId }]);
+  document.getElementById("cdCCnt").textContent = "(" + cdCards.length + ")";
+  var s = { t: cdCards.length, a: 0, u: 0, d: 0, as: 0 };
+  cdCards.forEach(function(c) {
+    if (c.status === "active") s.a++;
+    if (c.status === "unassigned") s.u++;
+    if (c.status === "deactivated") s.d++;
+    if (c.status === "assigned") s.as++;
   });
-  document.getElementById("cdStats").innerHTML=
-    '<div class="sb"><div class="sn">'+s.t+'</div><div class="sl">Всего</div></div>'+
-    '<div class="sb"><div class="sn">'+s.u+'</div><div class="sl">Свободных</div></div>'+
-    '<div class="sb"><div class="sn">'+s.as+'</div><div class="sl">Выдано мастерам</div></div>'+
-    '<div class="sb"><div class="sn">'+s.a+'</div><div class="sl">Активировано</div></div>';
+  document.getElementById("cdStats").innerHTML =
+    '<div class="sb"><div class="sn">' + s.t + '</div><div class="sl">Total Cards</div></div>' +
+    '<div class="sb"><div class="sn">' + s.u + '</div><div class="sl">Available</div></div>' +
+    '<div class="sb"><div class="sn">' + s.as + '</div><div class="sl">With Handymen</div></div>' +
+    '<div class="sb"><div class="sn">' + s.a + '</div><div class="sl">Activated by Clients</div></div>';
   renderCDCards();
 }
 
-function renderCDCards(){
-  var tb=document.getElementById("cdCardsBody");
-  var fil=cdCards.filter(function(c){return cdCF==="all"||c.status===cdCF;});
-  if(!fil.length){tb.innerHTML='<tr><td colspan="8" class="empty">Нет карточек</td></tr>';return;}
-  var hmap={};cdHM.forEach(function(h){if(h.assignedCardToken)hmap[h.assignedCardToken]=h.name;});
-  tb.innerHTML=fil.map(function(c){var url=BURL+"/c/"+c.id;
-    return'<tr><td><input type="checkbox" class="card-cb" value="'+c.id+'" onchange="onCBChange()" /></td>'+
-      '<td class="mono">'+c.id+'</td><td><span class="uc" title="'+url+'">'+url+'</span></td><td>'+bdg(c.status||"unassigned")+'</td>'+
-      '<td class="muted">'+(hmap[c.id]||"—")+'</td><td class="muted">'+(c.clientId||"—")+'</td><td class="muted">'+fd(c.createdAt)+'</td>'+
-      '<td><div style="display:flex;gap:4px"><button class="btn bs bsm" onclick="cp(\''+url+'\')">📋</button>'+
-      (c.status==="active"?'<button class="btn bw bsm" onclick="deactCard(\''+c.id+'\')">⏸</button>':"")+
-      '<button class="btn bd bsm" onclick="delCard(\''+c.id+'\')">🗑</button></div></td></tr>';
+function renderCDCards() {
+  var tb = document.getElementById("cdCardsBody");
+  var fil = cdCards.filter(function(c) { return cdCF === "all" || c.status === cdCF; });
+  if (!fil.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No cards found</td></tr>'; return; }
+  var hmap = {};
+  cdHM.forEach(function(h) { if (h.assignedCardToken) hmap[h.assignedCardToken] = h.name; });
+  tb.innerHTML = fil.map(function(c) {
+    var url = BURL + "/c/" + c.id;
+    return '<tr>' +
+      '<td><input type="checkbox" class="card-cb" value="' + c.id + '" onchange="onCBChange()" /></td>' +
+      '<td class="mono">' + c.id + '</td>' +
+      '<td><span class="uc" title="' + url + '">' + url + '</span></td>' +
+      '<td>' + bdg(c.status || "unassigned") + '</td>' +
+      '<td class="muted">' + (hmap[c.id] || "—") + '</td>' +
+      '<td class="muted">' + (c.clientId || "—") + '</td>' +
+      '<td class="muted">' + fd(c.createdAt) + '</td>' +
+      '<td><div style="display:flex;gap:4px">' +
+        '<button class="btn bs bsm" onclick="cp(\'' + url + '\')">📋</button>' +
+        (c.status === "active" ? '<button class="btn bw bsm" onclick="deactCard(\'' + c.id + '\')">⏸</button>' : "") +
+        '<button class="btn bd bsm" onclick="delCard(\'' + c.id + '\')">🗑</button>' +
+      '</div></td>' +
+    '</tr>';
   }).join("");
-  updateBulkBar();
+  updateBulk();
 }
-function onCBChange(){updateBulkBar();}
-function toggleSelectAll(cb){document.querySelectorAll(".card-cb").forEach(function(x){x.checked=cb.checked;});updateBulkBar();}
-function getSelected(){return Array.from(document.querySelectorAll(".card-cb:checked")).map(function(x){return x.value;});}
-function clearSelection(){document.querySelectorAll(".card-cb").forEach(function(x){x.checked=false;});var sa=document.getElementById("selectAll");if(sa)sa.checked=false;updateBulkBar();}
-function updateBulkBar(){var sel=getSelected();var bar=document.getElementById("bulkBar");if(sel.length>0){bar.style.display="flex";document.getElementById("bulkCount").textContent=sel.length+" выбрано";}else{bar.style.display="none";}}
-async function bulkDelete(){var sel=getSelected();if(!sel.length)return;cfm("Удалить "+sel.length+" карточек?","Это действие нельзя отменить.",async function(){for(var i=0;i<sel.length;i++)await fsDel("nfc_cards",sel[i]);toast("Удалено "+sel.length);await loadCDCards();});}
-async function bulkDeactivate(){var sel=getSelected();if(!sel.length)return;for(var i=0;i<sel.length;i++)await fsP("nfc_cards",sel[i],{status:sv("deactivated")});toast("Деактивировано "+sel.length);await loadCDCards();}
 
-function filterCards(s,btn){cdCF=s;document.querySelectorAll("#page-co-detail .fb").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");renderCDCards();}
-function exportFreeCSV(){var f=cdCards.filter(function(c){return c.status==="unassigned";});if(!f.length){toast("Нет свободных карточек");return;}var rows=["Токен,URL,Статус,Создана"];f.forEach(function(c){rows.push([c.id,BURL+"/c/"+c.id,"unassigned",fd(c.createdAt)].join(","));});var blob=new Blob(["\uFEFF"+rows.join("\n")],{type:"text/csv;charset=utf-8;"});var l=document.createElement("a");l.href=URL.createObjectURL(blob);l.download="free-"+cdId+".csv";l.click();toast("CSV скачан ("+f.length+")");}
-async function deactCard(id){var ok=await fsP("nfc_cards",id,{status:sv("deactivated")});if(ok){toast("Деактивирована");await loadCDCards();}}
-function delCard(id){cfm("Удалить карточку?","Токен: "+id,async function(){var ok=await fsDel("nfc_cards",id);if(ok){toast("Удалена");await loadCDCards();}else toast("Ошибка");});}
+function filterCards(s, btn) {
+  cdCF = s;
+  document.querySelectorAll("#page-co-detail .fb").forEach(function(b) { b.classList.remove("active"); });
+  btn.classList.add("active");
+  renderCDCards();
+}
 
-// HANDYMEN
-async function openAddHM(){document.getElementById("mHMT").textContent="Новый мастер";document.getElementById("editHMId").value="";["hmName","hmPhone","hmEmail","hmSkills"].forEach(function(id){document.getElementById(id).value="";});document.getElementById("hmExp").value="";await fillFreeCards();openModal("mAddHM");}
-async function editHM(id){var h=cdHM.find(function(x){return x.id===id;})||{};document.getElementById("mHMT").textContent="Редактировать мастера";document.getElementById("editHMId").value=id;document.getElementById("hmName").value=h.name||"";document.getElementById("hmPhone").value=h.phone||"";document.getElementById("hmEmail").value=h.email||"";document.getElementById("hmSkills").value=(h.skills||[]).join(", ");document.getElementById("hmExp").value=h.experienceYears||"";await fillFreeCards(h.assignedCardToken);openModal("mAddHM");}
-async function fillFreeCards(cur){var sel=document.getElementById("hmCard");sel.innerHTML='<option value="">— без карточки —</option>';cdCards.filter(function(c){return c.status==="unassigned"||(cur&&c.id===cur);}).forEach(function(c){var o=document.createElement("option");o.value=c.id;o.textContent=c.id;if(cur&&c.id===cur)o.selected=true;sel.appendChild(o);});}
-async function saveHM(){var name=document.getElementById("hmName").value.trim();if(!name){toast("Введите имя");return;}var eid=document.getElementById("editHMId").value;var id=eid||(name.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")+"-"+Date.now().toString(36));var sk=document.getElementById("hmSkills").value.split(",").map(function(s){return s.trim();}).filter(Boolean);var ct=document.getElementById("hmCard").value;var ok=await fsP("handymen",id,{name:sv(name),phone:sv(document.getElementById("hmPhone").value),email:sv(document.getElementById("hmEmail").value),experienceYears:nv(document.getElementById("hmExp").value),skills:av(sk),companyIds:av(cdId?[cdId]:[]),assignedCardToken:sv(ct),ratingAvg:nv(0),reviewCount:nv(0),ordersCompleted:nv(0),status:sv("active"),createdAt:sv(new Date().toISOString())});if(ok&&ct)await fsP("nfc_cards",ct,{status:sv("assigned"),handymanId:sv(id)});if(ok){closeModal("mAddHM");toast(eid?"Обновлён!":"Добавлен!");await loadCDHM();await loadCDCards();}else toast("Ошибка");}
-function delHM(id){cfm("Удалить мастера?","Нельзя отменить.",async function(){var ok=await fsDel("handymen",id);if(ok){toast("Удалён");await loadCDHM();}else toast("Ошибка");});}
-async function loadHMs(){
-  var tb=document.getElementById("hmBody");tb.innerHTML='<tr><td colspan="8" class="empty">Загружаем...</td></tr>';
-  var [hm,cos]=await Promise.all([fsL("handymen"),fsL("companies")]);
-  cos.forEach(function(c){CC.cos[c.id]=c;});
-  CC._allHM=hm;
+function onCBChange() { updateBulk(); }
+function toggleSelAll(cb) { document.querySelectorAll(".card-cb").forEach(function(x) { x.checked = cb.checked; }); updateBulk(); }
+function getSel() { return Array.from(document.querySelectorAll(".card-cb:checked")).map(function(x) { return x.value; }); }
+function clearSel() { document.querySelectorAll(".card-cb").forEach(function(x) { x.checked = false; }); var sa = document.getElementById("selAll"); if (sa) sa.checked = false; updateBulk(); }
+function updateBulk() {
+  var sel = getSel();
+  var bar = document.getElementById("bulkBar");
+  if (sel.length > 0) { bar.classList.add("show"); document.getElementById("bulkCount").textContent = sel.length + " selected"; }
+  else bar.classList.remove("show");
+}
+async function bulkDelete() {
+  var sel = getSel(); if (!sel.length) return;
+  cfm("Delete " + sel.length + " cards?", "This cannot be undone.", async function() {
+    for (var i = 0; i < sel.length; i++) await fsDel("nfc_cards", sel[i]);
+    toast("Deleted " + sel.length + " cards"); await loadCDCards();
+  });
+}
+async function bulkDeactivate() {
+  var sel = getSel(); if (!sel.length) return;
+  for (var i = 0; i < sel.length; i++) await fsP("nfc_cards", sel[i], { status: sv("deactivated") });
+  toast("Deactivated " + sel.length + " cards"); await loadCDCards();
+}
+
+function exportFreeCSV() {
+  var f = cdCards.filter(function(c) { return c.status === "unassigned"; });
+  if (!f.length) { toast("No available cards to export"); return; }
+  var rows = ["Token,URL,Status,Created"];
+  f.forEach(function(c) { rows.push([c.id, BURL + "/c/" + c.id, "available", fd(c.createdAt)].join(",")); });
+  var blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  var l = document.createElement("a"); l.href = URL.createObjectURL(blob);
+  l.download = "available-cards-" + cdId + ".csv"; l.click();
+  toast("CSV downloaded (" + f.length + " cards)");
+}
+
+async function deactCard(id) { var ok = await fsP("nfc_cards", id, { status: sv("deactivated") }); if (ok) { toast("Card deactivated"); await loadCDCards(); } }
+function delCard(id) {
+  cfm("Delete card?", "Token: " + id + ". This cannot be undone.", async function() {
+    var ok = await fsDel("nfc_cards", id); if (ok) { toast("Card deleted"); await loadCDCards(); } else toast("Error deleting card");
+  });
+}
+
+// ── HANDYMEN ──────────────────────────────────────────────────
+async function openAddHM() {
+  document.getElementById("mHMT").textContent = "New Handyman";
+  document.getElementById("editHMId").value = "";
+  ["hmName", "hmPhone", "hmEmail", "hmSkills"].forEach(function(id) { document.getElementById(id).value = ""; });
+  document.getElementById("hmExp").value = "";
+  await fillFreeCards();
+  openModal("mAddHM");
+}
+
+async function editHM(id) {
+  var h = cdHM.find(function(x) { return x.id === id; }) || {};
+  document.getElementById("mHMT").textContent = "Edit Handyman";
+  document.getElementById("editHMId").value = id;
+  document.getElementById("hmName").value = h.name || "";
+  document.getElementById("hmPhone").value = h.phone || "";
+  document.getElementById("hmEmail").value = h.email || "";
+  document.getElementById("hmSkills").value = (h.skills || []).join(", ");
+  document.getElementById("hmExp").value = h.experienceYears || "";
+  await fillFreeCards(h.assignedCardToken);
+  openModal("mAddHM");
+}
+
+async function fillFreeCards(cur) {
+  var sel = document.getElementById("hmCard");
+  sel.innerHTML = '<option value="">— No card assigned —</option>';
+  cdCards.filter(function(c) { return c.status === "unassigned" || (cur && c.id === cur); }).forEach(function(c) {
+    var o = document.createElement("option"); o.value = c.id; o.textContent = c.id;
+    if (cur && c.id === cur) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+async function saveHM() {
+  var name = document.getElementById("hmName").value.trim();
+  if (!name) { toast("Please enter a name"); return; }
+  var eid = document.getElementById("editHMId").value;
+  var id = eid || (name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now().toString(36));
+  var sk = document.getElementById("hmSkills").value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+  var ct = document.getElementById("hmCard").value;
+  var ok = await fsP("handymen", id, {
+    name: sv(name), phone: sv(document.getElementById("hmPhone").value),
+    email: sv(document.getElementById("hmEmail").value),
+    experienceYears: nv(document.getElementById("hmExp").value),
+    skills: av(sk), companyIds: av(cdId ? [cdId] : []),
+    assignedCardToken: sv(ct), ratingAvg: nv(0), reviewCount: nv(0),
+    ordersCompleted: nv(0), status: sv("active"), createdAt: sv(new Date().toISOString())
+  });
+  if (ok && ct) await fsP("nfc_cards", ct, { status: sv("assigned"), handymanId: sv(id) });
+  if (ok) { closeModal("mAddHM"); toast(eid ? "Handyman updated!" : "Handyman added!"); await loadCDHM(); await loadCDCards(); }
+  else toast("Error saving handyman");
+}
+
+function delHM(id) {
+  cfm("Delete handyman?", "This cannot be undone.", async function() {
+    var ok = await fsDel("handymen", id); if (ok) { toast("Handyman deleted"); await loadCDHM(); } else toast("Error");
+  });
+}
+
+async function loadHMs() {
+  var tb = document.getElementById("hmBody");
+  tb.innerHTML = '<tr><td colspan="8" class="empty">Loading...</td></tr>';
+  var results = await Promise.all([fsL("handymen"), fsL("companies")]);
+  var hm = results[0], cos = results[1];
+  cos.forEach(function(c) { CC.cos[c.id] = c; });
+  CC._allHM = hm;
   renderHMs(hm);
 }
-function renderHMs(hm){
-  var tb=document.getElementById("hmBody");
-  if(!hm.length){tb.innerHTML='<tr><td colspan="8" class="empty">Нет мастеров</td></tr>';return;}
-  tb.innerHTML=hm.map(function(h){
-    var coId=(h.companyIds||[])[0]||"";
-    var cn=(CC.cos[coId]||{}).name||coId||"—";
-    return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(h.name)+'</div>'+
-      '<span style="color:#185FA5;cursor:pointer;font-weight:500" onclick="openHMDetail(\''+h.id+'\',\'handymen\')">'+( h.name||"—")+'</span></div></td>'+
-      '<td class="muted">'+cn+'</td><td class="muted">'+(h.phone||"—")+'</td>'+
-      '<td class="muted">'+(h.skills||[]).slice(0,2).join(", ")+'</td>'+
-      '<td>'+(h.ratingAvg||0).toFixed(1)+' ★</td><td>'+(h.ordersCompleted||0)+'</td>'+
-      '<td>'+bdg(h.status||"active")+'</td>'+
-      '<td><button class="btn bs bsm" onclick="editHMGlobal(\''+h.id+'\',\''+coId+'\')">✏️</button></td>'+
+
+function renderHMs(hm) {
+  var tb = document.getElementById("hmBody");
+  if (!hm.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No handymen found</td></tr>'; return; }
+  tb.innerHTML = hm.map(function(h) {
+    var coId = (h.companyIds || [])[0] || "";
+    var cn = (CC.cos[coId] || {}).name || coId || "—";
+    return '<tr>' +
+      '<td><div style="display:flex;align-items:center;gap:8px"><div class="av">' + ini(h.name) + '</div>' +
+        '<span style="color:#185FA5;cursor:pointer;font-weight:500" onclick="openHMDetail(\'' + h.id + '\',\'handymen\')">' + (h.name || "—") + '</span>' +
+      '</div></td>' +
+      '<td class="muted">' + cn + '</td>' +
+      '<td class="muted">' + (h.phone || "—") + '</td>' +
+      '<td class="muted">' + (h.skills || []).slice(0, 2).join(", ") + '</td>' +
+      '<td>' + (h.ratingAvg || 0).toFixed(1) + ' ★</td>' +
+      '<td>' + (h.ordersCompleted || 0) + '</td>' +
+      '<td>' + bdg(h.status || "active") + '</td>' +
+      '<td><button class="btn bs bsm" onclick="editHMGlobal(\'' + h.id + '\',\'' + coId + '\')">✏️</button></td>' +
     '</tr>';
   }).join("");
-}
-function searchHM(q){
-  var all=CC._allHM||[];
-  if(!q){renderHMs(all);return;}
-  q=q.toLowerCase();
-  renderHMs(all.filter(function(h){return(h.name||"").toLowerCase().includes(q)||(h.phone||"").includes(q);}));
 }
 
-async function openHMDetail(hmId,backPage){
+function searchHM(q) {
+  var all = CC._allHM || [];
+  if (!q) { renderHMs(all); return; }
+  q = q.toLowerCase();
+  renderHMs(all.filter(function(h) { return (h.name || "").toLowerCase().includes(q) || (h.phone || "").includes(q); }));
+}
+
+async function openHMDetail(hmId, backPage) {
   sp("hm-detail");
-  document.getElementById("hmDetailBack").setAttribute("onclick","sp('"+backPage+"')");
-  document.getElementById("hmDetailName").textContent="Загружаем...";
-  var [hm,orders]=await Promise.all([
-    fsGet("handymen",hmId),
-    fsQ("orders",[{field:"handymanId",value:hmId}])
-  ]);
-  if(!hm){toast("Мастер не найден");return;}
-  document.getElementById("hmDetailAvatar").textContent=ini(hm.name);
-  document.getElementById("hmDetailName").textContent=hm.name||"—";
-  document.getElementById("hmDetailMeta").textContent=(hm.phone||"")+(hm.email?" · "+hm.email:"");
-  document.getElementById("hmDetailEditBtn").onclick=function(){
-    cdHM=[hm];cdId=(hm.companyIds||[])[0]||"";
-    editHM(hmId);
-  };
-  var stars="★".repeat(Math.round(hm.ratingAvg||0))+"☆".repeat(5-Math.round(hm.ratingAvg||0));
-  document.getElementById("hmDetailStats").innerHTML=
-    '<div class="sb"><div class="sn">'+(hm.ratingAvg||0).toFixed(1)+'</div><div class="sl">'+stars+' Рейтинг</div></div>'+
-    '<div class="sb"><div class="sn">'+(hm.reviewCount||0)+'</div><div class="sl">Отзывов</div></div>'+
-    '<div class="sb"><div class="sn">'+(hm.ordersCompleted||0)+'</div><div class="sl">Заказов</div></div>'+
-    '<div class="sb"><div class="sn">'+(hm.experienceYears||0)+'</div><div class="sl">Лет опыта</div></div>';
-  document.getElementById("hmDetailInfo").innerHTML=
-    '<div><div class="dl">Телефон</div><div class="dv">'+(hm.phone||"—")+'</div></div>'+
-    '<div><div class="dl">Email</div><div class="dv">'+(hm.email||"—")+'</div></div>'+
-    '<div><div class="dl">Навыки</div><div class="dv">'+(hm.skills||[]).join(", ")||"—"+'</div></div>'+
-    '<div><div class="dl">Карточка</div><div class="dv mono">'+(hm.assignedCardToken||"—")+'</div></div>'+
-    '<div><div class="dl">Статус</div><div class="dv">'+bdg(hm.status||"active")+'</div></div>'+
-    '<div><div class="dl">Зарегистрирован</div><div class="dv">'+fd(hm.createdAt)+'</div></div>';
-  var ordTb=document.getElementById("hmDetailOrders");
-  if(!orders.length){ordTb.innerHTML='<tr><td colspan="6" class="empty">Нет заказов</td></tr>';return;}
-  var clMap={};
-  try{var cls=await fsL("clients");cls.forEach(function(c){clMap[c.id]=c.name;});}catch(e){}
-  ordTb.innerHTML=orders.map(function(o){
-    return'<tr><td class="muted">'+fd(o.createdAt)+'</td>'+
-      '<td>'+(clMap[o.clientId]||o.clientId||"—")+'</td>'+
-      '<td>'+(o.category||"—")+'</td>'+
-      '<td>'+bdg(o.status||"new")+'</td>'+
-      '<td style="color:#EF9F27">'+(o.rating?"★".repeat(o.rating):"—")+'</td>'+
-      '<td>'+(o.price?o.price+" ₴":"—")+'</td>'+
+  document.getElementById("hmBackBtn").setAttribute("onclick", "sp('" + backPage + "')");
+  document.getElementById("hmDetName").textContent = "Loading...";
+  var results = await Promise.all([fsGet("handymen", hmId), fsQ("orders", [{ field: "handymanId", value: hmId }])]);
+  var hm = results[0], orders = results[1];
+  if (!hm) { toast("Handyman not found"); return; }
+  document.getElementById("hmDetAvatar").textContent = ini(hm.name);
+  document.getElementById("hmDetName").textContent = hm.name || "—";
+  document.getElementById("hmDetMeta").textContent = (hm.phone || "") + (hm.email ? " · " + hm.email : "");
+  document.getElementById("hmDetEditBtn").onclick = function() { cdHM = [hm]; cdId = (hm.companyIds || [])[0] || ""; editHM(hmId); };
+  var stars = "★".repeat(Math.round(hm.ratingAvg || 0)) + "☆".repeat(5 - Math.round(hm.ratingAvg || 0));
+  document.getElementById("hmDetStats").innerHTML =
+    '<div class="sb"><div class="sn">' + (hm.ratingAvg || 0).toFixed(1) + '</div><div class="sl">' + stars + ' Rating</div></div>' +
+    '<div class="sb"><div class="sn">' + (hm.reviewCount || 0) + '</div><div class="sl">Reviews</div></div>' +
+    '<div class="sb"><div class="sn">' + (hm.ordersCompleted || 0) + '</div><div class="sl">Jobs Done</div></div>' +
+    '<div class="sb"><div class="sn">' + (hm.experienceYears || 0) + '</div><div class="sl">Years Exp.</div></div>';
+  document.getElementById("hmDetInfo").innerHTML =
+    '<div><div class="dl">Phone</div><div class="dv">' + (hm.phone || "—") + '</div></div>' +
+    '<div><div class="dl">Email</div><div class="dv">' + (hm.email || "—") + '</div></div>' +
+    '<div><div class="dl">Skills</div><div class="dv">' + ((hm.skills || []).join(", ") || "—") + '</div></div>' +
+    '<div><div class="dl">Card Token</div><div class="dv mono">' + (hm.assignedCardToken || "—") + '</div></div>' +
+    '<div><div class="dl">Status</div><div class="dv">' + bdg(hm.status || "active") + '</div></div>' +
+    '<div><div class="dl">Added</div><div class="dv">' + fd(hm.createdAt) + '</div></div>';
+  var ordTb = document.getElementById("hmDetOrders");
+  if (!orders.length) { ordTb.innerHTML = '<tr><td colspan="6" class="empty">No jobs yet</td></tr>'; return; }
+  var clMap = {};
+  try { var cls = await fsL("clients"); cls.forEach(function(c) { clMap[c.id] = c.name; }); } catch (e) {}
+  ordTb.innerHTML = orders.map(function(o) {
+    return '<tr>' +
+      '<td class="muted">' + fd(o.createdAt) + '</td>' +
+      '<td>' + (clMap[o.clientId] || o.clientId || "—") + '</td>' +
+      '<td>' + (o.category || "—") + '</td>' +
+      '<td>' + bdg(o.status || "new") + '</td>' +
+      '<td style="color:#EF9F27">' + (o.rating ? "★".repeat(o.rating) : "—") + '</td>' +
+      '<td>' + (o.price ? "$" + o.price : "—") + '</td>' +
     '</tr>';
   }).join("");
 }
-async function editHMGlobal(hmId,coId){
-  cdId=coId;
-  cdCards=await fsQ("nfc_cards",[{field:"companyId",value:coId}]);
-  var hm=await fsGet("handymen",hmId);
-  if(!hm)return;
-  cdHM=[hm];
-  document.getElementById("mHMT").textContent="Редактировать мастера";
-  document.getElementById("editHMId").value=hmId;
-  document.getElementById("hmName").value=hm.name||"";
-  document.getElementById("hmPhone").value=hm.phone||"";
-  document.getElementById("hmEmail").value=hm.email||"";
-  document.getElementById("hmSkills").value=(hm.skills||[]).join(", ");
-  document.getElementById("hmExp").value=hm.experienceYears||"";
+
+async function editHMGlobal(hmId, coId) {
+  cdId = coId;
+  cdCards = await fsQ("nfc_cards", [{ field: "companyId", value: coId }]);
+  var hm = await fsGet("handymen", hmId);
+  if (!hm) return;
+  cdHM = [hm];
+  document.getElementById("mHMT").textContent = "Edit Handyman";
+  document.getElementById("editHMId").value = hmId;
+  document.getElementById("hmName").value = hm.name || "";
+  document.getElementById("hmPhone").value = hm.phone || "";
+  document.getElementById("hmEmail").value = hm.email || "";
+  document.getElementById("hmSkills").value = (hm.skills || []).join(", ");
+  document.getElementById("hmExp").value = hm.experienceYears || "";
   await fillFreeCards(hm.assignedCardToken);
   openModal("mAddHM");
 }
 
-// GEN CARDS
-async function genCards(){var cnt=parseInt(document.getElementById("genCnt").value);var pfx=document.getElementById("genPfx").value.trim();if(!cnt){toast("Введите количество");return;}var btn=document.getElementById("genBtn");btn.disabled=true;var prog=document.getElementById("genProg");var chars="abcdefghijklmnopqrstuvwxyz0123456789";var saved=0;for(var i=0;i<cnt;i++){var t=pfx?pfx+"-":"";for(var j=0;j<8;j++)t+=chars[Math.floor(Math.random()*chars.length)];var ok=await fsP("nfc_cards",t,{companyId:sv(cdId),status:sv("unassigned"),clientId:sv(""),handymanId:sv(""),createdAt:sv(new Date().toISOString())});if(ok)saved++;prog.textContent="Сохранено "+saved+" из "+cnt+"...";}btn.disabled=false;closeModal("mGenCards");toast("Создано "+saved+"!");await loadCDCards();}
+// ── GEN CARDS ─────────────────────────────────────────────────
+async function genCards() {
+  var cnt = parseInt(document.getElementById("genCnt").value);
+  var pfx = document.getElementById("genPfx").value.trim();
+  if (!cnt) { toast("Enter a number of cards"); return; }
+  var btn = document.getElementById("genBtn"); btn.disabled = true;
+  var prog = document.getElementById("genProg");
+  var chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  var saved = 0;
+  for (var i = 0; i < cnt; i++) {
+    var t = pfx ? pfx + "-" : "";
+    for (var j = 0; j < 8; j++) t += chars[Math.floor(Math.random() * chars.length)];
+    var ok = await fsP("nfc_cards", t, { companyId: sv(cdId), status: sv("unassigned"), clientId: sv(""), handymanId: sv(""), createdAt: sv(new Date().toISOString()) });
+    if (ok) saved++;
+    prog.textContent = "Saved " + saved + " of " + cnt + "...";
+  }
+  btn.disabled = false;
+  closeModal("mGenCards");
+  toast("Created " + saved + " cards!");
+  await loadCDCards();
+}
 
-// CLIENTS
-async function loadCls(){
-  var tb=document.getElementById("clBody");tb.innerHTML='<tr><td colspan="7" class="empty">Загружаем...</td></tr>';
-  var cls=await fsL("clients");CC.cl={};cls.forEach(function(c){CC.cl[c.id]=c;});
-  var oc={};try{var ords=await fsL("orders");ords.forEach(function(o){oc[o.clientId]=(oc[o.clientId]||0)+1;});}catch(e){}
-  CC._allCl=cls;CC._clOC=oc;
-  renderCls(cls,oc);
+// ── CLIENTS ───────────────────────────────────────────────────
+async function loadCls() {
+  var tb = document.getElementById("clBody");
+  tb.innerHTML = '<tr><td colspan="7" class="empty">Loading...</td></tr>';
+  var cls = await fsL("clients");
+  CC.cl = {};
+  cls.forEach(function(c) { CC.cl[c.id] = c; });
+  var oc = {};
+  try { var ords = await fsL("orders"); ords.forEach(function(o) { oc[o.clientId] = (oc[o.clientId] || 0) + 1; }); } catch (e) {}
+  CC._allCl = cls; CC._clOC = oc;
+  renderCls(cls, oc);
 }
-function renderCls(cls,oc){
-  var tb=document.getElementById("clBody");
-  if(!cls.length){tb.innerHTML='<tr><td colspan="7" class="empty">Нет клиентов</td></tr>';return;}
-  tb.innerHTML=cls.map(function(c){return'<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(c.name)+'</div>'+(c.name||"—")+'</div></td><td class="muted">'+(c.phone||"—")+'</td><td class="muted">'+(c.email||"—")+'</td><td class="muted">'+(c.address||"—")+'</td><td>'+(oc[c.id]||0)+'</td><td class="muted">'+fd(c.createdAt)+'</td><td><button class="btn bs bsm" onclick="openCl(\''+c.id+'\')">История →</button></td></tr>';}).join("");
-}
-function searchCl(q){
-  var all=CC._allCl||[];var oc=CC._clOC||{};
-  if(!q){renderCls(all,oc);return;}
-  q=q.toLowerCase();
-  renderCls(all.filter(function(c){return(c.name||"").toLowerCase().includes(q)||(c.phone||"").includes(q);}),oc);
-}
-async function openCl(id){sp("cl-detail");var c=CC.cl[id]||{};document.getElementById("clName").textContent=c.name||id;document.getElementById("clMeta").textContent=(c.phone||"")+(c.email?" · "+c.email:"");document.getElementById("clInfo").innerHTML='<div><div class="dl">Телефон</div><div class="dv">'+(c.phone||"—")+'</div></div><div><div class="dl">Email</div><div class="dv">'+(c.email||"—")+'</div></div><div><div class="dl">Адрес</div><div class="dv">'+(c.address||"—")+'</div></div><div><div class="dl">Зарегистрирован</div><div class="dv">'+fd(c.createdAt)+'</div></div>';var tb=document.getElementById("clOBody");tb.innerHTML='<tr><td colspan="5" class="empty">Загружаем...</td></tr>';var ords=await fsQ("orders",[{field:"clientId",value:id}]);if(!ords.length){tb.innerHTML='<tr><td colspan="5" class="empty">Нет заказов</td></tr>';return;}var hma={};try{var hms=await fsL("handymen");hms.forEach(function(h){hma[h.id]=h.name;});}catch(e){}tb.innerHTML=ords.map(function(o){return'<tr><td class="muted">'+fd(o.createdAt)+'</td><td>'+(o.category||"—")+'</td><td>'+(hma[o.handymanId]||"—")+'</td><td>'+bdg(o.status||"new")+'</td><td>'+(o.price?o.price+" ₴":"—")+'</td></tr>';}).join("");}
 
-// ORDERS
-async function loadOrds(){var tb=document.getElementById("ordBody");tb.innerHTML='<tr><td colspan="7" class="empty">Загружаем...</td></tr>';allOrds=await fsL("orders");var hma={};try{var hms=await fsL("handymen");hms.forEach(function(h){hma[h.id]=h.name;});}catch(e){}CC._hma=hma;renderOrds();}
-function renderOrds(){var tb=document.getElementById("ordBody");var fil=allOrds.filter(function(o){return ordF==="all"||o.status===ordF;});if(!fil.length){tb.innerHTML='<tr><td colspan="7" class="empty">Нет заказов</td></tr>';return;}var hma=CC._hma||{};tb.innerHTML=fil.map(function(o){var cn=(CC.cos[o.companyId]||{}).name||o.companyId||"—";var cln=(CC.cl[o.clientId]||{}).name||o.clientId||"—";return'<tr><td class="muted">'+fd(o.createdAt)+'</td><td>'+cln+'</td><td>'+(hma[o.handymanId]||"—")+'</td><td class="muted">'+cn+'</td><td>'+(o.category||"—")+'</td><td>'+bdg(o.status||"new")+'</td><td>'+(o.price?o.price+" ₴":"—")+'</td></tr>';}).join("");}
-function filterOrders(s,btn){ordF=s;document.querySelectorAll("#page-orders .fb").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");renderOrds();}
+function renderCls(cls, oc) {
+  var tb = document.getElementById("clBody");
+  if (!cls.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No clients yet</td></tr>'; return; }
+  tb.innerHTML = cls.map(function(c) {
+    return '<tr>' +
+      '<td><div style="display:flex;align-items:center;gap:8px"><div class="av">' + ini(c.name) + '</div>' + (c.name || "—") + '</div></td>' +
+      '<td class="muted">' + (c.phone || "—") + '</td>' +
+      '<td class="muted">' + (c.email || "—") + '</td>' +
+      '<td class="muted">' + (c.address || "—") + '</td>' +
+      '<td>' + (oc[c.id] || 0) + '</td>' +
+      '<td class="muted">' + fd(c.createdAt) + '</td>' +
+      '<td><button class="btn bs bsm" onclick="openCl(\'' + c.id + '\')">History →</button></td>' +
+    '</tr>';
+  }).join("");
+}
+
+function searchCl(q) {
+  var all = CC._allCl || []; var oc = CC._clOC || {};
+  if (!q) { renderCls(all, oc); return; }
+  q = q.toLowerCase();
+  renderCls(all.filter(function(c) { return (c.name || "").toLowerCase().includes(q) || (c.phone || "").includes(q); }), oc);
+}
+
+async function openCl(id) {
+  sp("cl-detail");
+  var c = CC.cl[id] || {};
+  document.getElementById("clName").textContent = c.name || id;
+  document.getElementById("clMeta").textContent = (c.phone || "") + (c.email ? " · " + c.email : "");
+  document.getElementById("clInfo").innerHTML =
+    '<div><div class="dl">Phone</div><div class="dv">' + (c.phone || "—") + '</div></div>' +
+    '<div><div class="dl">Email</div><div class="dv">' + (c.email || "—") + '</div></div>' +
+    '<div><div class="dl">Address</div><div class="dv">' + (c.address || "—") + '</div></div>' +
+    '<div><div class="dl">Registered</div><div class="dv">' + fd(c.createdAt) + '</div></div>';
+  var tb = document.getElementById("clOBody");
+  tb.innerHTML = '<tr><td colspan="5" class="empty">Loading...</td></tr>';
+  var ords = await fsQ("orders", [{ field: "clientId", value: id }]);
+  if (!ords.length) { tb.innerHTML = '<tr><td colspan="5" class="empty">No orders yet</td></tr>'; return; }
+  var hma = {};
+  try { var hms = await fsL("handymen"); hms.forEach(function(h) { hma[h.id] = h.name; }); } catch (e) {}
+  tb.innerHTML = ords.map(function(o) {
+    return '<tr>' +
+      '<td class="muted">' + fd(o.createdAt) + '</td>' +
+      '<td>' + (o.category || "—") + '</td>' +
+      '<td>' + (hma[o.handymanId] || "—") + '</td>' +
+      '<td>' + bdg(o.status || "new") + '</td>' +
+      '<td>' + (o.price ? "$" + o.price : "—") + '</td>' +
+    '</tr>';
+  }).join("");
+}
+
+// ── ORDERS ────────────────────────────────────────────────────
+async function loadOrds() {
+  var tb = document.getElementById("ordBody");
+  tb.innerHTML = '<tr><td colspan="7" class="empty">Loading...</td></tr>';
+  allOrds = await fsL("orders");
+  var hma = {};
+  try { var hms = await fsL("handymen"); hms.forEach(function(h) { hma[h.id] = h.name; }); } catch (e) {}
+  CC._hma = hma;
+  renderOrds();
+}
+
+function renderOrds() {
+  var tb = document.getElementById("ordBody");
+  var fil = allOrds.filter(function(o) { return ordF === "all" || o.status === ordF; });
+  if (!fil.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No orders found</td></tr>'; return; }
+  var hma = CC._hma || {};
+  tb.innerHTML = fil.map(function(o) {
+    var cn = (CC.cos[o.companyId] || {}).name || o.companyId || "—";
+    var cln = (CC.cl[o.clientId] || {}).name || o.clientId || "—";
+    return '<tr>' +
+      '<td class="muted">' + fd(o.createdAt) + '</td>' +
+      '<td>' + cln + '</td>' +
+      '<td>' + (hma[o.handymanId] || "—") + '</td>' +
+      '<td class="muted">' + cn + '</td>' +
+      '<td>' + (o.category || "—") + '</td>' +
+      '<td>' + bdg(o.status || "new") + '</td>' +
+      '<td>' + (o.price ? "$" + o.price : "—") + '</td>' +
+    '</tr>';
+  }).join("");
+}
+
+function filterOrds(s, btn) {
+  ordF = s;
+  document.querySelectorAll("#page-orders .fb").forEach(function(b) { b.classList.remove("active"); });
+  btn.classList.add("active");
+  renderOrds();
+}
 </script>
 </body>
 </html>
