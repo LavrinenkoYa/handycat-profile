@@ -339,12 +339,21 @@ async function fsP(c, id, fields) {
   var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields }) });
   return r.ok;
 }
-// Patch only specific fields without overwriting the whole document
-async function fsPatchFields(c, id, fields) {
-  var fieldPaths = Object.keys(fields).map(function(k) { return "updateMask.fieldPaths=" + k; }).join("&");
-  var url = FS + "/" + c + "/" + id + "?" + fieldPaths + "&key=" + AKEY;
-  var r = await fetch(url, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields }) });
-  return r.ok;
+// Safe partial update: read existing doc, merge new fields, write back
+async function fsPatchFields(c, id, newFields) {
+  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY);
+  var existing = {};
+  if (r.ok) {
+    var doc = await r.json();
+    existing = doc.fields || {};
+  }
+  var merged = Object.assign({}, existing, newFields);
+  var wr = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fields: merged })
+  });
+  return wr.ok;
 }
 async function fsDel(c, id) {
   var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, { method: "DELETE" });
@@ -636,13 +645,17 @@ async function bulkDelete() {
   var sel = getSel(); if (!sel.length) return;
   cfm("Delete " + sel.length + " cards?", "This cannot be undone.", async function() {
     for (var i = 0; i < sel.length; i++) await fsDel("nfc_cards", sel[i]);
-    toast("Deleted " + sel.length + " cards"); await loadCDCards();
+    toast("Deleted " + sel.length + " cards");
+    await loadCDCards();
+    clearSel();
   });
 }
 async function bulkDeactivate() {
   var sel = getSel(); if (!sel.length) return;
   for (var i = 0; i < sel.length; i++) await fsPatchFields("nfc_cards", sel[i], { status: sv("deactivated") });
-  toast("Deactivated " + sel.length + " cards"); await loadCDCards();
+  toast("Deactivated " + sel.length + " cards");
+  await loadCDCards();
+  clearSel();
 }
 
 function exportFreeCSV() {
