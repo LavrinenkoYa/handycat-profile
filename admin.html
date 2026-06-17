@@ -100,6 +100,7 @@
     .bulk-bar.show{display:flex}
     @media(max-width:600px){.sr{grid-template-columns:1fr 1fr}.fgr{grid-template-columns:1fr}.di{grid-template-columns:1fr 1fr}}
   </style>
+  <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
 <body>
 
@@ -337,6 +338,32 @@ var AKEY = "AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
 var BURL = "https://project-2i6ok.vercel.app";
 var FS = "https://firestore.googleapis.com/v1/projects/" + PID + "/databases/(default)/documents";
 var AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
+var APP_ID = "1:299592863157:web:1762bf7633443ae2c89dfc";
+var RECAPTCHA_KEY = "6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD";
+var _appCheckToken = null, _appCheckExpiry = 0;
+
+async function getAppCheckToken() {
+  if (_appCheckToken && Date.now() < _appCheckExpiry) return _appCheckToken;
+  try {
+    var rcToken = await new Promise(function(resolve) {
+      if (typeof grecaptcha === "undefined") { resolve(null); return; }
+      grecaptcha.ready(function() { grecaptcha.execute(RECAPTCHA_KEY, {action:"admin"}).then(resolve).catch(function(){resolve(null);}); });
+    });
+    if (!rcToken) return null;
+    var r = await fetch("https://firebaseappcheck.googleapis.com/v1/projects/" + PID + "/apps/" + APP_ID + ":exchangeRecaptchaV3Token",
+      {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({recaptchaV3Token: rcToken})});
+    if (!r.ok) return null;
+    var d = await r.json();
+    _appCheckToken = d.token;
+    _appCheckExpiry = Date.now() + (Number((d.ttl||"3600s").replace("s","")) - 60) * 1000;
+    return _appCheckToken;
+  } catch(e) { console.warn("App Check:", e); return null; }
+}
+async function addAppCheck(options) {
+  var token = await getAppCheckToken();
+  if (token) { options = options||{}; options.headers = options.headers||{}; options.headers["X-Firebase-AppCheck"] = token; }
+  return options;
+}
 
 // ── AUTH ──────────────────────────────────────────────────────
 var currentIdToken = null;
@@ -423,12 +450,14 @@ async function fsQ(c, filters, lim) {
   return rows.filter(function(x) { return x.document; }).map(function(x) { return { id: x.document.name.split("/").pop(), ...pf(x.document.fields) }; });
 }
 async function fsP(c, id, fields) {
-  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields }) });
+  var opts = await addAppCheck({ method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields }) });
+  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, opts);
   return r.ok;
 }
 // Safe partial update: read existing doc, merge new fields, write back
 async function fsPatchFields(c, id, newFields) {
-  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY);
+  var readOpts = await addAppCheck({});
+  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, readOpts);
   var existing = {};
   if (r.ok) {
     var doc = await r.json();
