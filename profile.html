@@ -324,6 +324,7 @@ async function fsP(c,id,fields){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,{
 async function fsMerge(c,id,nf){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY);var ex={};if(r.ok){var d=await r.json();ex=d.fields||{};}var m=Object.assign({},ex,nf);var wr=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:m})});return wr.ok;}
 function pf(f){if(!f)return{};var res={};Object.keys(f).forEach(function(k){var v=f[k];if(v.stringValue!==undefined)res[k]=v.stringValue;else if(v.integerValue!==undefined)res[k]=Number(v.integerValue);else if(v.doubleValue!==undefined)res[k]=Number(v.doubleValue);else if(v.booleanValue!==undefined)res[k]=v.booleanValue;else if(v.arrayValue)res[k]=(v.arrayValue.values||[]).map(function(x){return x.stringValue||String(x.integerValue||x.doubleValue||"");});else res[k]=null;});return res;}
 function sv(v){return{stringValue:String(v||"")};}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");}
 function nv(v){return{doubleValue:Number(v||0)};}
 function bv(v){return{booleanValue:!!v};}
 function av(arr){return{arrayValue:{values:(arr||[]).map(function(x){return{stringValue:x};})}};}
