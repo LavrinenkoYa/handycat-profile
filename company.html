@@ -595,10 +595,13 @@ async function saveHM(){
 
 function delHM(id){
   if(!confirm("Delete this handyman? This cannot be undone."))return;
-  (async function(){var _dd=await addAppCheck({method:"DELETE"});fetch(FS+"/handymen/"+id+"?key="+AKEY,_dd).then(function(){
-    S.handymen=S.handymen.filter(function(h){return h.id!==id;});
-    renderHM();toast("Handyman deleted");
-  });
+  (async function(){
+    var _dd=await addAppCheck({method:"DELETE"});
+    fetch(FS+"/handymen/"+id+"?key="+AKEY,_dd).then(function(){
+      S.handymen=S.handymen.filter(function(h){return h.id!==id;});
+      renderHM();toast("Handyman deleted");
+    });
+  })();
 }
 
 // ── CARDS ─────────────────────────────────────────────────────
