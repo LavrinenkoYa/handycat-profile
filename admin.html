@@ -387,6 +387,7 @@ async function fsPatchFields(c, id, newFields) {
   });
   return wr.ok;
 }
+var fsMerge = fsPatchFields;
 async function fsDel(c, id) {
   var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, { method: "DELETE" });
   return r.ok;
