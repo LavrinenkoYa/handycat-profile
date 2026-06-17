@@ -121,6 +121,7 @@
     .fb{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #e0e0e0;background:#fff;color:#666;transition:all .15s}
     .fb.active{background:#185FA5;color:#fff;border-color:#185FA5}
   </style>
+<script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
 <body>
 
@@ -292,6 +293,31 @@
 <script>
 var PID="handycat-98416",AKEY="AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
 var FS="https://firestore.googleapis.com/v1/projects/"+PID+"/databases/(default)/documents";
+var APP_ID="1:299592863157:web:1762bf7633443ae2c89dfc";
+var RECAPTCHA_KEY="6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD";
+var _appCheckToken=null,_appCheckExpiry=0;
+async function getAppCheckToken(){
+  if(_appCheckToken&&Date.now()<_appCheckExpiry)return _appCheckToken;
+  try{
+    var rcToken=await new Promise(function(resolve,reject){
+      if(typeof grecaptcha==="undefined"){resolve(null);return;}
+      grecaptcha.ready(function(){grecaptcha.execute(RECAPTCHA_KEY,{action:"firebase"}).then(resolve).catch(reject);});
+    });
+    if(!rcToken)return null;
+    var r=await fetch("https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+APP_ID+":exchangeRecaptchaV3Token",
+      {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recaptchaV3Token:rcToken})});
+    if(!r.ok)return null;
+    var d=await r.json();
+    _appCheckToken=d.token;
+    _appCheckExpiry=Date.now()+(Number((d.ttl||"3600s").replace("s",""))-60)*1000;
+    return _appCheckToken;
+  }catch(e){console.warn("App Check:",e);return null;}
+}
+async function addAppCheck(options){
+  var token=await getAppCheckToken();
+  if(token){options=options||{};options.headers=options.headers||{};options.headers["X-Firebase-AppCheck"]=token;}
+  return options;
+}
 var AUTH_API="https://identitytoolkit.googleapis.com/v1/accounts";
 
 var S={company:null,companyId:null,handymen:[],cards:[],orders:[],clients:{},cardFilter:"all",ordFilter:"all"};
@@ -300,7 +326,7 @@ var S={company:null,companyId:null,handymen:[],cards:[],orders:[],clients:{},car
 async function fsGet(c,id){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY);if(!r.ok)return null;var d=await r.json();return{id:d.name.split("/").pop(),...pf(d.fields)};}
 async function fsL(c,ps){var r=await fetch(FS+"/"+c+"?key="+AKEY+"&pageSize="+(ps||200));if(!r.ok)return[];var d=await r.json();if(!d.documents)return[];return d.documents.map(function(x){return{id:x.name.split("/").pop(),...pf(x.fields)};});}
 async function fsQ(c,filters,lim){var body={structuredQuery:{from:[{collectionId:c}],limit:lim||200}};function mkF(f){return{fieldFilter:{field:{fieldPath:f.field},op:f.op||"EQUAL",value:{stringValue:f.value}}};}if(filters&&filters.length===1)body.structuredQuery.where=mkF(filters[0]);else if(filters&&filters.length>1)body.structuredQuery.where={compositeFilter:{op:"AND",filters:filters.map(mkF)}};var r=await fetch(FS+":runQuery?key="+AKEY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)return[];var rows=await r.json();return rows.filter(function(x){return x.document;}).map(function(x){return{id:x.document.name.split("/").pop(),...pf(x.document.fields)};});}
-async function fsP(c,id,fields){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:fields})});return r.ok;}
+async function fsP(c,id,fields){var opts=await addAppCheck({method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:fields})});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,opts);return r.ok;}
 async function fsMerge(c,id,nf){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY);var ex={};if(r.ok){var d=await r.json();ex=d.fields||{};}var m=Object.assign({},ex,nf);var wr=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:m})});return wr.ok;}
 function pf(f){if(!f)return{};var res={};Object.keys(f).forEach(function(k){var v=f[k];if(v.stringValue!==undefined)res[k]=v.stringValue;else if(v.integerValue!==undefined)res[k]=Number(v.integerValue);else if(v.doubleValue!==undefined)res[k]=Number(v.doubleValue);else if(v.booleanValue!==undefined)res[k]=v.booleanValue;else if(v.arrayValue)res[k]=(v.arrayValue.values||[]).map(function(x){return x.stringValue||String(x.integerValue||x.doubleValue||"");});else res[k]=null;});return res;}
 function sv(v){return{stringValue:String(v||"")};}
