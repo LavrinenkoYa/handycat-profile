@@ -427,13 +427,13 @@ function logout() {
 
 // ── FIRESTORE ─────────────────────────────────────────────────
 async function fsGet(c, id) {
-  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY);
+  var _gopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,_gopts);
   if (!r.ok) return null;
   var d = await r.json();
   return { id: d.name.split("/").pop(), ...pf(d.fields) };
 }
 async function fsL(c, ps) {
-  var r = await fetch(FS + "/" + c + "?key=" + AKEY + "&pageSize=" + (ps || 300));
+  var _lopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"?key="+AKEY+"&pageSize="+ (ps || 300));
   if (!r.ok) return [];
   var d = await r.json();
   if (!d.documents) return [];
@@ -444,7 +444,7 @@ async function fsQ(c, filters, lim) {
   function mkF(f) { return { fieldFilter: { field: { fieldPath: f.field }, op: f.op || "EQUAL", value: { stringValue: f.value } } }; }
   if (filters && filters.length === 1) body.structuredQuery.where = mkF(filters[0]);
   else if (filters && filters.length > 1) body.structuredQuery.where = { compositeFilter: { op: "AND", filters: filters.map(mkF) } };
-  var r = await fetch(FS + ":runQuery?key=" + AKEY, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  var r = await fetch(FS + ":runQuery?key=" + AKEY, await addAppCheck({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }));
   if (!r.ok) return [];
   var rows = await r.json();
   return rows.filter(function(x) { return x.document; }).map(function(x) { return { id: x.document.name.split("/").pop(), ...pf(x.document.fields) }; });
@@ -473,7 +473,7 @@ async function fsPatchFields(c, id, newFields) {
 }
 var fsMerge = fsPatchFields;
 async function fsDel(c, id) {
-  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, { method: "DELETE" });
+  var _dopts=await addAppCheck({method:"DELETE"});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,_dopts);
   return r.ok;
 }
 function pf(f) {
@@ -1292,7 +1292,7 @@ var APP_ST = {
 async function loadApps() {
   var tb = document.getElementById("appsBody");
   tb.innerHTML = '<tr><td colspan="8" class="empty">Loading...</td></tr>';
-  var r = await fetch(FS + "/company_applications?key=" + AKEY + "&pageSize=200");
+  var r = await fetch(FS + "/company_applications?key=" + AKEY + "&pageSize=200", await addAppCheck({}));
   if (!r.ok) { tb.innerHTML = '<tr><td colspan="8" class="empty">Error loading</td></tr>'; return; }
   var d = await r.json();
   allApps = (d.documents || []).map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
@@ -1310,7 +1310,7 @@ var allCardReqs = [];
 async function loadCardRequests() {
   var tb = document.getElementById("cardReqBody");
   tb.innerHTML = '<tr><td colspan="6" class="empty">Loading...</td></tr>';
-  var r = await fetch(FS + "/card_requests?key=" + AKEY + "&pageSize=200");
+  var r = await fetch(FS + "/card_requests?key=" + AKEY + "&pageSize=200", await addAppCheck({}));
   if (!r.ok) { tb.innerHTML = '<tr><td colspan="6" class="empty">No requests yet</td></tr>'; return; }
   var d = await r.json();
   allCardReqs = (d.documents || []).map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
@@ -1513,7 +1513,7 @@ async function updateAppStatus(appId, newStatus) {
   if (!app) return;
 
   // Update status in Firestore
-  var r = await fetch(FS + "/company_applications/" + appId + "?key=" + AKEY);
+  var r = await fetch(FS + "/company_applications/" + appId + "?key=" + AKEY, await addAppCheck({}));
   var existing = {};
   if (r.ok) { var d = await r.json(); existing = d.fields || {}; }
   var merged = Object.assign({}, existing, {
