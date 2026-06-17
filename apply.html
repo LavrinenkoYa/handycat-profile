@@ -76,6 +76,7 @@
     .toast.show{opacity:1}
   </style>
 </head>
+<script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 <body>
 <div class="container">
   <div class="sidebar">
@@ -254,7 +255,39 @@
 var STEP_LABELS=["Contact Info","Business Details","NFC Cards","License & Insurance"];
 var currentStep=1,totalSteps=4,cardCount=10;
 var PID="handycat-98416",AKEY="AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
+var APP_ID="1:299592863157:web:1762bf7633443ae2c89dfc";
+var RECAPTCHA_KEY="6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD";
 var FS="https://firestore.googleapis.com/v1/projects/"+PID+"/databases/(default)/documents";
+var _appCheckToken=null,_appCheckExpiry=0;
+
+async function getAppCheckToken(){
+  if(_appCheckToken&&Date.now()<_appCheckExpiry)return _appCheckToken;
+  try{
+    var rcToken=await new Promise(function(resolve,reject){
+      if(typeof grecaptcha==="undefined"){reject(new Error("reCAPTCHA not loaded"));return;}
+      grecaptcha.ready(function(){
+        grecaptcha.execute(RECAPTCHA_KEY,{action:"submit"}).then(resolve).catch(reject);
+      });
+    });
+    var r=await fetch(
+      "https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+APP_ID+":exchangeRecaptchaV3Token",
+      {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recaptchaV3Token:rcToken})}
+    );
+    if(!r.ok)return null;
+    var d=await r.json();
+    _appCheckToken=d.token;
+    _appCheckExpiry=Date.now()+(Number((d.ttl||"3600s").replace("s",""))-60)*1000;
+    return _appCheckToken;
+  }catch(e){console.warn("App Check failed:",e);return null;}
+}
+
+async function fsWithCheck(url,options){
+  var token=await getAppCheckToken();
+  options=options||{};
+  options.headers=options.headers||{};
+  if(token)options.headers["X-Firebase-AppCheck"]=token;
+  return fetch(url,options);
+}
 
 function toast(m){var e=document.getElementById("toast");e.textContent=m;e.classList.add("show");setTimeout(function(){e.classList.remove("show");},3000);}
 function sv(v){return{stringValue:String(v||"")};}
@@ -343,8 +376,8 @@ async function submitApplication(){
   var contact=document.getElementById("f-contact").value.trim();
 
   try{
-    // Save application to Firestore
-    var r=await fetch(FS+"/company_applications/"+appId+"?key="+AKEY,{
+    // Save application to Firestore with App Check
+    var r=await fsWithCheck(FS+"/company_applications/"+appId+"?key="+AKEY,{
       method:"PATCH",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({fields:{
