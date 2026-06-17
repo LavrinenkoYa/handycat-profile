@@ -323,10 +323,10 @@ function navApp(n){
   document.querySelectorAll(".nb").forEach(function(b){b.classList.remove("active");});
   document.getElementById("cp-"+n).classList.add("active");
   document.querySelectorAll(".nb").forEach(function(b){if(b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'"+n+"'"))b.classList.add("active");});
-  if(n==="overview")loadOverview();
-  if(n==="handymen")renderHM();
-  if(n==="cards")loadCards();
-  if(n==="orders")loadOrders();
+  if(n==="cards"){loadPendingReqs().then(loadCards);}
+  else if(n==="overview")loadOverview();
+  else if(n==="handymen")renderHM();
+  else if(n==="orders")loadOrders();
 }
 
 function showPage(n){document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active");});document.getElementById("cp-"+n).classList.add("active");}
@@ -566,12 +566,31 @@ function delHM(id){
 function loadCards(){
   var freeCount=S.cards.filter(function(c){return c.status==="unassigned";}).length;
   var hmByToken={};S.handymen.forEach(function(h){if(h.assignedCardToken)hmByToken[h.assignedCardToken]=h.name;});
+
+  // Check for pending card requests
+  var pendingReqHtml="";
+  if(window._pendingCardReqs&&window._pendingCardReqs.length){
+    pendingReqHtml='<div style="background:#FEF3C7;border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">'+
+      '<div><div style="font-size:13px;font-weight:600;color:#92400E">&#x23F3; '+window._pendingCardReqs.length+' card request(s) pending admin approval</div>'+
+      '<div style="font-size:12px;color:#B45309;margin-top:2px">You\'ll receive an email once your cards are generated</div></div>'+
+    '</div>';
+  }
+
   document.getElementById("cardsInfo").innerHTML=
+    pendingReqHtml+
     '<div class="cards-info">'+
       '<div><div class="cards-info-text"><strong>'+S.cards.length+'</strong> total cards &bull; <strong>'+freeCount+'</strong> available</div>'+
         '<div class="cards-info-sub">Assign cards to handymen so they can activate them with clients</div></div>'+
     '</div>';
   renderCards(hmByToken);
+}
+
+// Load pending card requests for this company
+async function loadPendingReqs(){
+  try{
+    var reqs=await fsQ("card_requests",[{field:"companyId",value:S.companyId},{field:"status",value:"pending"}]);
+    window._pendingCardReqs=reqs;
+  }catch(e){window._pendingCardReqs=[];}
 }
 
 function renderCards(hmByToken){
@@ -613,29 +632,49 @@ function openRequestCards(){openModal("mReqCards");}
 async function submitCardRequest(){
   var count=document.getElementById("reqCardsCount").value;
   var notes=document.getElementById("reqCardsNotes").value.trim();
-  if(!count||Number(count)<1){toast("Enter number of cards");return;}
+  if(!count||Number(count)<5){toast("Minimum 5 cards per request");return;}
   var btn=document.getElementById("reqCardsBtn");setLoading(btn,true);
-  // Save request to Firestore
-  var reqId="cardreq-"+Date.now().toString(36);
-  await fsP("card_requests",reqId,{
-    companyId:sv(S.companyId),companyName:sv(S.company.name||""),
-    email:sv(S.company.email||""),count:{integerValue:String(Number(count))},
-    notes:sv(notes),status:sv("pending"),createdAt:sv(new Date().toISOString())
-  });
-  // Email admin via mail collection
-  var mailId="mail-"+Date.now().toString(36);
-  await fetch(FS+"/mail/"+mailId+"?key="+AKEY,{
-    method:"PATCH",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({fields:{
-      to:sv("designlavrinenko@gmail.com"),
-      message:{mapValue:{fields:{
-        subject:sv("Card request: "+S.company.name+" needs "+count+" cards"),
-        html:sv("<div style='font-family:sans-serif;padding:24px'><h3>Card Request</h3><p><strong>Company:</strong> "+(S.company.name||"")+"</p><p><strong>Cards needed:</strong> "+count+"</p><p><strong>Notes:</strong> "+(notes||"—")+"</p></div>")
-      }}}
-    }})
-  });
-  setLoading(btn,false);closeModal("mReqCards");
-  toast("Request sent! We'll prepare your cards within 2–3 business days.");
+  try {
+    var reqId="cardreq-"+Date.now().toString(36);
+    await fsP("card_requests",reqId,{
+      companyId:sv(S.companyId),
+      companyName:sv(S.company.name||""),
+      email:sv(S.company.email||""),
+      count:{integerValue:String(Number(count))},
+      notes:sv(notes),
+      status:sv("pending"),
+      createdAt:sv(new Date().toISOString())
+    });
+    // Email admin
+    var mailId="mail-"+Date.now().toString(36);
+    await fetch(FS+"/mail/"+mailId+"?key="+AKEY,{
+      method:"PATCH",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({fields:{
+        to:sv("designlavrinenko@gmail.com"),
+        message:{mapValue:{fields:{
+          subject:sv("&#x1F4B3; Card request: "+(S.company.name||"")+" needs "+count+" cards"),
+          html:sv(
+            "<div style='font-family:sans-serif;max-width:600px;padding:24px'>"+
+            "<h2 style='color:#185FA5'>HandyCat — New Card Request</h2>"+
+            "<table style='width:100%;border-collapse:collapse'>"+
+            "<tr><td style='padding:8px 0;color:#888'>Company</td><td style='font-weight:600'>"+(S.company.name||"")+"</td></tr>"+
+            "<tr><td style='padding:8px 0;color:#888'>Cards needed</td><td style='font-weight:700;font-size:18px;color:#185FA5'>"+count+"</td></tr>"+
+            "<tr><td style='padding:8px 0;color:#888'>Notes</td><td>"+(notes||"—")+"</td></tr>"+
+            "</table>"+
+            "<div style='margin-top:20px'><a href='https://project-2i6ok.vercel.app/admin.html' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600'>Review in Admin &#x2192;</a></div>"+
+            "</div>"
+          )
+        }}}
+      }})
+    });
+    setLoading(btn,false);
+    closeModal("mReqCards");
+    toast("&#x2713; Request sent! You'll receive an email once your cards are ready.");
+  } catch(e) {
+    console.error(e);
+    setLoading(btn,false);
+    toast("Something went wrong. Please try again.");
+  }
 }
 
 // ── ORDERS ────────────────────────────────────────────────────
