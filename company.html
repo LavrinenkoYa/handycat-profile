@@ -424,14 +424,26 @@ async function loadApp(){
   document.getElementById("topCompanyName").textContent=c.name||"Company";
   document.getElementById("overviewTitle").textContent=c.name||"Dashboard";
   document.getElementById("overviewSub").textContent="Welcome back, "+c.name+"!";
-  // Load all data
-  var [hm,cards,orders]=await Promise.all([
-    fsQ("handymen",[{field:"companyIds",value:S.companyId,op:"ARRAY_CONTAINS"}]),
+
+  // Load handymen — try ARRAY_CONTAINS first
+  var hm=await fsQ("handymen",[{field:"companyIds",value:S.companyId,op:"ARRAY_CONTAINS"}]);
+
+  // Fallback: if empty, load all and filter client-side
+  // (handles edge case where companyIds format differs)
+  if(!hm.length){
+    var allHM=await fsL("handymen",500);
+    hm=allHM.filter(function(h){
+      return (h.companyIds||[]).indexOf(S.companyId)>=0 ||
+             h.companyId===S.companyId;
+    });
+  }
+
+  var results=await Promise.all([
     fsQ("nfc_cards",[{field:"companyId",value:S.companyId}]),
     fsQ("orders",[{field:"companyId",value:S.companyId}])
   ]);
-  S.handymen=hm;S.cards=cards;
-  S.orders=orders.sort(function(a,b){return(b.createdAt||"").localeCompare(a.createdAt||"");});
+  S.handymen=hm;S.cards=results[0];
+  S.orders=results[1].sort(function(a,b){return(b.createdAt||"").localeCompare(a.createdAt||"");});
   // Load clients for orders
   var cids={};S.orders.forEach(function(o){if(o.clientId)cids[o.clientId]=true;});
   await Promise.all(Object.keys(cids).map(async function(id){var cl=await fsGet("clients",id);if(cl)S.clients[id]=cl;}));
