@@ -226,6 +226,13 @@
       </div>
     </div>
     <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Company</th><th>Contact</th><th>Type</th><th>Cards</th><th>Region</th><th>Status</th><th></th></tr></thead><tbody id="appsBody"></tbody></table></div></div>
+
+    <!-- CARD REQUESTS -->
+    <div class="ph" style="margin-top:20px">
+      <div><h2>Card Requests <span id="cardReqBadge" style="display:none;background:#185FA5;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle"></span></h2>
+        <p>Companies requesting additional NFC cards</p></div>
+    </div>
+    <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Company</th><th>Cards</th><th>Notes</th><th>Status</th><th></th></tr></thead><tbody id="cardReqBody"></tbody></table></div></div>
   </div>
 
   <!-- APPLICATION DETAIL -->
@@ -1208,6 +1215,130 @@ async function loadApps() {
   var badge = document.getElementById("appsBadge");
   badge.textContent = pending; badge.style.display = pending > 0 ? "inline" : "none";
   renderApps();
+  loadCardRequests(); // also load card requests
+}
+
+// ── CARD REQUESTS ─────────────────────────────────────────────
+var allCardReqs = [];
+
+async function loadCardRequests() {
+  var tb = document.getElementById("cardReqBody");
+  tb.innerHTML = '<tr><td colspan="6" class="empty">Loading...</td></tr>';
+  var r = await fetch(FS + "/card_requests?key=" + AKEY + "&pageSize=200");
+  if (!r.ok) { tb.innerHTML = '<tr><td colspan="6" class="empty">No requests yet</td></tr>'; return; }
+  var d = await r.json();
+  allCardReqs = (d.documents || []).map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
+  allCardReqs.sort(function(a, b) { return (b.createdAt || "").localeCompare(a.createdAt || ""); });
+  // Update badge
+  var pendingCR = allCardReqs.filter(function(r) { return r.status === "pending"; }).length;
+  var badge = document.getElementById("cardReqBadge");
+  if (pendingCR > 0) { badge.textContent = pendingCR + " pending"; badge.style.display = "inline"; }
+  else badge.style.display = "none";
+  renderCardReqs();
+}
+
+function renderCardReqs() {
+  var tb = document.getElementById("cardReqBody");
+  if (!allCardReqs.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No card requests yet</td></tr>'; return; }
+  var stMap = {
+    pending: { cls: "bu", label: "&#x1F7E1; Pending" },
+    approved: { cls: "ba", label: "&#x1F7E2; Approved" },
+    rejected: { cls: "bred", label: "&#x1F534; Rejected" }
+  };
+  tb.innerHTML = allCardReqs.map(function(req) {
+    var st = stMap[req.status] || stMap.pending;
+    var btns = req.status === "pending"
+      ? '<div style="display:flex;gap:6px">' +
+          '<button class="btn bg bsm" onclick="approveCardReq(\'' + req.id + '\',' + (req.count || 10) + ',\'' + (req.companyId || "") + '\')">&#x2713; Approve & Generate</button>' +
+          '<button class="btn bd bsm" onclick="rejectCardReq(\'' + req.id + '\')">&#x2717; Reject</button>' +
+        '</div>'
+      : '<span class="muted">' + fd(req.createdAt) + '</span>';
+    return '<tr>' +
+      '<td class="muted">' + fd(req.createdAt) + '</td>' +
+      '<td style="font-weight:600">' + (req.companyName || req.companyId || "—") + '</td>' +
+      '<td style="font-weight:700;color:#185FA5;font-size:16px">' + (req.count || 0) + '</td>' +
+      '<td class="muted">' + (req.notes || "—") + '</td>' +
+      '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>' +
+      '<td>' + btns + '</td>' +
+    '</tr>';
+  }).join("");
+}
+
+async function approveCardReq(reqId, count, companyId) {
+  if (!companyId) { toast("No company ID found on this request"); return; }
+  if (!confirm("Generate " + count + " cards for this company?")) return;
+
+  var chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  var saved = 0;
+  var pfx = "hc";
+  toast("Generating " + count + " cards...");
+
+  for (var i = 0; i < count; i++) {
+    var token = pfx + "-";
+    for (var j = 0; j < 8; j++) token += chars[Math.floor(Math.random() * chars.length)];
+    var ok = await fsP("nfc_cards", token, {
+      companyId: sv(companyId),
+      status: sv("unassigned"),
+      clientId: sv(""), handymanId: sv(""),
+      createdAt: sv(new Date().toISOString())
+    });
+    if (ok) saved++;
+  }
+
+  // Update request status
+  await fsMerge("card_requests", reqId, { status: sv("approved"), approvedAt: sv(new Date().toISOString()) });
+
+  // Notify company via email
+  var req = allCardReqs.find(function(r) { return r.id === reqId; });
+  if (req && req.email) {
+    var mailId = "mail-" + Date.now().toString(36);
+    await fetch(FS + "/mail/" + mailId + "?key=" + AKEY, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fields: {
+        to: sv(req.email),
+        message: { mapValue: { fields: {
+          subject: sv("Your NFC cards are ready — " + (req.companyName || "")),
+          html: sv(
+            "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>" +
+            "<h2 style='color:#185FA5'>HandyCat</h2>" +
+            "<p>Great news! Your <strong>" + saved + " NFC cards</strong> have been generated and are now available in your dashboard.</p>" +
+            "<p>You can assign them to your handymen right away. The physical cards are being prepared and will be shipped to your address shortly.</p>" +
+            "<div style='margin:24px 0'><a href='https://project-2i6ok.vercel.app/company' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600'>Open Dashboard &#x2192;</a></div>" +
+            "<p>Best regards,<br><strong>The HandyCat Team</strong></p></div>"
+          )
+        }}}
+      }})
+    });
+  }
+
+  // Update local state
+  var idx = allCardReqs.findIndex(function(r) { return r.id === reqId; });
+  if (idx >= 0) allCardReqs[idx].status = "approved";
+  renderCardReqs();
+  toast("✓ " + saved + " cards generated! Company notified by email.");
+}
+
+async function rejectCardReq(reqId) {
+  if (!confirm("Reject this card request?")) return;
+  await fsMerge("card_requests", reqId, { status: sv("rejected"), rejectedAt: sv(new Date().toISOString()) });
+  var req = allCardReqs.find(function(r) { return r.id === reqId; });
+  if (req && req.email) {
+    var mailId = "mail-" + Date.now().toString(36);
+    await fetch(FS + "/mail/" + mailId + "?key=" + AKEY, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fields: {
+        to: sv(req.email),
+        message: { mapValue: { fields: {
+          subject: sv("Update on your card request — HandyCat"),
+          html: sv("<div style='font-family:sans-serif;padding:32px'><h2 style='color:#185FA5'>HandyCat</h2><p>Unfortunately, your card request could not be processed at this time. Please contact us for more information.</p><p>Best regards,<br><strong>The HandyCat Team</strong></p></div>")
+        }}}
+      }})
+    });
+  }
+  var idx = allCardReqs.findIndex(function(r) { return r.id === reqId; });
+  if (idx >= 0) allCardReqs[idx].status = "rejected";
+  renderCardReqs();
+  toast("Request rejected");
 }
 
 function renderApps() {
