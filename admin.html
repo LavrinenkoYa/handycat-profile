@@ -14,6 +14,9 @@
     .auth-logo span{color:#185FA5}
     .auth-sub{font-size:14px;color:#888;margin-bottom:28px}
     .auth-err{background:#FCEBEB;color:#A32D2D;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+    .btn .ld{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:4px}
+    .btn.loading .ld{display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
     .topbar{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
     .topbar-logo{font-size:16px;font-weight:700;color:#111}
     .topbar-logo span{color:#185FA5}
@@ -105,9 +108,12 @@
   <div class="auth-box">
     <div class="auth-logo">🪪 Handy<span>Cat</span></div>
     <div class="auth-sub">Admin Dashboard</div>
-    <div class="auth-err" id="authErr">Incorrect password. Please try again.</div>
-    <div class="fg"><label>Password</label><input type="password" id="authPass" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')login()" /></div>
-    <button class="btn bp" style="width:100%;justify-content:center;padding:13px" onclick="login()">Sign In</button>
+    <div class="auth-err" id="authErr">Incorrect email or password.</div>
+    <div class="fg"><label>Email</label><input type="email" id="authEmail" placeholder="admin@handycat.com" onkeydown="if(event.key==='Enter')login()"/></div>
+    <div class="fg"><label>Password</label><input type="password" id="authPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')login()"/></div>
+    <button class="btn bp" id="loginBtn" style="width:100%;justify-content:center;padding:13px" onclick="login()">
+      <span class="ld"></span><span>Sign In</span>
+    </button>
   </div>
 </div>
 
@@ -327,28 +333,79 @@
 <div class="toast" id="toast"></div>
 
 <script>
-var PASS = "handycat2024";
 var PID = "handycat-98416";
 var AKEY = "AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
 var BURL = "https://project-2i6ok.vercel.app";
 var FS = "https://firestore.googleapis.com/v1/projects/" + PID + "/databases/(default)/documents";
+var AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
 
 // ── AUTH ──────────────────────────────────────────────────────
-function login() {
-  if (document.getElementById("authPass").value === PASS) {
-    sessionStorage.setItem("hca", "1");
-    document.getElementById("authScreen").classList.remove("show");
-    document.getElementById("app").style.display = "block";
-    loadCos();
-  } else {
-    document.getElementById("authErr").style.display = "block";
+var currentIdToken = null;
+
+async function login() {
+  var email = document.getElementById("authEmail").value.trim();
+  var pass = document.getElementById("authPass").value;
+  if (!email || !pass) { showAuthErr("Please enter email and password"); return; }
+  var btn = document.getElementById("loginBtn");
+  btn.disabled = true; btn.classList.add("loading");
+  try {
+    var r = await fetch(AUTH + ":signInWithPassword?key=" + AKEY, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, password: pass, returnSecureToken: true })
+    });
+    var d = await r.json();
+    if (!r.ok) {
+      var msg = d.error && d.error.message;
+      if (msg === "INVALID_PASSWORD" || msg === "EMAIL_NOT_FOUND" || msg === "INVALID_LOGIN_CREDENTIALS") {
+        showAuthErr("Incorrect email or password.");
+      } else {
+        showAuthErr("Sign in failed. Please try again.");
+      }
+      btn.disabled = false; btn.classList.remove("loading"); return;
+    }
+    currentIdToken = d.idToken;
+    // Store token with expiry (1 hour)
+    var expiry = Date.now() + 55 * 60 * 1000;
+    sessionStorage.setItem("hca_token", d.idToken);
+    sessionStorage.setItem("hca_expiry", String(expiry));
+    sessionStorage.setItem("hca_email", email);
+    showApp();
+  } catch(e) {
+    showAuthErr("Connection error. Please try again.");
+    btn.disabled = false; btn.classList.remove("loading");
   }
 }
-function logout() { sessionStorage.removeItem("hca"); location.reload(); }
-if (sessionStorage.getItem("hca")) {
+
+function showAuthErr(msg) {
+  var el = document.getElementById("authErr");
+  el.textContent = msg; el.style.display = "block";
+}
+
+function showApp() {
   document.getElementById("authScreen").classList.remove("show");
   document.getElementById("app").style.display = "block";
+  loadCos();
+  loadAppsBadge();
 }
+
+function logout() {
+  sessionStorage.removeItem("hca_token");
+  sessionStorage.removeItem("hca_expiry");
+  sessionStorage.removeItem("hca_email");
+  currentIdToken = null;
+  location.reload();
+}
+
+// Check existing session on page load
+(function checkSession() {
+  var token = sessionStorage.getItem("hca_token");
+  var expiry = Number(sessionStorage.getItem("hca_expiry") || 0);
+  if (token && Date.now() < expiry) {
+    currentIdToken = token;
+    showApp();
+  }
+})();
 
 // ── FIRESTORE ─────────────────────────────────────────────────
 async function fsGet(c, id) {
@@ -1484,20 +1541,17 @@ async function updateAppStatus(appId, newStatus) {
   showAppDetail(appId);
 }
 
-// Load badge on login
-if (sessionStorage.getItem("hca")) {
-  setTimeout(async function() {
-    try {
-      var r = await fetch(FS + "/company_applications?key=" + AKEY + "&pageSize=100");
-      if (!r.ok) return;
-      var d = await r.json();
-      var pending = (d.documents || []).filter(function(x) {
-        return pf(x.fields).status === "pending";
-      }).length;
-      var badge = document.getElementById("appsBadge");
-      if (pending > 0) { badge.textContent = pending; badge.style.display = "inline"; }
-    } catch(e) {}
-  }, 800);
+async function loadAppsBadge() {
+  try {
+    var r = await fetch(FS + "/company_applications?key=" + AKEY + "&pageSize=100");
+    if (!r.ok) return;
+    var d = await r.json();
+    var pending = (d.documents || []).filter(function(x) {
+      return pf(x.fields).status === "pending";
+    }).length;
+    var badge = document.getElementById("appsBadge");
+    if (pending > 0) { badge.textContent = pending; badge.style.display = "inline"; }
+  } catch(e) {}
 }
 </script>
 </body>
