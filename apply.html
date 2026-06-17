@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>HandyCat — Join as a Company</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+    .container{width:100%;max-width:1000px;min-height:600px;background:#fff;border-radius:24px;box-shadow:0 4px 40px rgba(0,0,0,.1);display:grid;grid-template-columns:300px 1fr;overflow:hidden}
+    @media(max-width:700px){.container{grid-template-columns:1fr;max-width:480px}}
+    .sidebar{background:#111;padding:32px 24px;display:flex;flex-direction:column}
+    @media(max-width:700px){.sidebar{display:none}}
+    .logo{font-size:22px;font-weight:700;color:#fff;margin-bottom:6px}
+    .logo span{color:#185FA5}
+    .logo-sub{font-size:13px;color:#555;margin-bottom:36px}
+    .hm-card{background:#1a1a1a;border-radius:16px;padding:16px;margin-bottom:24px}
+    .hm-top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .hm-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#185FA5,#0C447C);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;position:relative}
+    .hm-dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;background:#22c55e;border-radius:50%;border:2px solid #1a1a1a}
+    .hm-name{font-size:15px;font-weight:600;color:#fff}
+    .hm-title{font-size:12px;color:#888}
+    .cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+    .cat{font-size:11px;padding:3px 10px;background:#2a2a2a;color:#aaa;border-radius:20px}
+    .hm-loc{font-size:12px;color:#888;margin-bottom:10px}
+    .hm-rat{display:flex;align-items:baseline;gap:4px}
+    .hm-rat .n{font-size:20px;font-weight:700;color:#fff}
+    .hm-rat .d{font-size:13px;color:#888}
+    .prog-sec{margin-top:auto}
+    .step-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+    .si{display:flex;align-items:center;gap:10px}
+    .sd{width:8px;height:8px;border-radius:50%;background:#333;flex-shrink:0;transition:background .3s}
+    .sd.done{background:#22c55e}
+    .sd.active{background:#185FA5}
+    .sl{font-size:13px;color:#555;transition:color .3s}
+    .sl.active{color:#fff;font-weight:500}
+    .sl.done{color:#22c55e}
+    .prog-ring{position:relative;width:64px;height:64px;margin:0 auto}
+    .prog-ring svg{transform:rotate(-90deg)}
+    .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+    .pg{fill:none;stroke:#222;stroke-width:4}
+    .pf{fill:none;stroke:#185FA5;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .4s}
+    .main{padding:40px 36px;display:flex;flex-direction:column}
+    @media(max-width:700px){.main{padding:24px 20px}}
+    .ss{display:none;flex:1;flex-direction:column}
+    .ss.active{display:flex}
+    .step-icon{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:20px}
+    .step-title{font-size:24px;font-weight:700;color:#111;margin-bottom:6px}
+    .step-sub{font-size:14px;color:#888;line-height:1.5;margin-bottom:28px}
+    .fg{margin-bottom:16px}
+    .fg label{display:block;font-size:13px;font-weight:500;color:#555;margin-bottom:6px}
+    input,select,textarea{width:100%;padding:13px 15px;border:1.5px solid #e8e8e8;border-radius:12px;font-size:15px;color:#111;background:#fafafa;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none;transition:border-color .15s}
+    input:focus,select:focus,textarea:focus{border-color:#185FA5;background:#fff}
+    textarea{resize:none;min-height:80px}
+    .fgr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:500px){.fgr{grid-template-columns:1fr}}
+    .chip-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+    .chip{padding:7px 14px;border-radius:20px;border:1.5px solid #e0e0e0;background:#fff;font-size:13px;color:#555;cursor:pointer;transition:all .15s;user-select:none}
+    .chip.sel{background:#185FA5;color:#fff;border-color:#185FA5}
+    .card-counter{display:flex;align-items:center;gap:16px;margin:8px 0}
+    .cb{width:40px;height:40px;border-radius:50%;border:1.5px solid #e0e0e0;background:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#111;transition:all .15s}
+    .cb:hover{border-color:#185FA5;color:#185FA5}
+    .cv{font-size:28px;font-weight:700;color:#111;min-width:48px;text-align:center}
+    .actions{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:24px;border-top:1px solid #f0f0f0}
+    .btn-back{background:none;border:none;color:#888;font-size:14px;cursor:pointer;padding:8px 0}
+    .btn-next{background:#185FA5;color:#fff;border:none;border-radius:12px;padding:13px 32px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;gap:8px}
+    .btn-next:hover{opacity:.9}
+    .btn-next:disabled{opacity:.5;cursor:not-allowed}
+    .btn-next .ld{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+    .btn-next.loading .ld{display:block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .feat-list{display:flex;flex-direction:column;gap:8px}
+    .feat{display:flex;align-items:center;gap:10px;font-size:13px;color:#555}
+    .feat-icon{color:#22c55e;font-size:16px}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:99;opacity:0;transition:opacity .2s;pointer-events:none}
+    .toast.show{opacity:1}
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="sidebar">
+    <div class="logo">&#x1F3AA; Handy<span>Cat</span></div>
+    <div class="logo-sub">Company registration</div>
+    <div class="hm-card">
+      <div class="hm-top">
+        <div class="hm-av">JL<div class="hm-dot"></div></div>
+        <div><div class="hm-name">Your Handyman</div><div class="hm-title">Service professional</div></div>
+      </div>
+      <div class="cats">
+        <span class="cat">Plumbing</span><span class="cat">Electrical</span><span class="cat">HVAC</span><span class="cat">+ more</span>
+      </div>
+      <div class="hm-loc">&#x1F3E0; Your service area</div>
+      <div class="hm-rat"><span class="n">4.9</span><span class="d">/ 5.0</span></div>
+    </div>
+    <div class="prog-sec">
+      <div class="step-list" id="sideSteps"></div>
+      <div class="prog-ring">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle class="pg" cx="32" cy="32" r="28"/>
+          <circle class="pf" id="progFill" cx="32" cy="32" r="28" stroke-dasharray="176" stroke-dashoffset="176"/>
+        </svg>
+        <div class="pct" id="progPct">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- STEP 1 -->
+    <div class="ss active" id="step-1">
+      <div class="step-icon" style="background:#EFF6FF">&#x1F4CB;</div>
+      <div class="step-title">Let's start with your details</div>
+      <div class="step-sub">Tell us about your company and how we can reach you.</div>
+      <div class="fgr">
+        <div class="fg"><label>Company Name *</label><input id="f-company" placeholder="FixPro Services"/></div>
+        <div class="fg"><label>Contact Person *</label><input id="f-contact" placeholder="John Smith"/></div>
+      </div>
+      <div class="fgr">
+        <div class="fg"><label>Email Address *</label><input id="f-email" type="email" placeholder="john@fixpro.com"/></div>
+        <div class="fg"><label>Phone Number *</label><input id="f-phone" type="tel" placeholder="+1 (555) 000-0000"/></div>
+      </div>
+      <div class="fg"><label>Business Address *</label><input id="f-address" placeholder="123 Main St, New York, NY"/></div>
+      <div class="fg"><label>Service Region *</label><input id="f-region" placeholder="New York metropolitan area"/></div>
+      <div class="actions">
+        <button class="btn-back" disabled style="visibility:hidden">Back</button>
+        <button class="btn-next" onclick="nextStep()"><span>Next</span> &#x2192;</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="ss" id="step-2">
+      <div class="step-icon" style="background:#F5F3FF">&#x1F4BC;</div>
+      <div class="step-title">About your business</div>
+      <div class="step-sub">Help us understand your company better.</div>
+      <div class="fgr">
+        <div class="fg">
+          <label>Business Type *</label>
+          <select id="f-biztype">
+            <option value="">Select type...</option>
+            <option>Home Services Company</option>
+            <option>Facility Management</option>
+            <option>Property Management</option>
+            <option>Construction Company</option>
+            <option>Cleaning Services</option>
+            <option>HVAC & Plumbing</option>
+            <option>Electrical Services</option>
+            <option>General Contracting</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Team Size *</label>
+          <select id="f-teamsize">
+            <option value="">Select size...</option>
+            <option>1–5 people</option>
+            <option>6–15 people</option>
+            <option>16–50 people</option>
+            <option>51–100 people</option>
+            <option>100+ people</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Services Offered *</label>
+        <div class="chip-group" id="serviceChips">
+          <span class="chip" onclick="togChip(this)">Plumbing</span>
+          <span class="chip" onclick="togChip(this)">Electrical</span>
+          <span class="chip" onclick="togChip(this)">Painting</span>
+          <span class="chip" onclick="togChip(this)">HVAC</span>
+          <span class="chip" onclick="togChip(this)">Carpentry</span>
+          <span class="chip" onclick="togChip(this)">Flooring</span>
+          <span class="chip" onclick="togChip(this)">Cleaning</span>
+          <span class="chip" onclick="togChip(this)">Appliances</span>
+          <span class="chip" onclick="togChip(this)">Landscaping</span>
+          <span class="chip" onclick="togChip(this)">Moving</span>
+          <span class="chip" onclick="togChip(this)">Drywall</span>
+          <span class="chip" onclick="togChip(this)">Tiling</span>
+        </div>
+      </div>
+      <div class="fg"><label>Website or Social Media <span style="color:#aaa;font-weight:400">(optional)</span></label><input id="f-website" placeholder="https://yourwebsite.com"/></div>
+      <div class="actions">
+        <button class="btn-back" onclick="prevStep()">&#x2190; Back</button>
+        <button class="btn-next" onclick="nextStep()"><span>Next</span> &#x2192;</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="ss" id="step-3">
+      <div class="step-icon" style="background:#FFF7ED">&#x1F4B3;</div>
+      <div class="step-title">How many NFC cards do you need?</div>
+      <div class="step-sub">Each card is assigned to one handyman. We'll prepare your order after approval.</div>
+      <div style="margin-bottom:24px">
+        <div class="card-counter">
+          <button class="cb" onclick="changeCards(-5)">&#x2212;</button>
+          <div class="cv" id="cardCount">10</div>
+          <button class="cb" onclick="changeCards(5)">+</button>
+        </div>
+        <div style="font-size:13px;color:#888">Minimum 5 cards &middot; Maximum 500 per order</div>
+      </div>
+      <div style="background:#f8f8f8;border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">What's included with each card:</div>
+        <div class="feat-list">
+          <div class="feat"><span class="feat-icon">&#x2713;</span>NFC chip pre-programmed with handyman's profile URL</div>
+          <div class="feat"><span class="feat-icon">&#x2713;</span>Client registration &amp; review system</div>
+          <div class="feat"><span class="feat-icon">&#x2713;</span>Order tracking &amp; history</div>
+          <div class="feat"><span class="feat-icon">&#x2713;</span>Company dashboard access</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-back" onclick="prevStep()">&#x2190; Back</button>
+        <button class="btn-next" onclick="nextStep()"><span>Next</span> &#x2192;</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="ss" id="step-4">
+      <div class="step-icon" style="background:#F0FDF4">&#x1F6E1;</div>
+      <div class="step-title">Licensing &amp; insurance</div>
+      <div class="step-sub">This helps us verify your legitimacy and build trust with clients.</div>
+      <div class="fgr">
+        <div class="fg"><label>Business License Number *</label><input id="f-license" placeholder="LIC-XXXXXXXX"/></div>
+        <div class="fg"><label>Years in Business *</label><input id="f-years" type="number" min="0" placeholder="5"/></div>
+      </div>
+      <div class="fg"><label>Insurance Provider *</label><input id="f-insurance" placeholder="e.g. State Farm, Allstate..."/></div>
+      <div class="fg"><label>Additional Notes <span style="color:#aaa;font-weight:400">(optional)</span></label><textarea id="f-notes" placeholder="Any additional information about your company, certifications, or anything else you'd like us to know..."></textarea></div>
+      <div class="actions">
+        <button class="btn-back" onclick="prevStep()">&#x2190; Back</button>
+        <button class="btn-next" id="submitBtn" onclick="submitApplication()">
+          <span class="ld"></span><span>Submit Application</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="ss" id="s-success">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center">
+        <div style="text-align:center">
+          <div style="font-size:56px;margin-bottom:16px">&#x1F63A;</div>
+          <div style="font-size:24px;font-weight:700;color:#111;margin-bottom:10px">Application submitted!</div>
+          <div style="font-size:15px;color:#666;line-height:1.6;max-width:400px;margin:0 auto 20px">We've received your application and will review it within 1–2 business days. Check your email for confirmation.</div>
+          <div style="display:inline-flex;align-items:center;gap:8px;background:#f5f5f7;border-radius:10px;padding:10px 16px;font-size:14px;color:#555;margin-bottom:12px">
+            Application ID: <strong id="appIdDisplay" style="font-family:monospace;color:#111"></strong>
+            <button onclick="copyAppId()" style="background:#185FA5;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer">Copy</button>
+          </div>
+          <div style="font-size:13px;color:#aaa">Confirmation sent to <strong id="emailDisplay"></strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var STEP_LABELS=["Contact Info","Business Details","NFC Cards","License & Insurance"];
+var currentStep=1,totalSteps=4,cardCount=10;
+var PID="handycat-98416",AKEY="AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
+var FS="https://firestore.googleapis.com/v1/projects/"+PID+"/databases/(default)/documents";
+
+function toast(m){var e=document.getElementById("toast");e.textContent=m;e.classList.add("show");setTimeout(function(){e.classList.remove("show");},3000);}
+function sv(v){return{stringValue:String(v||"")};}
+function nv(v){return{integerValue:String(Number(v||0))};}
+
+function sendEmail(to,subject,html){
+  var mailId="mail-"+Date.now().toString(36);
+  return fetch(FS+"/mail/"+mailId+"?key="+AKEY,{
+    method:"PATCH",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({fields:{
+      to:sv(to),
+      message:{mapValue:{fields:{
+        subject:sv(subject),
+        html:sv(html)
+      }}}
+    }})
+  });
+}
+
+function buildSteps(){
+  var el=document.getElementById("sideSteps");
+  el.innerHTML=STEP_LABELS.map(function(l,i){
+    var n=i+1,cls=n<currentStep?"done":n===currentStep?"active":"";
+    return'<div class="si"><div class="sd '+cls+'"></div><div class="sl '+cls+'">'+l+'</div></div>';
+  }).join("");
+}
+
+function updateProgress(){
+  var pct=Math.round(((currentStep-1)/totalSteps)*100);
+  document.getElementById("progFill").style.strokeDashoffset=176-(pct/100)*176;
+  document.getElementById("progPct").textContent=pct+"%";
+  buildSteps();
+}
+
+function togChip(el){el.classList.toggle("sel");}
+function changeCards(d){cardCount=Math.max(5,Math.min(500,cardCount+d));document.getElementById("cardCount").textContent=cardCount;}
+
+function validate(step){
+  if(step===1){
+    if(!document.getElementById("f-company").value.trim()){toast("Please enter your company name");return false;}
+    if(!document.getElementById("f-contact").value.trim()){toast("Please enter contact person name");return false;}
+    var em=document.getElementById("f-email").value.trim();
+    if(!em||!em.includes("@")){toast("Please enter a valid email address");return false;}
+    if(!document.getElementById("f-phone").value.trim()){toast("Please enter your phone number");return false;}
+    if(!document.getElementById("f-address").value.trim()){toast("Please enter your business address");return false;}
+    if(!document.getElementById("f-region").value.trim()){toast("Please enter your service region");return false;}
+  }
+  if(step===2){
+    if(!document.getElementById("f-biztype").value){toast("Please select your business type");return false;}
+    if(!document.getElementById("f-teamsize").value){toast("Please select your team size");return false;}
+    if(!document.querySelectorAll("#serviceChips .chip.sel").length){toast("Please select at least one service");return false;}
+  }
+  if(step===4){
+    if(!document.getElementById("f-license").value.trim()){toast("Please enter your license number");return false;}
+    if(!document.getElementById("f-years").value){toast("Please enter years in business");return false;}
+    if(!document.getElementById("f-insurance").value.trim()){toast("Please enter your insurance provider");return false;}
+  }
+  return true;
+}
+
+function nextStep(){
+  if(!validate(currentStep))return;
+  currentStep++;
+  document.querySelectorAll(".ss").forEach(function(s){s.classList.remove("active");});
+  document.getElementById("step-"+currentStep).classList.add("active");
+  updateProgress();window.scrollTo(0,0);
+}
+
+function prevStep(){
+  currentStep--;
+  document.querySelectorAll(".ss").forEach(function(s){s.classList.remove("active");});
+  document.getElementById("step-"+currentStep).classList.add("active");
+  updateProgress();window.scrollTo(0,0);
+}
+
+async function submitApplication(){
+  if(!validate(4))return;
+  var btn=document.getElementById("submitBtn");
+  btn.disabled=true;btn.classList.add("loading");
+  var services=Array.from(document.querySelectorAll("#serviceChips .chip.sel")).map(function(c){return c.textContent;});
+  var appId="APP-"+Date.now().toString(36).toUpperCase();
+  var now=new Date().toISOString();
+  var email=document.getElementById("f-email").value.trim();
+  var company=document.getElementById("f-company").value.trim();
+  var contact=document.getElementById("f-contact").value.trim();
+
+  try{
+    // Save application to Firestore
+    var r=await fetch(FS+"/company_applications/"+appId+"?key="+AKEY,{
+      method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({fields:{
+        appId:sv(appId),companyName:sv(company),contactPerson:sv(contact),
+        email:sv(email),phone:sv(document.getElementById("f-phone").value.trim()),
+        address:sv(document.getElementById("f-address").value.trim()),
+        region:sv(document.getElementById("f-region").value.trim()),
+        businessType:sv(document.getElementById("f-biztype").value),
+        teamSize:sv(document.getElementById("f-teamsize").value),
+        services:{arrayValue:{values:services.map(function(s){return{stringValue:s};})}},
+        website:sv(document.getElementById("f-website").value.trim()),
+        licenseNumber:sv(document.getElementById("f-license").value.trim()),
+        yearsInBusiness:sv(document.getElementById("f-years").value),
+        insuranceProvider:sv(document.getElementById("f-insurance").value.trim()),
+        notes:sv(document.getElementById("f-notes").value.trim()),
+        requestedCards:nv(cardCount),
+        status:sv("pending"),
+        createdAt:sv(now)
+      }})
+    });
+    if(!r.ok)throw new Error("Save failed");
+
+    // Send confirmation email
+    await sendEmail(email,
+      "We received your HandyCat application — "+company,
+      "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>"+
+      "<h2 style='color:#185FA5'>HandyCat</h2>"+
+      "<p>Hi "+contact+",</p>"+
+      "<p>Thank you for applying to join HandyCat as a company partner.</p>"+
+      "<p>We've received your application for <strong>"+company+"</strong> and our team will review it within 1–2 business days.</p>"+
+      "<div style='background:#f5f5f7;border-radius:12px;padding:16px;margin:20px 0'>"+
+      "<p style='margin:4px 0'><strong>Application ID:</strong> "+appId+"</p>"+
+      "<p style='margin:4px 0'><strong>Cards requested:</strong> "+cardCount+"</p>"+
+      "<p style='margin:4px 0'><strong>Submitted:</strong> "+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+"</p>"+
+      "</div>"+
+      "<p>You'll receive an email once a decision has been made.</p>"+
+      "<p>Best regards,<br><strong>The HandyCat Team</strong></p>"+
+      "</div>"
+    );
+
+    document.getElementById("appIdDisplay").textContent=appId;
+    document.getElementById("emailDisplay").textContent=email;
+    document.querySelectorAll(".ss").forEach(function(s){s.classList.remove("active");});
+    document.getElementById("s-success").classList.add("active");
+    document.getElementById("progFill").style.strokeDashoffset=0;
+    document.getElementById("progPct").textContent="100%";
+  }catch(e){
+    console.error(e);
+    toast("Something went wrong. Please try again.");
+    btn.disabled=false;btn.classList.remove("loading");
+  }
+}
+
+function copyAppId(){
+  navigator.clipboard.writeText(document.getElementById("appIdDisplay").textContent);
+  toast("Application ID copied!");
+}
+
+updateProgress();
+</script>
+</body>
+</html>
