@@ -425,7 +425,7 @@ async function sendMagicLink(){
   // Send email via mail collection
   var dashLink="https://project-2i6ok.vercel.app/company?token="+token;
   var mailId="mail-"+Date.now().toString(36);
-  await fetch(FS+"/mail/"+mailId+"?key="+AKEY,Object.assign(await addAppCheck({}),{
+  await fetch(FS+"/mail/"+mailId+"?key="+AKEY, Object.assign(await addAppCheck({}),{
     method:"PATCH",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({fields:{
       to:sv(email),
@@ -434,7 +434,7 @@ async function sendMagicLink(){
         html:sv("<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'><h2 style='color:#185FA5'>HandyCat</h2><p>Hi,</p><p>Click the button below to sign in to your company dashboard:</p><div style='margin:24px 0'><a href='"+dashLink+"' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px'>Open Dashboard &#x2192;</a></div><p style='font-size:13px;color:#888'>This link expires in 7 days and can only be used once.</p><p>Best regards,<br><strong>The HandyCat Team</strong></p></div>")
       }}}
     }})
-  });
+  }));
 
   setLoading(btn,false);
   document.getElementById("magicSent").style.display="block";
@@ -686,7 +686,7 @@ async function submitCardRequest(){
     });
     // Email admin
     var mailId="mail-"+Date.now().toString(36);
-    await fetch(FS+"/mail/"+mailId+"?key="+AKEY,Object.assign(await addAppCheck({}),{
+    await fetch(FS+"/mail/"+mailId+"?key="+AKEY, Object.assign(await addAppCheck({}),{
       method:"PATCH",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({fields:{
         to:sv("designlavrinenko@gmail.com"),
@@ -705,7 +705,7 @@ async function submitCardRequest(){
           )
         }}}
       }})
-    });
+    }));
     setLoading(btn,false);
     closeModal("mReqCards");
     toast("&#x2713; Request sent! You'll receive an email once your cards are ready.");
