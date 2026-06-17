@@ -323,11 +323,11 @@ var AUTH_API="https://identitytoolkit.googleapis.com/v1/accounts";
 var S={company:null,companyId:null,handymen:[],cards:[],orders:[],clients:{},cardFilter:"all",ordFilter:"all"};
 
 // ── FIRESTORE ─────────────────────────────────────────────────
-async function fsGet(c,id){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY);if(!r.ok)return null;var d=await r.json();return{id:d.name.split("/").pop(),...pf(d.fields)};}
-async function fsL(c,ps){var r=await fetch(FS+"/"+c+"?key="+AKEY+"&pageSize="+(ps||200));if(!r.ok)return[];var d=await r.json();if(!d.documents)return[];return d.documents.map(function(x){return{id:x.name.split("/").pop(),...pf(x.fields)};});}
-async function fsQ(c,filters,lim){var body={structuredQuery:{from:[{collectionId:c}],limit:lim||200}};function mkF(f){return{fieldFilter:{field:{fieldPath:f.field},op:f.op||"EQUAL",value:{stringValue:f.value}}};}if(filters&&filters.length===1)body.structuredQuery.where=mkF(filters[0]);else if(filters&&filters.length>1)body.structuredQuery.where={compositeFilter:{op:"AND",filters:filters.map(mkF)}};var r=await fetch(FS+":runQuery?key="+AKEY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)return[];var rows=await r.json();return rows.filter(function(x){return x.document;}).map(function(x){return{id:x.document.name.split("/").pop(),...pf(x.document.fields)};});}
+async function fsGet(c,id){var _gopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,_gopts);if(!r.ok)return null;var d=await r.json();return{id:d.name.split("/").pop(),...pf(d.fields)};}
+async function fsL(c,ps){var _lopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"?key="+AKEY+"&pageSize="+(ps||200));if(!r.ok)return[];var d=await r.json();if(!d.documents)return[];return d.documents.map(function(x){return{id:x.name.split("/").pop(),...pf(x.fields)};});}
+async function fsQ(c,filters,lim){var body={structuredQuery:{from:[{collectionId:c}],limit:lim||200}};function mkF(f){return{fieldFilter:{field:{fieldPath:f.field},op:f.op||"EQUAL",value:{stringValue:f.value}}};}if(filters&&filters.length===1)body.structuredQuery.where=mkF(filters[0]);else if(filters&&filters.length>1)body.structuredQuery.where={compositeFilter:{op:"AND",filters:filters.map(mkF)}};var _qopts=await addAppCheck({method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});var r=await fetch(FS+":runQuery?key="+AKEY,_qopts);if(!r.ok)return[];var rows=await r.json();return rows.filter(function(x){return x.document;}).map(function(x){return{id:x.document.name.split("/").pop(),...pf(x.document.fields)};});}
 async function fsP(c,id,fields){var opts=await addAppCheck({method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:fields})});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,opts);return r.ok;}
-async function fsMerge(c,id,nf){var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY);var ex={};if(r.ok){var d=await r.json();ex=d.fields||{};}var m=Object.assign({},ex,nf);var wr=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:m})});return wr.ok;}
+async function fsMerge(c,id,nf){var _gopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,_gopts);var ex={};if(r.ok){var d=await r.json();ex=d.fields||{};}var m=Object.assign({},ex,nf);var wr=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:m})});return wr.ok;}
 function pf(f){if(!f)return{};var res={};Object.keys(f).forEach(function(k){var v=f[k];if(v.stringValue!==undefined)res[k]=v.stringValue;else if(v.integerValue!==undefined)res[k]=Number(v.integerValue);else if(v.doubleValue!==undefined)res[k]=Number(v.doubleValue);else if(v.booleanValue!==undefined)res[k]=v.booleanValue;else if(v.arrayValue)res[k]=(v.arrayValue.values||[]).map(function(x){return x.stringValue||String(x.integerValue||x.doubleValue||"");});else res[k]=null;});return res;}
 function sv(v){return{stringValue:String(v||"")};}
 function nv(v){return{doubleValue:Number(v||0)};}
@@ -425,7 +425,7 @@ async function sendMagicLink(){
   // Send email via mail collection
   var dashLink="https://project-2i6ok.vercel.app/company?token="+token;
   var mailId="mail-"+Date.now().toString(36);
-  await fetch(FS+"/mail/"+mailId+"?key="+AKEY,{
+  await fetch(FS+"/mail/"+mailId+"?key="+AKEY,Object.assign(await addAppCheck({}),{
     method:"PATCH",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({fields:{
       to:sv(email),
@@ -595,7 +595,7 @@ async function saveHM(){
 
 function delHM(id){
   if(!confirm("Delete this handyman? This cannot be undone."))return;
-  fetch(FS+"/handymen/"+id+"?key="+AKEY,{method:"DELETE"}).then(function(){
+  (async function(){var _dd=await addAppCheck({method:"DELETE"});fetch(FS+"/handymen/"+id+"?key="+AKEY,_dd).then(function(){
     S.handymen=S.handymen.filter(function(h){return h.id!==id;});
     renderHM();toast("Handyman deleted");
   });
@@ -686,7 +686,7 @@ async function submitCardRequest(){
     });
     // Email admin
     var mailId="mail-"+Date.now().toString(36);
-    await fetch(FS+"/mail/"+mailId+"?key="+AKEY,{
+    await fetch(FS+"/mail/"+mailId+"?key="+AKEY,Object.assign(await addAppCheck({}),{
       method:"PATCH",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({fields:{
         to:sv("designlavrinenko@gmail.com"),
