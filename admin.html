@@ -119,6 +119,7 @@
       <button class="nb" onclick="nav('handymen')">Handymen</button>
       <button class="nb" onclick="nav('clients')">Clients</button>
       <button class="nb" onclick="nav('orders')">Orders</button>
+      <button class="nb" onclick="nav('applications')">Applications <span id="appsBadge" style="display:none;background:#D93025;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle"></span></button>
     </div>
     <button class="btn bs bsm" onclick="logout()">Sign Out</button>
   </div>
@@ -210,6 +211,27 @@
     <div class="di" id="clInfo"></div>
     <div style="font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;padding:14px 0 8px">Order History</div>
     <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Category</th><th>Handyman</th><th>Status</th><th>Price</th></tr></thead><tbody id="clOBody"></tbody></table></div></div>
+  </div>
+
+  <!-- APPLICATIONS -->
+  <div class="page" id="page-applications">
+    <div class="ph" style="margin-top:8px">
+      <div><h2>Company Applications</h2><p>Review and approve new company registrations</p></div>
+      <div class="fl">
+        <button class="fb active" onclick="filterApps('all',this)">All</button>
+        <button class="fb" onclick="filterApps('pending',this)">&#x1F7E1; Pending</button>
+        <button class="fb" onclick="filterApps('approved',this)">&#x1F7E2; Approved</button>
+        <button class="fb" onclick="filterApps('rejected',this)">&#x1F534; Rejected</button>
+        <button class="fb" onclick="filterApps('needs_revision',this)">&#x1F7E0; Needs Revision</button>
+      </div>
+    </div>
+    <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Company</th><th>Contact</th><th>Type</th><th>Cards</th><th>Region</th><th>Status</th><th></th></tr></thead><tbody id="appsBody"></tbody></table></div></div>
+  </div>
+
+  <!-- APPLICATION DETAIL -->
+  <div class="page" id="page-app-detail">
+    <div class="back" onclick="nav('applications')">&#x2190; Back to Applications</div>
+    <div id="appDetContent" style="padding-bottom:24px"></div>
   </div>
 
   <!-- ORDER DETAIL -->
@@ -402,6 +424,7 @@ function nav(n) {
   if (n === "handymen") loadHMs();
   if (n === "clients") loadCls();
   if (n === "orders") loadOrds();
+  if (n === "applications") loadApps();
 }
 function sp(n) {
   document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
@@ -1090,6 +1113,259 @@ function filterOrds(s, btn) {
   document.querySelectorAll("#page-orders .fb").forEach(function(b) { b.classList.remove("active"); });
   btn.classList.add("active");
   renderOrds();
+}
+
+// ── EMAIL ─────────────────────────────────────────────────────
+async function sendEmail(to, subject, html) {
+  var mailId = "mail-" + Date.now().toString(36);
+  return fetch(FS + "/mail/" + mailId + "?key=" + AKEY, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fields: {
+      to: sv(to),
+      message: { mapValue: { fields: {
+        subject: sv(subject),
+        html: sv(html)
+      }}}
+    }})
+  });
+}
+
+function emailApproved(app, dashLink) {
+  var adminMsg = app.adminMessage ? "<div style='background:#f0f6ff;border-radius:8px;padding:14px;margin:16px 0'><strong>Note from our team:</strong><br>" + app.adminMessage + "</div>" : "";
+  return sendEmail(app.email,
+    "&#x1F389; Your HandyCat application has been approved — " + app.companyName,
+    "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>" +
+    "<h2 style='color:#185FA5'>HandyCat</h2>" +
+    "<p>Hi " + app.contactPerson + ",</p>" +
+    "<p>Great news — your application for <strong>" + app.companyName + "</strong> has been approved!</p>" +
+    "<p>We're excited to have you on board. Your <strong>" + app.requestedCards + " NFC cards</strong> are being prepared.</p>" +
+    adminMsg +
+    "<div style='margin:24px 0'>" +
+    "<p style='margin-bottom:12px'>Access your company dashboard using the link below:</p>" +
+    "<a href='" + dashLink + "' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px'>Open Company Dashboard &#x2192;</a>" +
+    "</div>" +
+    "<p style='font-size:13px;color:#888'>This magic link will sign you in automatically. It expires in 7 days. Do not share it.</p>" +
+    "<p>Application ID: <code>" + app.id + "</code></p>" +
+    "<p>Best regards,<br><strong>The HandyCat Team</strong></p>" +
+    "</div>"
+  );
+}
+
+function emailRevision(app) {
+  var adminMsg = app.adminMessage ? "<div style='background:#fff8e6;border-radius:8px;padding:14px;margin:16px 0'><strong>Feedback from our team:</strong><br>" + app.adminMessage + "</div>" : "";
+  return sendEmail(app.email,
+    "Update on your HandyCat application — action required",
+    "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>" +
+    "<h2 style='color:#185FA5'>HandyCat</h2>" +
+    "<p>Hi " + app.contactPerson + ",</p>" +
+    "<p>We've reviewed your application for <strong>" + app.companyName + "</strong> and need a few updates before we can proceed.</p>" +
+    adminMsg +
+    "<div style='margin:24px 0'>" +
+    "<a href='https://project-2i6ok.vercel.app/apply' style='display:inline-block;background:#F59E0B;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px'>Resubmit Application &#x2192;</a>" +
+    "</div>" +
+    "<p>Your original Application ID was: <code>" + app.id + "</code></p>" +
+    "<p>Best regards,<br><strong>The HandyCat Team</strong></p>" +
+    "</div>"
+  );
+}
+
+function emailRejected(app) {
+  var adminMsg = app.adminMessage ? "<div style='background:#fef2f2;border-radius:8px;padding:14px;margin:16px 0'><strong>Reason:</strong><br>" + app.adminMessage + "</div>" : "";
+  return sendEmail(app.email,
+    "Update on your HandyCat application — " + app.companyName,
+    "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>" +
+    "<h2 style='color:#185FA5'>HandyCat</h2>" +
+    "<p>Hi " + app.contactPerson + ",</p>" +
+    "<p>Thank you for your interest in joining HandyCat.</p>" +
+    "<p>After reviewing your application for <strong>" + app.companyName + "</strong>, we're unable to approve it at this time.</p>" +
+    adminMsg +
+    "<p>If you believe this decision was made in error or your situation has changed, you're welcome to reapply in 30 days.</p>" +
+    "<p>Best regards,<br><strong>The HandyCat Team</strong></p>" +
+    "</div>"
+  );
+}
+
+// ── APPLICATIONS ──────────────────────────────────────────────
+var allApps = [], appFilter = "all";
+var APP_ST = {
+  pending:       { cls: "bu",   label: "&#x1F7E1; Pending" },
+  approved:      { cls: "ba",   label: "&#x1F7E2; Approved" },
+  rejected:      { cls: "bred", label: "&#x1F534; Rejected" },
+  needs_revision:{ cls: "bw",   label: "&#x1F7E0; Needs Revision" }
+};
+
+async function loadApps() {
+  var tb = document.getElementById("appsBody");
+  tb.innerHTML = '<tr><td colspan="8" class="empty">Loading...</td></tr>';
+  var r = await fetch(FS + "/company_applications?key=" + AKEY + "&pageSize=200");
+  if (!r.ok) { tb.innerHTML = '<tr><td colspan="8" class="empty">Error loading</td></tr>'; return; }
+  var d = await r.json();
+  allApps = (d.documents || []).map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
+  allApps.sort(function(a, b) { return (b.createdAt || "").localeCompare(a.createdAt || ""); });
+  var pending = allApps.filter(function(a) { return a.status === "pending"; }).length;
+  var badge = document.getElementById("appsBadge");
+  badge.textContent = pending; badge.style.display = pending > 0 ? "inline" : "none";
+  renderApps();
+}
+
+function renderApps() {
+  var tb = document.getElementById("appsBody");
+  var fil = allApps.filter(function(a) { return appFilter === "all" || a.status === appFilter; });
+  if (!fil.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No applications found</td></tr>'; return; }
+  tb.innerHTML = fil.map(function(a) {
+    var st = APP_ST[a.status] || APP_ST.pending;
+    return '<tr style="cursor:pointer" onclick="showAppDetail(\'' + a.id + '\')">' +
+      '<td class="muted">' + fd(a.createdAt) + '</td>' +
+      '<td style="font-weight:600">' + (a.companyName || "—") + '</td>' +
+      '<td class="muted">' + (a.contactPerson || "—") + '</td>' +
+      '<td class="muted">' + (a.businessType || "—") + '</td>' +
+      '<td style="font-weight:600;color:#185FA5">' + (a.requestedCards || 0) + '</td>' +
+      '<td class="muted">' + (a.region || "—") + '</td>' +
+      '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>' +
+      '<td><span style="font-size:12px;color:#185FA5">View &#x2192;</span></td>' +
+    '</tr>';
+  }).join("");
+}
+
+function filterApps(s, btn) {
+  appFilter = s;
+  document.querySelectorAll("#page-applications .fb").forEach(function(b) { b.classList.remove("active"); });
+  btn.classList.add("active");
+  renderApps();
+}
+
+async function showAppDetail(appId) {
+  sp("app-detail");
+  var content = document.getElementById("appDetContent");
+  content.innerHTML = '<div style="padding:60px;text-align:center;color:#aaa">Loading...</div>';
+  var app = allApps.find(function(a) { return a.id === appId; }) || await fsGet("company_applications", appId);
+  if (!app) { content.innerHTML = '<div style="padding:24px;text-align:center;color:#aaa">Not found</div>'; return; }
+  var st = APP_ST[app.status] || APP_ST.pending;
+  content.innerHTML =
+    '<div class="card" style="margin:0 0 14px"><div style="padding:16px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+        '<span class="badge ' + st.cls + '">' + st.label + '</span>' +
+        '<span class="muted">' + fd(app.createdAt) + '</span>' +
+      '</div>' +
+      '<div style="font-size:22px;font-weight:700;color:#111;margin-bottom:4px">' + (app.companyName || "—") + '</div>' +
+      '<div class="muted">App ID: ' + app.id + '</div>' +
+    '</div></div>' +
+
+    '<div class="card" style="margin:0 0 14px"><div class="ch"><h3>Contact Information</h3></div>' +
+    '<div style="padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+      '<div><div class="muted">Contact Person</div><div style="font-size:14px;font-weight:500;margin-top:2px">' + (app.contactPerson || "—") + '</div></div>' +
+      '<div><div class="muted">Email</div><div style="margin-top:2px"><a href="mailto:' + (app.email||"") + '" style="color:#185FA5;font-size:14px">' + (app.email || "—") + '</a></div></div>' +
+      '<div><div class="muted">Phone</div><div style="font-size:14px;margin-top:2px">' + (app.phone || "—") + '</div></div>' +
+      '<div><div class="muted">Region</div><div style="font-size:14px;margin-top:2px">' + (app.region || "—") + '</div></div>' +
+      '<div style="grid-column:1/-1"><div class="muted">Address</div><div style="font-size:14px;margin-top:2px">' + (app.address || "—") + '</div></div>' +
+    '</div></div>' +
+
+    '<div class="card" style="margin:0 0 14px"><div class="ch"><h3>Business Details</h3></div>' +
+    '<div style="padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+      '<div><div class="muted">Type</div><div style="font-size:14px;margin-top:2px">' + (app.businessType || "—") + '</div></div>' +
+      '<div><div class="muted">Team Size</div><div style="font-size:14px;margin-top:2px">' + (app.teamSize || "—") + '</div></div>' +
+      '<div><div class="muted">Years in Business</div><div style="font-size:14px;margin-top:2px">' + (app.yearsInBusiness || "—") + '</div></div>' +
+      '<div><div class="muted">License #</div><div style="font-size:14px;font-family:monospace;margin-top:2px">' + (app.licenseNumber || "—") + '</div></div>' +
+      '<div><div class="muted">Insurance</div><div style="font-size:14px;margin-top:2px">' + (app.insuranceProvider || "—") + '</div></div>' +
+      '<div><div class="muted">NFC Cards Requested</div><div style="font-size:20px;font-weight:700;color:#185FA5;margin-top:2px">' + (app.requestedCards || 0) + '</div></div>' +
+      '<div style="grid-column:1/-1"><div class="muted">Services</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">' +
+        (app.services || []).map(function(s) { return '<span class="badge bbl">' + s + '</span>'; }).join("") +
+      '</div></div>' +
+      (app.website ? '<div style="grid-column:1/-1"><div class="muted">Website</div><div style="margin-top:2px"><a href="' + app.website + '" target="_blank" style="color:#185FA5;font-size:14px">' + app.website + '</a></div></div>' : "") +
+      (app.notes ? '<div style="grid-column:1/-1"><div class="muted">Notes</div><div style="font-size:14px;color:#555;line-height:1.5;margin-top:2px">' + app.notes + '</div></div>' : "") +
+    '</div></div>' +
+
+    '<div class="card" style="margin:0 0 14px"><div class="ch"><h3>Decision</h3></div>' +
+    '<div style="padding:14px 16px">' +
+      '<div class="fg" style="margin-bottom:14px"><label>Message to company <span style="font-weight:400;color:#aaa">(included in email)</span></label>' +
+        '<textarea id="appMsg" placeholder="Optional: explain your decision, what needs to be fixed, or welcome them to HandyCat..." style="min-height:90px">' + (app.adminMessage || "") + '</textarea>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+        '<button class="btn bg bsm" id="approveBtn" onclick="updateAppStatus(\'' + appId + '\',\'approved\')">&#x2713; Approve & Send Access</button>' +
+        '<button class="btn bw bsm" onclick="updateAppStatus(\'' + appId + '\',\'needs_revision\')">&#x21A9; Needs Revision</button>' +
+        '<button class="btn bd bsm" onclick="updateAppStatus(\'' + appId + '\',\'rejected\')">&#x2717; Reject</button>' +
+      '</div>' +
+    '</div></div>';
+}
+
+async function updateAppStatus(appId, newStatus) {
+  var msg = document.getElementById("appMsg") ? document.getElementById("appMsg").value.trim() : "";
+  var app = allApps.find(function(a) { return a.id === appId; });
+  if (!app) return;
+
+  // Update status in Firestore
+  var r = await fetch(FS + "/company_applications/" + appId + "?key=" + AKEY);
+  var existing = {};
+  if (r.ok) { var d = await r.json(); existing = d.fields || {}; }
+  var merged = Object.assign({}, existing, {
+    status: sv(newStatus),
+    adminMessage: sv(msg),
+    updatedAt: sv(new Date().toISOString())
+  });
+  var wr = await fetch(FS + "/company_applications/" + appId + "?key=" + AKEY, {
+    method: "PATCH", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fields: merged })
+  });
+  if (!wr.ok) { toast("Error updating status"); return; }
+
+  app.status = newStatus; app.adminMessage = msg;
+
+  // Send email based on status
+  try {
+    if (newStatus === "approved") {
+      // Create company record and generate magic link token
+      var token = "tok-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      var companyId = app.id.toLowerCase();
+      var dashLink = "https://project-2i6ok.vercel.app/company?token=" + token;
+      // Save company
+      await fsMerge("companies", companyId, {
+        name: sv(app.companyName), email: sv(app.email), phone: sv(app.phone),
+        location: sv(app.region), status: sv("active"), appId: sv(app.id),
+        requestedCards: { integerValue: String(app.requestedCards || 0) },
+        createdAt: sv(new Date().toISOString())
+      });
+      // Save magic token
+      await fsP("company_tokens", token, {
+        companyId: sv(companyId), email: sv(app.email),
+        expiresAt: sv(new Date(Date.now() + 7*24*60*60*1000).toISOString()),
+        used: { booleanValue: false }
+      });
+      await emailApproved(Object.assign({}, app, { adminMessage: msg }), dashLink);
+      toast("✓ Approved! Email sent to " + app.email);
+    } else if (newStatus === "needs_revision") {
+      await emailRevision(Object.assign({}, app, { adminMessage: msg }));
+      toast("Email sent — needs revision");
+    } else if (newStatus === "rejected") {
+      await emailRejected(Object.assign({}, app, { adminMessage: msg }));
+      toast("Email sent — application rejected");
+    }
+  } catch(e) {
+    console.error("Email error:", e);
+    toast("Status updated but email may have failed");
+  }
+
+  // Refresh badge
+  var pending = allApps.filter(function(a) { return a.status === "pending"; }).length;
+  var badge = document.getElementById("appsBadge");
+  badge.textContent = pending; badge.style.display = pending > 0 ? "inline" : "none";
+  showAppDetail(appId);
+}
+
+// Load badge on login
+if (sessionStorage.getItem("hca")) {
+  setTimeout(async function() {
+    try {
+      var r = await fetch(FS + "/company_applications?key=" + AKEY + "&pageSize=100");
+      if (!r.ok) return;
+      var d = await r.json();
+      var pending = (d.documents || []).filter(function(x) {
+        return pf(x.fields).status === "pending";
+      }).length;
+      var badge = document.getElementById("appsBadge");
+      if (pending > 0) { badge.textContent = pending; badge.style.display = "inline"; }
+    } catch(e) {}
+  }, 800);
 }
 </script>
 </body>
