@@ -1002,7 +1002,7 @@ async function showOrderDetail(orderId, backPage) {
         '</div>'+
         '<div>'+
           '<div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Handyman</div>'+
-          (hm ? '<div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="openHMDetail(\''+hm.id+'\',\'order-detail\')"><div class="av">'+(hm.name||"?").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase()+'</div><div><div style="font-size:14px;font-weight:600;color:#185FA5">'+(hm.name||"—")+'</div><div class="muted">'+(hm.phone||"")+'</div></div></div>' : (order.isPublic ? '<div style="font-size:13px;color:#8B5CF6">🔍 Open request</div>' : '<span class="muted">—</span>')+
+          (hm ? '<div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="openHMDetail(\''+hm.id+'\',\'order-detail\')"><div class="av">'+(hm.name||"?").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase()+'</div><div><div style="font-size:14px;font-weight:600;color:#185FA5">'+(hm.name||"—")+'</div><div class="muted">'+(hm.phone||"")+'</div></div></div>' : (order.isPublic ? '<div style="font-size:13px;color:#8B5CF6">&#x1F50D; Open request</div>' : '<span class="muted">—</span>'))+
         '</div>'+
       '</div>'+
     '</div>'+
