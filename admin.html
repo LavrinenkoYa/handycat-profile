@@ -335,7 +335,7 @@
 <script>
 var PID = "handycat-98416";
 var AKEY = "AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
-var BURL = "https://project-2i6ok.vercel.app";
+var BURL = "https://app.handycat.us";
 var FS = "https://firestore.googleapis.com/v1/projects/" + PID + "/databases/(default)/documents";
 var AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
 var APP_ID = "1:299592863157:web:1762bf7633443ae2c89dfc";
@@ -1270,7 +1270,7 @@ function emailRevision(app) {
     "<p>We've reviewed your application for <strong>" + app.companyName + "</strong> and need a few updates before we can proceed.</p>" +
     adminMsg +
     "<div style='margin:24px 0'>" +
-    "<a href='https://project-2i6ok.vercel.app/apply' style='display:inline-block;background:#F59E0B;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px'>Resubmit Application &#x2192;</a>" +
+    "<a href='https://app.handycat.us/apply' style='display:inline-block;background:#F59E0B;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px'>Resubmit Application &#x2192;</a>" +
     "</div>" +
     "<p>Your original Application ID was: <code>" + app.id + "</code></p>" +
     "<p>Best regards,<br><strong>The HandyCat Team</strong></p>" +
@@ -1403,7 +1403,7 @@ async function approveCardReq(reqId, count, companyId) {
             "<h2 style='color:#185FA5'>HandyCat</h2>" +
             "<p>Great news! Your <strong>" + saved + " NFC cards</strong> have been generated and are now available in your dashboard.</p>" +
             "<p>You can assign them to your handymen right away. The physical cards are being prepared and will be shipped to your address shortly.</p>" +
-            "<div style='margin:24px 0'><a href='https://project-2i6ok.vercel.app/company' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600'>Open Dashboard &#x2192;</a></div>" +
+            "<div style='margin:24px 0'><a href='https://app.handycat.us/company' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600'>Open Dashboard &#x2192;</a></div>" +
             "<p>Best regards,<br><strong>The HandyCat Team</strong></p></div>"
           )
         }}}
@@ -1549,7 +1549,7 @@ async function updateAppStatus(appId, newStatus) {
       // Create company record and generate magic link token
       var token = "tok-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
       var companyId = app.id.toLowerCase();
-      var dashLink = "https://project-2i6ok.vercel.app/company?token=" + token;
+      var dashLink = "https://app.handycat.us/company?token=" + token;
       // Save company
       await fsMerge("companies", companyId, {
         name: sv(app.companyName), email: sv(app.email), phone: sv(app.phone),
