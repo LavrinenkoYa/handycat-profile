@@ -1363,19 +1363,43 @@ function renderCardReqs() {
     approved: { cls: "ba", label: "&#x1F7E2; Approved" },
     rejected: { cls: "bred", label: "&#x1F534; Rejected" }
   };
+function renderCardReqs() {
+  var tb = document.getElementById("cardReqBody");
+  if (!allCardReqs.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No card requests yet</td></tr>'; return; }
+  var stMap = {
+    pending:     { cls: "bu",   label: "&#x1F7E1; Pending" },
+    in_progress: { cls: "bbl",  label: "&#x23F3; In Progress" },
+    approved:    { cls: "ba",   label: "&#x1F7E2; Approved" },
+    rejected:    { cls: "bred", label: "&#x1F534; Rejected" }
+  };
   tb.innerHTML = allCardReqs.map(function(req) {
     var st = stMap[req.status] || stMap.pending;
-    var btns = req.status === "pending"
-      ? '<div style="display:flex;gap:6px">' +
-          '<button class="btn bg bsm" onclick="approveCardReq(\'' + req.id + '\',' + (req.count || 10) + ',\'' + (req.companyId || "") + '\')">&#x2713; Approve & Generate</button>' +
-          '<button class="btn bd bsm" onclick="rejectCardReq(\'' + req.id + '\')">&#x2717; Reject</button>' +
-        '</div>'
-      : '<span class="muted">' + fd(req.createdAt) + '</span>';
+    var isPending = req.status === "pending";
+    var isInProgress = req.status === "in_progress";
+    var generated = req.generatedCount || 0;
+    var total = req.count || 10;
+    var btns = "";
+    if (isPending) {
+      btns = '<div style="display:flex;gap:6px">' +
+        '<button class="btn bg bsm" onclick="approveCardReq(\'' + req.id + '\',' + total + ',\'' + (req.companyId || "") + '\')">&#x2713; Approve & Generate</button>' +
+        '<button class="btn bd bsm" onclick="rejectCardReq(\'' + req.id + '\')">&#x2717; Reject</button>' +
+      '</div>';
+    } else if (isInProgress) {
+      btns = '<div style="display:flex;align-items:center;gap:8px">' +
+        '<span style="font-size:12px;color:#888">' + generated + '/' + total + ' created</span>' +
+        '<button class="btn bw bsm" onclick="approveCardReq(\'' + req.id + '\',' + total + ',\'' + (req.companyId || "") + '\')">&#x21BB; Resume</button>' +
+      '</div>';
+    } else {
+      btns = '<div style="display:flex;align-items:center;gap:6px">' +
+        '<span class="muted">' + fd(req.approvedAt || req.createdAt) + '</span>' +
+        '<button class="btn bs bsm" onclick="exportReqCards(\'' + req.id + '\',\'' + esc(req.companyName || "") + '\')">&#x1F4E5; CSV</button>' +
+      '</div>';
+    }
     return '<tr>' +
       '<td class="muted">' + fd(req.createdAt) + '</td>' +
-      '<td style="font-weight:600">' + (req.companyName || req.companyId || "—") + '</td>' +
-      '<td style="font-weight:700;color:#185FA5;font-size:16px">' + (req.count || 0) + '</td>' +
-      '<td class="muted">' + (esc(req.notes) || "—") + '</td>' +
+      '<td style="font-weight:600">' + esc(req.companyName || req.companyId || "—") + '</td>' +
+      '<td style="font-weight:700;color:#185FA5;font-size:16px">' + total + '</td>' +
+      '<td class="muted">' + esc(req.notes || "—") + '</td>' +
       '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>' +
       '<td>' + btns + '</td>' +
     '</tr>';
@@ -1384,56 +1408,101 @@ function renderCardReqs() {
 
 async function approveCardReq(reqId, count, companyId) {
   if (!companyId) { toast("No company ID found on this request"); return; }
-  if (!confirm("Generate " + count + " cards for this company?")) return;
 
   var chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  var saved = 0;
   var pfx = "hc";
-  toast("Generating " + count + " cards...");
 
-  for (var i = 0; i < count; i++) {
+  // Check how many cards already created for this request (idempotent)
+  var existingCards = await fsQ("nfc_cards", [{field:"requestId", value:reqId}]);
+  var alreadyCreated = existingCards.length;
+  var remaining = count - alreadyCreated;
+
+  if (remaining <= 0) {
+    toast("All " + count + " cards already created ✓");
+    await fsMerge("card_requests", reqId, { status: sv("approved"), approvedAt: sv(new Date().toISOString()) });
+    var idx0 = allCardReqs.findIndex(function(r) { return r.id === reqId; });
+    if (idx0 >= 0) allCardReqs[idx0].status = "approved";
+    renderCardReqs(); return;
+  }
+
+  if (alreadyCreated > 0) {
+    toast("Resuming: " + alreadyCreated + " done, creating " + remaining + " more...");
+  } else {
+    if (!confirm("Generate " + count + " cards for this company?")) return;
+    toast("Generating " + count + " cards...");
+  }
+
+  // Mark as in_progress
+  await fsMerge("card_requests", reqId, { status: sv("in_progress"), startedAt: sv(new Date().toISOString()) });
+
+  var saved = alreadyCreated;
+  for (var i = 0; i < remaining; i++) {
     var token = pfx + "-";
     for (var j = 0; j < 8; j++) token += chars[Math.floor(Math.random() * chars.length)];
     var ok = await fsP("nfc_cards", token, {
       companyId: sv(companyId),
+      requestId: sv(reqId),
       status: sv("unassigned"),
       clientId: sv(""), handymanId: sv(""),
       createdAt: sv(new Date().toISOString())
     });
-    if (ok) saved++;
+    if (ok) {
+      saved++;
+      // Save progress after each card so resume works correctly
+      await fsMerge("card_requests", reqId, { generatedCount: { integerValue: String(saved) } });
+    }
   }
 
-  // Update request status
-  await fsMerge("card_requests", reqId, { status: sv("approved"), approvedAt: sv(new Date().toISOString()) });
+  // Mark fully approved
+  await fsMerge("card_requests", reqId, {
+    status: sv("approved"),
+    approvedAt: sv(new Date().toISOString()),
+    generatedCount: { integerValue: String(saved) }
+  });
 
-  // Notify company via email
+  // Email company only when all done
   var req = allCardReqs.find(function(r) { return r.id === reqId; });
   if (req && req.email) {
     var mailId = "mail-" + Date.now().toString(36);
-    await fetch(FS + "/mail/" + mailId + "?key=" + AKEY, {
+    await fetch(FS + "/mail/" + mailId + "?key=" + AKEY, Object.assign(await addAppCheck({}), {
       method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fields: {
         to: sv(req.email),
         message: { mapValue: { fields: {
-          subject: sv("Your NFC cards are ready — " + (esc(req.companyName) || "")),
+          subject: sv("Your NFC cards are ready — " + esc(req.companyName || "")),
           html: sv(
             "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>" +
             "<h2 style='color:#185FA5'>HandyCat</h2>" +
-            "<p>Great news! Your <strong>" + saved + " NFC cards</strong> have been generated and are now available in your dashboard.</p>" +
-            "<p>You can assign them to your handymen right away. The physical cards are being prepared and will be shipped to your address shortly.</p>" +
+            "<p>Great news! Your <strong>" + saved + " NFC cards</strong> are now available in your dashboard.</p>" +
+            "<p>You can assign them to your handymen right away. Physical cards are being prepared and will ship shortly.</p>" +
             "<div style='margin:24px 0'><a href='https://app.handycat.us/company' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600'>Open Dashboard &#x2192;</a></div>" +
             "<p>Best regards,<br><strong>The HandyCat Team</strong></p></div>"
           )
         }}}
       }})
-    });
+    }));
   }
 
-  // Update local state
   var idx = allCardReqs.findIndex(function(r) { return r.id === reqId; });
-  if (idx >= 0) allCardReqs[idx].status = "approved";
+  if (idx >= 0) { allCardReqs[idx].status = "approved"; allCardReqs[idx].generatedCount = saved; }
   renderCardReqs();
-  toast("✓ " + saved + " cards generated! Company notified by email.");
+  toast("✓ " + saved + " cards generated! Company notified.");
+}
+
+
+async function exportReqCards(reqId, companyName) {
+  toast("Loading cards...");
+  var cards = await fsQ("nfc_cards", [{field:"requestId", value:reqId}]);
+  if (!cards.length) { toast("No cards found for this request"); return; }
+  var rows = ["Token,URL,Status,Created"];
+  cards.forEach(function(c) {
+    rows.push([c.id, BURL + "/c/" + c.id, c.status || "unassigned", fd(c.createdAt)].join(","));
+  });
+  var blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  var l = document.createElement("a"); l.href = URL.createObjectURL(blob);
+  l.download = "cards-" + (companyName || reqId) + "-" + new Date().toISOString().slice(0,10) + ".csv";
+  l.click();
+  toast("CSV downloaded — " + cards.length + " cards");
 }
 
 async function rejectCardReq(reqId) {
