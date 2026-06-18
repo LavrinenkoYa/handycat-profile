@@ -313,7 +313,7 @@ async function getAppCheckToken(){
       });
     });
     if(!rcToken)return null;
-    var url="https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+encodeURIComponent(APP_ID)+":exchangeRecaptchaV3Token";
+    var url="https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+encodeURIComponent(APP_ID)+":exchangeRecaptchaV3Token?key="+AKEY;
     var r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recaptchaV3Token:rcToken})});
     if(!r.ok){var e=await r.text();console.error("AppCheck exchange failed "+r.status,e);return null;}
     var d=await r.json();
@@ -326,7 +326,7 @@ async function getAppCheckToken(){
       grecaptcha.ready(function(){grecaptcha.execute(RECAPTCHA_KEY,{action:"firebase"}).then(resolve).catch(reject);});
     });
     if(!rcToken)return null;
-    var r=await fetch("https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+APP_ID+":exchangeRecaptchaV3Token",
+    var r=await fetch("https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+APP_ID+":exchangeRecaptchaV3Token?key="+AKEY,
       {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recaptchaV3Token:rcToken})});
     if(!r.ok)return null;
     var d=await r.json();
