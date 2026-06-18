@@ -363,7 +363,7 @@ async function getAppCheckToken() {
       });
     });
     if (!rcToken) { console.warn("AppCheck: no reCAPTCHA token"); return null; }
-    var url = "https://firebaseappcheck.googleapis.com/v1/projects/" + PID + "/apps/" + encodeURIComponent(APP_ID) + ":exchangeRecaptchaV3Token";
+    var url = "https://firebaseappcheck.googleapis.com/v1/projects/" + PID + "/apps/" + encodeURIComponent(APP_ID) + ":exchangeRecaptchaV3Token?key=" + AKEY;
     var r = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({recaptchaV3Token: rcToken})});
     if (!r.ok) {
       var errBody = await r.text();
