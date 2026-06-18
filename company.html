@@ -423,7 +423,7 @@ async function sendMagicLink(){
   });
 
   // Send email via mail collection
-  var dashLink="https://project-2i6ok.vercel.app/company?token="+token;
+  var dashLink="https://app.handycat.us/company?token="+token;
   var mailId="mail-"+Date.now().toString(36);
   await fetch(FS+"/mail/"+mailId+"?key="+AKEY, Object.assign(await addAppCheck({}),{
     method:"PATCH",headers:{"Content-Type":"application/json"},
@@ -648,7 +648,7 @@ function renderCards(hmByToken){
   var tb=document.getElementById("cardsBody");
   if(!fil.length){tb.innerHTML='<tr><td colspan="7" class="empty">No cards found</td></tr>';return;}
   tb.innerHTML=fil.map(function(c){
-    var url="https://project-2i6ok.vercel.app/c/"+c.id;
+    var url="https://app.handycat.us/c/"+c.id;
     var isWithHM=c.status==="assigned"||!!hmByToken[c.id];
     var ds=isWithHM?"assigned":c.status||"unassigned";
     return'<tr>'+
@@ -703,7 +703,7 @@ async function submitCardRequest(){
             "<tr><td style='padding:8px 0;color:#888'>Cards needed</td><td style='font-weight:700;font-size:18px;color:#185FA5'>"+count+"</td></tr>"+
             "<tr><td style='padding:8px 0;color:#888'>Notes</td><td>"+(notes||"—")+"</td></tr>"+
             "</table>"+
-            "<div style='margin-top:20px'><a href='https://project-2i6ok.vercel.app/admin.html' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600'>Review in Admin &#x2192;</a></div>"+
+            "<div style='margin-top:20px'><a href='https://app.handycat.us/admin.html' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600'>Review in Admin &#x2192;</a></div>"+
             "</div>"
           )
         }}}
