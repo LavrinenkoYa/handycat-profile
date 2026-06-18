@@ -323,18 +323,6 @@ async function getAppCheckToken(){
     return _appCheckToken;
   }catch(e){console.warn("AppCheck error:",e);return null;}
 }
-      grecaptcha.ready(function(){grecaptcha.execute(RECAPTCHA_KEY,{action:"firebase"}).then(resolve).catch(reject);});
-    });
-    if(!rcToken)return null;
-    var r=await fetch("https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+APP_ID+":exchangeRecaptchaV3Token?key="+AKEY,
-      {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recaptchaV3Token:rcToken})});
-    if(!r.ok)return null;
-    var d=await r.json();
-    _appCheckToken=d.token;
-    _appCheckExpiry=Date.now()+(Number((d.ttl||"3600s").replace("s",""))-60)*1000;
-    return _appCheckToken;
-  }catch(e){console.warn("App Check:",e);return null;}
-}
 async function addAppCheck(options){
   var token=await getAppCheckToken();
   if(token){options=options||{};options.headers=options.headers||{};options.headers["X-Firebase-AppCheck"]=token;}
