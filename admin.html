@@ -402,6 +402,25 @@ function showAuthErr(msg) {
   el.textContent = msg; el.style.display = "block";
 }
 
+// ── CACHE — must be defined before checkSession runs ──────────
+var CC = { cos: {}, cl: {} };
+var cdId = null, cdCards = [], cdCF = "all", cdHM = [];
+var allOrds = [], ordF = "all";
+
+async function loadAppsBadge() {
+  try {
+    var r = await fetch(FS + "/company_applications?key=" + AKEY + "&pageSize=100", await addAppCheck({}));
+    if (!r.ok) return;
+    var d = await r.json();
+    var pending = (d.documents || []).filter(function(x) {
+      return pf(x.fields).status === "pending";
+    }).length;
+    var badge = document.getElementById("appsBadge");
+    if (pending > 0) { badge.textContent = pending; badge.style.display = "inline"; }
+    else badge.style.display = "none";
+  } catch(e) {}
+}
+
 function showApp() {
   document.getElementById("authScreen").classList.remove("show");
   document.getElementById("app").style.display = "block";
@@ -502,11 +521,6 @@ function esc(s) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#x27;");
 }
-
-// ── CACHE ─────────────────────────────────────────────────────
-var CC = { cos: {}, cl: {} };
-var cdId = null, cdCards = [], cdCF = "all", cdHM = [];
-var allOrds = [], ordF = "all";
 
 // ── UI HELPERS ────────────────────────────────────────────────
 function nav(n) {
@@ -1568,11 +1582,6 @@ async function updateAppStatus(appId, newStatus) {
   var badge = document.getElementById("appsBadge");
   badge.textContent = pending; badge.style.display = pending > 0 ? "inline" : "none";
   showAppDetail(appId);
-}
-
-// Load badge on login
-if (sessionStorage.getItem("hca_token") && Date.now() < Number(sessionStorage.getItem("hca_expiry")||0)) {
-  setTimeout(loadAppsBadge, 800);
 }
 </script>
 </body>
