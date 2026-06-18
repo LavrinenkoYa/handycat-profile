@@ -297,8 +297,30 @@ var _appCheckToken=null,_appCheckExpiry=0;
 async function getAppCheckToken(){
   if(_appCheckToken&&Date.now()<_appCheckExpiry)return _appCheckToken;
   try{
-    var rcToken=await new Promise(function(resolve,reject){
-      if(typeof grecaptcha==="undefined"){resolve(null);return;}
+    var waited=0;
+    while(typeof grecaptcha==="undefined"&&waited<50){
+      await new Promise(function(r){setTimeout(r,100);});
+      waited++;
+    }
+    if(typeof grecaptcha==="undefined"){console.warn("AppCheck: timeout");return null;}
+    var rcToken=await new Promise(function(resolve){
+      grecaptcha.ready(function(){
+        grecaptcha.execute(RECAPTCHA_KEY,{action:"firebase"})
+          .then(function(t){resolve(t);})
+          .catch(function(e){console.warn("AppCheck execute failed",e);resolve(null);});
+      });
+    });
+    if(!rcToken)return null;
+    var url="https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+encodeURIComponent(APP_ID)+":exchangeRecaptchaV3Token";
+    var r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recaptchaV3Token:rcToken})});
+    if(!r.ok){var e=await r.text();console.error("AppCheck exchange failed "+r.status,e);return null;}
+    var d=await r.json();
+    _appCheckToken=d.token;
+    _appCheckExpiry=Date.now()+(Number((d.ttl||"3600s").replace("s",""))-60)*1000;
+    console.log("AppCheck: success!");
+    return _appCheckToken;
+  }catch(e){console.warn("AppCheck error:",e);return null;}
+}
       grecaptcha.ready(function(){grecaptcha.execute(RECAPTCHA_KEY,{action:"firebase"}).then(resolve).catch(reject);});
     });
     if(!rcToken)return null;
