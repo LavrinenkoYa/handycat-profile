@@ -336,6 +336,12 @@
   <div class="page" id="page-archive">
     <div class="ph" style="margin-top:8px">
       <div><h2>Archive</h2><p>Deleted companies — stored for 30 days. Restore anytime.</p></div>
+      <div style="display:flex;gap:8px">
+        <label class="btn bp bsm" style="cursor:pointer;display:flex;align-items:center;gap:6px">
+          📂 Upload JSON Backup
+          <input type="file" accept=".json" onchange="restoreFromJSON(this)" style="display:none"/>
+        </label>
+      </div>
     </div>
     <div id="archiveList"></div>
   </div>
@@ -791,9 +797,7 @@ async function deleteCo() {
         deletedCards: { booleanValue: delCards },
         deletedHandymen: { booleanValue: delHM }
       };
-      var archiveOk = await fsP("archive", archiveId, archiveData);
-      console.log("Archive save result:", archiveOk, "ID:", archiveId);
-      if (!archiveOk) toast("⚠️ Archive save failed — check Firestore rules for 'archive' collection");
+      await fsP("archive", archiveId, archiveData);
 
       // Download JSON backup
       var backup = { company: co, cards: cards, handymen: handymen, archivedAt: now.toISOString() };
@@ -2290,7 +2294,59 @@ function downloadArchiveBackup(archiveId) {
   });
 }
 
-async function restoreFromArchive(archiveId) {
+async function restoreFromJSON(input) {
+  var file = input.files[0];
+  if (!file) return;
+  input.value = "";
+
+  var text = await file.text();
+  var backup;
+  try { backup = JSON.parse(text); } catch(e) { toast("Invalid JSON file"); return; }
+
+  var co = backup.company || {};
+  var cards = backup.cards || [];
+  var handymen = backup.handymen || [];
+  var name = co.name || "Unknown Company";
+
+  if (!co.id) { toast("Invalid backup — no company ID found"); return; }
+
+  var restoreCards = cards.length > 0 ? confirm("Restore " + cards.length + " NFC cards?") : false;
+  var restoreHM = handymen.length > 0 ? confirm("Restore " + handymen.length + " handymen?") : false;
+
+  cfm('Restore "' + name + '" from file?',
+    "Company" + (restoreCards ? " + " + cards.length + " cards" : "") + (restoreHM ? " + " + handymen.length + " handymen" : "") + " will be recreated.",
+    async function(btn) {
+      if (btn) btn.textContent = "Restoring company...";
+      var coFields = {};
+      Object.keys(co).forEach(function(k) { if (k !== "id") coFields[k] = sv(String(co[k] === null || co[k] === undefined ? "" : co[k])); });
+      await fsP("companies", co.id, coFields);
+
+      if (restoreCards) {
+        for (var i = 0; i < cards.length; i++) {
+          if (btn) btn.textContent = "Restoring cards (" + (i+1) + "/" + cards.length + ")...";
+          var c = cards[i];
+          var cf = {};
+          Object.keys(c).forEach(function(k) { if (k !== "id") cf[k] = sv(String(c[k] === null || c[k] === undefined ? "" : c[k])); });
+          await fsP("nfc_cards", c.id, cf);
+        }
+      }
+
+      if (restoreHM) {
+        for (var i = 0; i < handymen.length; i++) {
+          if (btn) btn.textContent = "Restoring handymen (" + (i+1) + "/" + handymen.length + ")...";
+          var h = handymen[i];
+          var hf = {};
+          Object.keys(h).forEach(function(k) { if (k !== "id") hf[k] = sv(String(h[k] === null || h[k] === undefined ? "" : h[k])); });
+          await fsP("handymen", h.id, hf);
+        }
+      }
+
+      closeModal("mConfirm");
+      toast("✓ \"" + name + "\" restored from backup file!");
+      if (document.getElementById("page-archive").classList.contains("active")) loadArchive();
+    }
+  );
+}
   var item = await fsGet("archive", archiveId);
   if (!item) { toast("Archive item not found"); return; }
 
