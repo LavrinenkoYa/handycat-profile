@@ -341,7 +341,6 @@
           📂 Upload JSON Backup
           <input type="file" accept=".json" onchange="restoreFromJSON(this)" style="display:none"/>
         </label>
-        <button class="btn bs bsm" onclick="testArchive()">🧪 Test Archive</button>
       </div>
     </div>
     <div id="archiveList"></div>
@@ -2412,27 +2411,6 @@ async function restoreFromArchive(archiveId) {
   );
 }
 
-// ── ARCHIVE TEST ───────────────────────────────────────────────
-async function testArchive() {
-  var results = [];
-  var testId = "test-" + Date.now().toString(36);
-
-  // Test write
-  var writeOk = await fsP("archive", testId, { type: sv("test"), name: sv("Test Entry"), deletedAt: sv(new Date().toISOString()) });
-  results.push("Write: " + (writeOk ? "✅ OK" : "❌ FAILED — add archive to Firestore rules"));
-
-  if (writeOk) {
-    // Test read
-    var doc = await fsGet("archive", testId);
-    results.push("Read:  " + (doc ? "✅ OK" : "❌ FAILED"));
-
-    // Test delete
-    var delOk = await fsDel("archive", testId);
-    results.push("Delete: " + (delOk ? "✅ OK" : "❌ FAILED — Firestore rules may block delete"));
-  }
-
-  alert("Archive Test Results:\n\n" + results.join("\n"));
-}
 </script>
 </body>
 </html>
