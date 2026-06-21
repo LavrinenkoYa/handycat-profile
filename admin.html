@@ -151,6 +151,8 @@
         <button class="btn bsm" id="cdToggleBtn" onclick="toggleCo()">⏸ Deactivate</button>
         <button class="btn bs bsm" onclick="exportFreeCSV()">📥 CSV (available)</button>
         <button class="btn bp bsm" onclick="openModal('mGenCards')">+ Add Cards</button>
+        <button class="btn bs bsm" onclick="assignMissingPrintIds()" title="Assign Print IDs to old cards">🔢 Assign IDs</button>
+        <button class="btn bd bsm" onclick="cleanCompanyData()" title="⚠️ Delete ALL cards and handymen for this company">🧹 Clean</button>
       </div>
     </div>
     <div class="sr" id="cdStats"></div>
@@ -730,16 +732,50 @@ async function toggleCo() {
   if (ok) { CC.cos[cdId].status = ns; openCo(cdId); toast("Status updated"); }
 }
 
-function deleteCo() {
-  var name = (CC.cos[cdId] || {}).name || cdId;
-  closeModal("mAddCo");
+async function deleteCo() {
+  var co = CC.cos[cdId] || {};
+  var name = co.name || cdId;
+
+  // Count related data
+  var cards = await fsQ("nfc_cards", [{field:"companyId", value:cdId}]);
+  var handymen = await fsQ("handymen", [{field:"companyIds", value:cdId, op:"ARRAY_CONTAINS"}]);
+  var details = "Cards: " + cards.length + " · Handymen: " + handymen.length;
+
   cfm(
-    "Delete \"" + name + "\"?",
-    "This will permanently delete the company. Cards and handymen data will remain but be unlinked.",
-    async function() {
+    'Delete "' + name + '"?',
+    details + "\n\nChoose what to delete:\n✓ Company record will always be deleted.",
+    async function(btn) {
+      // Ask cascade options
+      var delCards = confirm("Also delete all " + cards.length + " NFC cards for this company?");
+      var delHM = confirm("Also delete all " + handymen.length + " handymen from this company?");
+
+      // Backup first
+      var backup = { company: co, cards: cards, handymen: handymen, exportedAt: new Date().toISOString() };
+      var backupBlob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"});
+      var backupLink = document.createElement("a");
+      backupLink.href = URL.createObjectURL(backupBlob);
+      backupLink.download = "backup-" + name.replace(/\s+/g,"-") + "-" + new Date().toISOString().slice(0,10) + ".json";
+      backupLink.click();
+
+      if (btn) btn.textContent = "Deleting...";
       var ok = await fsDel("companies", cdId);
-      if (ok) { toast("Company deleted"); nav("companies"); }
-      else toast("Error deleting company");
+      if (!ok) { toast("Error deleting company"); return; }
+
+      if (delCards) {
+        if (btn) btn.textContent = "Deleting cards (0/" + cards.length + ")...";
+        for (var i = 0; i < cards.length; i++) {
+          if (btn) btn.textContent = "Deleting cards (" + (i+1) + "/" + cards.length + ")...";
+          await fsDel("nfc_cards", cards[i].id);
+        }
+      }
+      if (delHM) {
+        if (btn) btn.textContent = "Deleting handymen...";
+        for (var i = 0; i < handymen.length; i++) await fsDel("handymen", handymen[i].id);
+      }
+
+      closeModal("mConfirm");
+      toast("✓ Company deleted. Backup downloaded.");
+      nav("companies");
     }
   );
 }
@@ -1105,17 +1141,56 @@ async function genCards() {
   var btn = document.getElementById("genBtn"); btn.disabled = true;
   var prog = document.getElementById("genProg");
   var chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+  // Get max printId across ALL cards
+  prog.textContent = "Reading existing IDs...";
+  var lastNum = 0;
+  try {
+    var counterDoc = await fsGet("counters", "nfc_cards");
+    if (counterDoc && counterDoc.lastId) lastNum = Number(counterDoc.lastId);
+    var allExCards = await fsL("nfc_cards", 300);
+    allExCards.forEach(function(c) {
+      if (c.printId) { var n = parseInt(c.printId, 10); if (!isNaN(n) && n > lastNum) lastNum = n; }
+    });
+  } catch(e) {}
+
   var saved = 0;
   for (var i = 0; i < cnt; i++) {
     var t = pfx ? pfx + "-" : "";
     for (var j = 0; j < 8; j++) t += chars[Math.floor(Math.random() * chars.length)];
-    var ok = await fsP("nfc_cards", t, { companyId: sv(cdId), status: sv("unassigned"), clientId: sv(""), handymanId: sv(""), createdAt: sv(new Date().toISOString()) });
+    lastNum++;
+    var printId = String(lastNum).padStart(6, "0");
+    var ok = await fsP("nfc_cards", t, {
+      companyId: sv(cdId),
+      printId: sv(printId),
+      status: sv("unassigned"),
+      clientId: sv(""), handymanId: sv(""),
+      createdAt: sv(new Date().toISOString())
+    });
     if (ok) saved++;
     prog.textContent = "Saved " + saved + " of " + cnt + "...";
   }
+  // Update counter
+  await fsP("counters", "nfc_cards", { lastId: { integerValue: String(lastNum) } });
   btn.disabled = false;
   closeModal("mGenCards");
   toast("Created " + saved + " cards!");
+  await loadCDCards();
+}
+
+async function cleanCompanyData() {
+  var name = (CC.cos[cdId] || {}).name || cdId;
+  if (!confirm("⚠️ DELETE ALL cards and handymen for \"" + name + "\"?\n\nThis is for testing only and cannot be undone.")) return;
+  if (!confirm("Are you absolutely sure? This will delete ALL " + cdCards.length + " cards and handymen.")) return;
+
+  toast("Cleaning...");
+  var cards = await fsQ("nfc_cards", [{field:"companyId", value:cdId}]);
+  var handymen = await fsQ("handymen", [{field:"companyIds", value:cdId, op:"ARRAY_CONTAINS"}]);
+
+  for (var i = 0; i < cards.length; i++) await fsDel("nfc_cards", cards[i].id);
+  for (var i = 0; i < handymen.length; i++) await fsDel("handymen", handymen[i].id);
+
+  toast("✓ Deleted " + cards.length + " cards and " + handymen.length + " handymen");
   await loadCDCards();
 }
 
@@ -1618,7 +1693,7 @@ async function approveCardReq(reqId, count, companyId) {
     var token = pfx + "-";
     for (var j = 0; j < 8; j++) token += chars[Math.floor(Math.random() * chars.length)];
     currentNum++;
-    var printId = String(currentNum).padStart(5, "0");
+    var printId = String(currentNum).padStart(6, "0");
     var ok = await fsP("nfc_cards", token, {
       companyId: sv(companyId),
       requestId: sv(reqId),
