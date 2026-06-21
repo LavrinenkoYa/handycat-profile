@@ -766,7 +766,6 @@ async function toggleCo() {
 }
 
 async function deleteCo() {
-  closeModal("mAddCo");
   var co = CC.cos[cdId] || {};
   var name = co.name || cdId;
 
@@ -2395,8 +2394,8 @@ async function restoreFromArchive(archiveId) {
         }
       }
 
-      // Mark archive entry as restored
-      await fsMerge("archive", archiveId, { restoredAt: sv(new Date().toISOString()) });
+      // Delete archive entry after successful restore
+      await fsDel("archive", archiveId);
 
       closeModal("mConfirm");
       toast("✓ \"" + name + "\" restored successfully!");
