@@ -174,8 +174,17 @@
         <button class="btn bw bsm" onclick="bulkDeactivate()">⏸ Deactivate Selected</button>
         <button class="btn bs bsm" onclick="clearSel()">✕ Clear</button>
       </div>
-      <div class="tw"><table><thead><tr><th style="width:36px"><input type="checkbox" id="selAll" onchange="toggleSelAll(this)" /></th><th>Token</th><th>URL</th><th>Status</th><th>Handyman</th><th>Client</th><th>Created</th><th></th></tr></thead><tbody id="cdCardsBody"></tbody></table></div>
+      <div style="padding:10px 16px 0">
+        <input class="search-input" id="cardSearchInput" placeholder="🔍 Search by Print ID (e.g. HC-0042) or token..." oninput="filterCardsBySearch(this.value)" style="margin-bottom:0"/>
+      </div>
+      <div class="tw"><table><thead><tr><th style="width:36px"><input type="checkbox" id="selAll" onchange="toggleSelAll(this)" /></th><th>Print ID</th><th>Token</th><th>Status</th><th>Handyman</th><th>Client</th><th>Created</th><th></th></tr></thead><tbody id="cdCardsBody"></tbody></table></div>
     </div>
+  </div>
+
+  <!-- CARD DETAIL -->
+  <div class="page" id="page-card-detail">
+    <div class="back" id="cardDetBack">← Back</div>
+    <div id="cardDetContent" style="padding-bottom:24px"></div>
   </div>
 
   <!-- HANDYMEN -->
@@ -551,6 +560,9 @@ function nav(n) {
   if (n === "clients") loadCls();
   if (n === "orders") loadOrds();
   if (n === "applications") loadApps();
+  if (n === "co-detail") { /* already loaded */ }
+  if (n === "card-detail") { /* loaded by showCardDetail */ }
+  if (n === "order-detail") { /* loaded by showOrderDetail */ }
 }
 function sp(n) {
   document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
@@ -767,30 +779,39 @@ function renderCDCards() {
   var tb = document.getElementById("cdCardsBody");
   var hmByToken = CC._hmByToken || {};
   var hmById = CC._hmById || {};
+  var searchQ = (document.getElementById("cardSearchInput") ? document.getElementById("cardSearchInput").value.trim().toLowerCase() : "");
   var fil = cdCards.filter(function(c) {
     var isWithHM = c.status === "assigned" || !!hmByToken[c.id];
-    if (cdCF === "all") return true;
-    if (cdCF === "assigned") return isWithHM;
-    if (cdCF === "unassigned") return !isWithHM && c.status !== "active" && c.status !== "deactivated";
-    return c.status === cdCF;
+    var matchesFilter = true;
+    if (cdCF === "assigned") matchesFilter = isWithHM;
+    else if (cdCF === "unassigned") matchesFilter = !isWithHM && c.status !== "active" && c.status !== "deactivated";
+    else if (cdCF !== "all") matchesFilter = c.status === cdCF;
+    if (!matchesFilter) return false;
+    if (searchQ) {
+      var pid = (c.printId || "").toLowerCase();
+      var tok = c.id.toLowerCase();
+      return pid.includes(searchQ) || tok.includes(searchQ);
+    }
+    return true;
   });
   if (!fil.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No cards found</td></tr>'; return; }
   tb.innerHTML = fil.map(function(c) {
-    var url = BURL + "/c/" + c.id;
     var isWithHM = c.status === "assigned" || !!hmByToken[c.id];
     var displayStatus = isWithHM ? "assigned" : (c.status || "unassigned");
-    // Get handyman name: first try token lookup, then id lookup
     var hmName = hmByToken[c.id] || (c.handymanId ? hmById[c.handymanId] : "") || "—";
+    var url = BURL + "/c/" + c.id;
+    var printId = c.printId || "—";
     return '<tr>' +
       '<td><input type="checkbox" class="card-cb" value="' + c.id + '" onchange="onCBChange()" /></td>' +
-      '<td class="mono">' + c.id + '</td>' +
-      '<td><span class="uc" title="' + url + '">' + url + '</span></td>' +
+      '<td><span class="mono" style="color:#185FA5;font-weight:600;cursor:pointer" onclick="showCardDetail(\'' + c.id + '\')" title="View card detail">' + printId + '</span></td>' +
+      '<td class="mono" style="font-size:11px;color:#888">' + c.id + '</td>' +
       '<td>' + bdg(displayStatus) + '</td>' +
-      '<td class="muted">' + hmName + '</td>' +
-      '<td class="muted">' + (c.clientId || "—") + '</td>' +
+      '<td class="muted">' + esc(hmName) + '</td>' +
+      '<td class="muted">' + (c.clientId ? '<span style="cursor:pointer;color:#185FA5" onclick="openCl(\'' + c.clientId + '\')">' + (CC.cl[c.clientId] ? esc(CC.cl[c.clientId].name) : c.clientId) + '</span>' : "—") + '</td>' +
       '<td class="muted">' + fd(c.createdAt) + '</td>' +
       '<td><div style="display:flex;gap:4px">' +
         '<button class="btn bs bsm" onclick="cp(\'' + url + '\')">📋</button>' +
+        '<button class="btn bp bsm" onclick="showCardDetail(\'' + c.id + '\')">→</button>' +
         (c.status === "active" ? '<button class="btn bw bsm" onclick="deactCard(\'' + c.id + '\')">⏸</button>' : "") +
         '<button class="btn bd bsm" onclick="delCard(\'' + c.id + '\')">🗑</button>' +
       '</div></td>' +
@@ -805,6 +826,8 @@ function filterCards(s, btn) {
   btn.classList.add("active");
   renderCDCards();
 }
+
+function filterCardsBySearch() { renderCDCards(); }
 
 function onCBChange() { updateBulk(); }
 function toggleSelAll(cb) { document.querySelectorAll(".card-cb").forEach(function(x) { x.checked = cb.checked; }); updateBulk(); }
@@ -836,8 +859,8 @@ async function bulkDeactivate() {
 function exportFreeCSV() {
   var f = cdCards.filter(function(c) { return c.status === "unassigned"; });
   if (!f.length) { toast("No available cards to export"); return; }
-  var rows = ["Token,URL,Status,Created"];
-  f.forEach(function(c) { rows.push([c.id, BURL + "/c/" + c.id, "available", fd(c.createdAt)].join(",")); });
+  var rows = ["Print ID,Token,URL,Status,Created"];
+  f.forEach(function(c) { rows.push([(c.printId || "—"), c.id, BURL + "/c/" + c.id, "available", fd(c.createdAt)].join(",")); });
   var blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
   var l = document.createElement("a"); l.href = URL.createObjectURL(blob);
   l.download = "available-cards-" + cdId + ".csv"; l.click();
@@ -1090,6 +1113,88 @@ async function openCl(id) {
   }).join("");
 }
 
+async function showCardDetail(cardId) {
+  sp("card-detail");
+  var backEl = document.getElementById("cardDetBack");
+  backEl.setAttribute("onclick", "sp('co-detail')");
+  var content = document.getElementById("cardDetContent");
+  content.innerHTML = '<div style="padding:60px;text-align:center;color:#aaa">Loading...</div>';
+
+  var card = await fsGet("nfc_cards", cardId);
+  if (!card) { content.innerHTML = '<div style="padding:24px;text-align:center;color:#aaa">Card not found</div>'; return; }
+
+  var [hm, cl, orders] = await Promise.all([
+    card.handymanId ? fsGet("handymen", card.handymanId) : Promise.resolve(null),
+    card.clientId ? fsGet("clients", card.clientId) : Promise.resolve(null),
+    fsQ("orders", [{field:"cardToken", value:cardId}])
+  ]);
+  orders.sort(function(a,b){return (b.createdAt||"").localeCompare(a.createdAt||"");});
+
+  var url = BURL + "/c/" + cardId;
+  var printId = card.printId || "—";
+
+  content.innerHTML =
+    '<div class="card" style="margin:0 0 14px"><div style="padding:16px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">' +
+        '<div>' +
+          '<div style="font-size:28px;font-weight:700;color:#185FA5;font-family:monospace">' + printId + '</div>' +
+          '<div style="font-size:12px;color:#aaa;margin-top:2px">Physical card ID</div>' +
+        '</div>' +
+        '<div>' + bdg(card.status || "unassigned") + '</div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+        '<div><div class="muted">Token</div><div class="mono" style="font-size:12px;margin-top:2px">' + cardId + '</div></div>' +
+        '<div><div class="muted">Created</div><div style="font-size:14px;margin-top:2px">' + fd(card.createdAt) + '</div></div>' +
+        '<div style="grid-column:1/-1"><div class="muted">URL</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-top:4px">' +
+            '<span class="mono" style="font-size:12px;color:#185FA5">' + url + '</span>' +
+            '<button class="btn bs bsm" onclick="cp(\'' + url + '\')">📋 Copy</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div></div>' +
+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">' +
+      '<div class="card"><div class="ch"><h3>Handyman</h3></div>' +
+        '<div style="padding:14px 16px">' +
+          (hm ? '<div style="display:flex;align-items:center;gap:10px">' +
+            '<div class="av">' + ini(hm.name) + '</div>' +
+            '<div><div style="font-size:15px;font-weight:600;color:#111;cursor:pointer" onclick="openHMDetail(\'' + hm.id + '\',\'card-detail\')">' + esc(hm.name) + '</div>' +
+            '<div class="muted">' + esc(hm.phone||"") + '</div>' +
+            (hm.ratingAvg ? '<div style="color:#EF9F27;font-size:13px">★ ' + Number(hm.ratingAvg).toFixed(1) + '</div>' : "") +
+            '</div></div>' :
+            '<div class="empty" style="padding:16px 0">No handyman assigned</div>') +
+        '</div>' +
+      '</div>' +
+      '<div class="card"><div class="ch"><h3>Client</h3></div>' +
+        '<div style="padding:14px 16px">' +
+          (cl ? '<div style="display:flex;align-items:center;gap:10px">' +
+            '<div class="av">' + ini(cl.name) + '</div>' +
+            '<div><div style="font-size:15px;font-weight:600;color:#111;cursor:pointer" onclick="openCl(\'' + cl.id + '\')">' + esc(cl.name) + '</div>' +
+            '<div class="muted">' + esc(cl.phone||"") + '</div>' +
+            '<div class="muted">' + esc(cl.email||"") + '</div>' +
+            '</div></div>' :
+            '<div class="empty" style="padding:16px 0">Card not activated yet</div>') +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="card"><div class="ch"><h3>Order History (' + orders.length + ')</h3></div>' +
+      '<div class="tw"><table><thead><tr><th>Date</th><th>Category</th><th>Status</th><th>Rating</th><th>Price</th><th></th></tr></thead>' +
+        '<tbody>' + (orders.length ? orders.map(function(o) {
+          return '<tr style="cursor:pointer" onclick="showOrderDetail(\'' + o.id + '\')">' +
+            '<td class="muted">' + fd(o.createdAt) + '</td>' +
+            '<td>' + esc(o.category||"—") + '</td>' +
+            '<td>' + bdg(o.status||"new") + '</td>' +
+            '<td>' + (o.clientRating ? '<span style="color:#EF9F27">★ ' + o.clientRating + '</span>' : '<span class="muted">—</span>') + '</td>' +
+            '<td>' + (o.price ? "$" + o.price : "<span class='muted'>—</span>") + '</td>' +
+            '<td><span style="font-size:12px;color:#185FA5">View →</span></td>' +
+          '</tr>';
+        }).join("") : '<tr><td colspan="6" class="empty">No orders yet</td></tr>') +
+        '</tbody>' +
+      '</table></div>' +
+    '</div>';
+}
 // ── ORDER DETAIL ──────────────────────────────────────────────
 async function showOrderDetail(orderId, backPage) {
   sp("order-detail");
@@ -1412,9 +1517,12 @@ async function approveCardReq(reqId, count, companyId) {
   var chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   var pfx = "hc";
 
-  // Check how many cards already created for this request (idempotent)
-  var existingCards = await fsQ("nfc_cards", [{field:"requestId", value:reqId}]);
-  var alreadyCreated = existingCards.length;
+  // Get next printId counter
+  var counterDoc = await fsGet("counters", "nfc_cards");
+  var lastNum = (counterDoc && counterDoc.lastId) ? Number(counterDoc.lastId) : 0;
+  // Also check existing cards to ensure no gaps if counter is behind
+  var allExisting = await fsQ("nfc_cards", [{field:"requestId", value:reqId}]);
+  var alreadyCreated = allExisting.length;
   var remaining = count - alreadyCreated;
 
   if (remaining <= 0) {
@@ -1432,24 +1540,30 @@ async function approveCardReq(reqId, count, companyId) {
     toast("Generating " + count + " cards...");
   }
 
-  // Mark as in_progress
   await fsMerge("card_requests", reqId, { status: sv("in_progress"), startedAt: sv(new Date().toISOString()) });
 
   var saved = alreadyCreated;
+  var currentNum = lastNum;
   for (var i = 0; i < remaining; i++) {
     var token = pfx + "-";
     for (var j = 0; j < 8; j++) token += chars[Math.floor(Math.random() * chars.length)];
+    currentNum++;
+    var printId = String(currentNum).padStart(5, "0");
     var ok = await fsP("nfc_cards", token, {
       companyId: sv(companyId),
       requestId: sv(reqId),
+      printId: sv(printId),
       status: sv("unassigned"),
       clientId: sv(""), handymanId: sv(""),
       createdAt: sv(new Date().toISOString())
     });
     if (ok) {
       saved++;
-      // Save progress after each card so resume works correctly
-      await fsMerge("card_requests", reqId, { generatedCount: { integerValue: String(saved) } });
+      // Update counter and progress
+      await Promise.all([
+        fsMerge("card_requests", reqId, { generatedCount: { integerValue: String(saved) } }),
+        fsP("counters", "nfc_cards", { lastId: { integerValue: String(currentNum) } })
+      ]);
     }
   }
 
@@ -1494,9 +1608,9 @@ async function exportReqCards(reqId, companyName) {
   toast("Loading cards...");
   var cards = await fsQ("nfc_cards", [{field:"requestId", value:reqId}]);
   if (!cards.length) { toast("No cards found for this request"); return; }
-  var rows = ["Token,URL,Status,Created"];
+  var rows = ["Print ID,Token,URL,Status,Created"];
   cards.forEach(function(c) {
-    rows.push([c.id, BURL + "/c/" + c.id, c.status || "unassigned", fd(c.createdAt)].join(","));
+    rows.push([(c.printId || "—"), c.id, BURL + "/c/" + c.id, c.status || "unassigned", fd(c.createdAt)].join(","));
   });
   var blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
   var l = document.createElement("a"); l.href = URL.createObjectURL(blob);
