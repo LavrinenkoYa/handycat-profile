@@ -766,6 +766,7 @@ async function toggleCo() {
 }
 
 async function deleteCo() {
+  closeModal("mAddCo");
   var co = CC.cos[cdId] || {};
   var name = co.name || cdId;
 
