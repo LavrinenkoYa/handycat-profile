@@ -105,48 +105,66 @@
 <body>
 
 <div class="auth-screen show" id="authScreen">
-  <!-- Decorative illustration bottom right -->
-  <img src="https://www.figma.com/api/mcp/asset/43cf50ac-8f79-4ddd-846d-68dd27b1593d"
-       style="position:absolute;bottom:0;right:0;width:420px;pointer-events:none;user-select:none" alt="" />
+
+  <!-- Decorative illustration bottom-right (inline SVG of filing cabinet) -->
+  <svg style="position:absolute;bottom:-20px;right:-20px;width:440px;opacity:0.85;pointer-events:none" viewBox="0 0 498 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="60" y="40" width="320" height="380" rx="12" fill="#B8CCE8" stroke="#8AAAD4" stroke-width="2"/>
+    <rect x="80" y="70" width="280" height="70" rx="8" fill="white" stroke="#8AAAD4" stroke-width="1.5"/>
+    <rect x="80" y="158" width="280" height="70" rx="8" fill="white" stroke="#8AAAD4" stroke-width="1.5"/>
+    <rect x="80" y="246" width="280" height="70" rx="8" fill="white" stroke="#8AAAD4" stroke-width="1.5"/>
+    <rect x="80" y="334" width="280" height="60" rx="8" fill="white" stroke="#8AAAD4" stroke-width="1.5"/>
+    <circle cx="220" cy="105" r="8" fill="#8AAAD4"/>
+    <circle cx="220" cy="193" r="8" fill="#8AAAD4"/>
+    <circle cx="220" cy="281" r="8" fill="#8AAAD4"/>
+    <circle cx="220" cy="364" r="8" fill="#8AAAD4"/>
+    <rect x="195" y="101" width="50" height="8" rx="4" fill="#8AAAD4"/>
+    <rect x="195" y="189" width="50" height="8" rx="4" fill="#8AAAD4"/>
+    <rect x="195" y="277" width="50" height="8" rx="4" fill="#8AAAD4"/>
+    <rect x="195" y="360" width="50" height="8" rx="4" fill="#8AAAD4"/>
+  </svg>
 
   <!-- Login card -->
   <div style="background:#fff;border-radius:60px;padding:40px;width:562px;box-shadow:0 8px 40px rgba(0,0,0,0.08);position:relative;z-index:1">
-    <div style="display:flex;flex-direction:column;gap:40px">
+    <div style="display:flex;flex-direction:column;gap:36px">
 
-      <!-- Logo -->
-      <img src="https://www.figma.com/api/mcp/asset/3bb2f674-a328-4872-868c-bdc4b2b74a83"
-           style="width:100px;height:100px;border-radius:50%;object-fit:cover" alt="HandyCat" />
+      <!-- Logo: green circle + cat SVG -->
+      <div style="width:100px;height:100px;background:#32e682;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <img src="https://raw.githubusercontent.com/LavrinenkoYa/handycat-profile/main/logo.svg"
+             style="width:62px;height:47px" alt="HandyCat" />
+      </div>
 
       <!-- Title + Inputs -->
       <div style="display:flex;flex-direction:column;gap:20px">
-        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:34px;color:#4f00df">Admin Dashboard</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:34px;color:#4f00df;line-height:1.1">Admin Dashboard</div>
 
-        <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;flex-direction:column;gap:12px">
           <!-- Error -->
-          <div id="authErr" style="display:none;color:#D93025;font-size:13px;padding:10px 14px;background:#FEF2F2;border-radius:10px">Incorrect email or password.</div>
+          <div id="authErr" style="display:none;color:#D93025;font-size:13px;padding:10px 14px;background:#FEF2F2;border-radius:10px"></div>
 
-          <!-- Email input -->
-          <div style="background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text" onclick="document.getElementById('authEmail').focus()">
-            <div style="font-size:12px;color:#111;font-family:'Inter',sans-serif;margin-bottom:4px">Email</div>
+          <!-- Email -->
+          <div onclick="document.getElementById('authEmail').focus()"
+               style="background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text;transition:border-color .15s"
+               onfocus="this.style.borderColor='#32e682'" onblur="this.style.borderColor='#f1eeee'">
+            <div style="font-size:12px;color:#111;font-family:'Inter',sans-serif;margin-bottom:3px">Email</div>
             <input type="email" id="authEmail" placeholder="admin@handycat.com"
               onkeydown="if(event.key==='Enter')login()"
-              style="width:100%;border:none;background:transparent;font-size:14px;color:#858585;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0" />
+              style="width:100%;border:none;background:transparent;font-size:14px;color:#555;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0" />
           </div>
 
-          <!-- Password input -->
-          <div style="background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text" onclick="document.getElementById('authPass').focus()">
-            <div style="font-size:12px;color:#111;font-family:'Inter',sans-serif;margin-bottom:4px">Password</div>
+          <!-- Password -->
+          <div onclick="document.getElementById('authPass').focus()"
+               style="background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text;transition:border-color .15s">
+            <div style="font-size:12px;color:#111;font-family:'Inter',sans-serif;margin-bottom:3px">Password</div>
             <input type="password" id="authPass" placeholder="••••••••"
               onkeydown="if(event.key==='Enter')login()"
-              style="width:100%;border:none;background:transparent;font-size:14px;color:#858585;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0" />
+              style="width:100%;border:none;background:transparent;font-size:14px;color:#555;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0" />
           </div>
         </div>
       </div>
 
       <!-- Login button -->
       <button id="loginBtn" onclick="login()"
-        style="width:100%;height:52px;background:#32e682;border:1.5px solid #1ea95c;border-radius:10px;font-size:18px;font-family:'Work Sans',sans-serif;font-weight:400;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s">
-        <span class="ld" style="display:none"></span>
+        style="width:100%;height:52px;background:#32e682;border:1.5px solid #1ea95c;border-radius:10px;font-size:18px;font-family:'Work Sans','Inter',sans-serif;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .15s;outline:none">
         <span>Login</span>
       </button>
 
@@ -508,13 +526,11 @@ async function login() {
   var pass = document.getElementById("authPass").value;
   if (!email || !pass) { showAuthErr("Please enter email and password"); return; }
   var btn = document.getElementById("loginBtn");
-  btn.disabled = true;
-  btn.style.opacity = "0.7";
-  btn.querySelector("span:last-child").textContent = "Signing in...";
+  btn.disabled = true; btn.style.opacity = "0.7";
+  btn.querySelector("span").textContent = "Signing in...";
   try {
     var r = await fetch(AUTH + ":signInWithPassword?key=" + AKEY, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: email, password: pass, returnSecureToken: true })
     });
     var d = await r.json();
@@ -523,7 +539,7 @@ async function login() {
       showAuthErr(msg === "INVALID_PASSWORD" || msg === "EMAIL_NOT_FOUND" || msg === "INVALID_LOGIN_CREDENTIALS"
         ? "Incorrect email or password." : "Sign in failed. Please try again.");
       btn.disabled = false; btn.style.opacity = "1";
-      btn.querySelector("span:last-child").textContent = "Login";
+      btn.querySelector("span").textContent = "Login";
       return;
     }
     currentIdToken = d.idToken;
@@ -533,7 +549,7 @@ async function login() {
   } catch(e) {
     showAuthErr("Connection error. Please try again.");
     btn.disabled = false; btn.style.opacity = "1";
-    btn.querySelector("span:last-child").textContent = "Login";
+    btn.querySelector("span").textContent = "Login";
   }
 }
 
