@@ -127,6 +127,7 @@
       <button class="nb" onclick="nav('orders')">Orders</button>
       <button class="nb" onclick="nav('all-cards')">🪪 Cards</button>
       <button class="nb" onclick="nav('applications')">Applications <span id="appsBadge" style="display:none;background:#D93025;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle"></span></button>
+      <button class="nb" onclick="nav('archive')">🗄️ Archive <span id="archiveBadge" style="display:none;background:#7C3AED;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle"></span></button>
     </div>
     <button class="btn bs bsm" onclick="logout()">Sign Out</button>
   </div>
@@ -330,6 +331,15 @@
     </div>
     <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Client</th><th>Handyman</th><th>Company</th><th>Category</th><th>Status</th><th>Price</th></tr></thead><tbody id="ordBody"></tbody></table></div></div>
   </div>
+
+  <!-- ARCHIVE -->
+  <div class="page" id="page-archive">
+    <div class="ph" style="margin-top:8px">
+      <div><h2>Archive</h2><p>Deleted companies — stored for 30 days. Restore anytime.</p></div>
+    </div>
+    <div id="archiveList"></div>
+  </div>
+
 </div>
 
 <!-- ADD/EDIT COMPANY -->
@@ -508,6 +518,7 @@ function showApp() {
   document.getElementById("app").style.display = "block";
   loadCos();
   loadAppsBadge();
+  loadArchiveBadge();
 }
 
 function logout() {
@@ -616,6 +627,7 @@ function nav(n) {
   if (n === "orders") loadOrds();
   if (n === "all-cards") loadAllCards();
   if (n === "applications") loadApps();
+  if (n === "archive") loadArchive();
   if (n === "co-detail") { /* already loaded */ }
   if (n === "card-detail") { /* loaded by showCardDetail */ }
   if (n === "order-detail") { /* loaded by showOrderDetail */ }
@@ -751,33 +763,48 @@ async function deleteCo() {
   var co = CC.cos[cdId] || {};
   var name = co.name || cdId;
 
-  // Count related data
   var cards = await fsQ("nfc_cards", [{field:"companyId", value:cdId}]);
   var handymen = await fsQ("handymen", [{field:"companyIds", value:cdId, op:"ARRAY_CONTAINS"}]);
   var details = "Cards: " + cards.length + " · Handymen: " + handymen.length;
 
   cfm(
     'Delete "' + name + '"?',
-    details + "\n\nChoose what to delete:\n✓ Company record will always be deleted.",
+    details + "\n\nThe company will be archived for 30 days — you can restore it anytime.",
     async function(btn) {
-      // Ask cascade options
-      var delCards = confirm("Also delete all " + cards.length + " NFC cards for this company?");
-      var delHM = confirm("Also delete all " + handymen.length + " handymen from this company?");
+      var delCards = confirm("Also delete all " + cards.length + " NFC cards?");
+      var delHM = confirm("Also delete all " + handymen.length + " handymen?");
 
-      // Backup first
-      var backup = { company: co, cards: cards, handymen: handymen, exportedAt: new Date().toISOString() };
-      var backupBlob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"});
-      var backupLink = document.createElement("a");
-      backupLink.href = URL.createObjectURL(backupBlob);
-      backupLink.download = "backup-" + name.replace(/\s+/g,"-") + "-" + new Date().toISOString().slice(0,10) + ".json";
-      backupLink.click();
+      if (btn) btn.textContent = "Archiving...";
+
+      // Save to archive
+      var archiveId = "arch-" + Date.now().toString(36);
+      var now = new Date();
+      var expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      var archiveData = {
+        type: sv("company"),
+        name: sv(name),
+        deletedAt: sv(now.toISOString()),
+        expiresAt: sv(expiresAt.toISOString()),
+        company: sv(JSON.stringify(co)),
+        cards: sv(JSON.stringify(cards)),
+        handymen: sv(JSON.stringify(handymen)),
+        deletedCards: { booleanValue: delCards },
+        deletedHandymen: { booleanValue: delHM }
+      };
+      await fsP("archive", archiveId, archiveData);
+
+      // Download JSON backup
+      var backup = { company: co, cards: cards, handymen: handymen, archivedAt: now.toISOString() };
+      var blob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"});
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "backup-" + name.replace(/\s+/g,"-") + "-" + now.toISOString().slice(0,10) + ".json";
+      link.click();
 
       if (btn) btn.textContent = "Deleting...";
-      var ok = await fsDel("companies", cdId);
-      if (!ok) { toast("Error deleting company"); return; }
+      await fsDel("companies", cdId);
 
       if (delCards) {
-        if (btn) btn.textContent = "Deleting cards (0/" + cards.length + ")...";
         for (var i = 0; i < cards.length; i++) {
           if (btn) btn.textContent = "Deleting cards (" + (i+1) + "/" + cards.length + ")...";
           await fsDel("nfc_cards", cards[i].id);
@@ -789,7 +816,8 @@ async function deleteCo() {
       }
 
       closeModal("mConfirm");
-      toast("✓ Company deleted. Backup downloaded.");
+      toast("✓ \"" + name + "\" archived & deleted. Restore from 🗄️ Archive.");
+      loadArchiveBadge();
       nav("companies");
     }
   );
@@ -2185,6 +2213,136 @@ async function showAllCardDetail(cardId) {
       '</tr>';
     }).join("") : '<tr><td colspan="6" class="empty">No orders yet</td></tr>') +
     '</tbody></table></div></div>';
+}
+
+// ── ARCHIVE ───────────────────────────────────────────────────
+async function loadArchiveBadge() {
+  try {
+    var items = await fsL("archive", 100);
+    var now = new Date();
+    var active = items.filter(function(x) { return new Date(x.expiresAt) > now; });
+    var badge = document.getElementById("archiveBadge");
+    if (active.length > 0) { badge.textContent = active.length; badge.style.display = "inline"; }
+    else badge.style.display = "none";
+  } catch(e) {}
+}
+
+async function loadArchive() {
+  var el = document.getElementById("archiveList");
+  el.innerHTML = '<div style="padding:40px;text-align:center;color:#aaa">Loading archive...</div>';
+  var items = await fsL("archive", 100);
+  if (!items.length) {
+    el.innerHTML = '<div class="card"><div style="padding:40px;text-align:center;color:#aaa">Archive is empty. Deleted companies will appear here for 30 days.</div></div>';
+    return;
+  }
+  var now = new Date();
+  items.sort(function(a,b) { return (b.deletedAt||"").localeCompare(a.deletedAt||""); });
+
+  el.innerHTML = items.map(function(item) {
+    var expired = new Date(item.expiresAt) < now;
+    var daysLeft = Math.max(0, Math.ceil((new Date(item.expiresAt) - now) / (1000*60*60*24)));
+    var co = JSON.parse(item.company || "{}");
+    var cards = JSON.parse(item.cards || "[]");
+    var handymen = JSON.parse(item.handymen || "[]");
+
+    return '<div class="card" style="margin-bottom:12px;' + (expired ? 'opacity:0.5' : '') + '">' +
+      '<div style="padding:18px 20px">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+          '<div>' +
+            '<div style="font-size:18px;font-weight:700;color:#111">' + esc(item.name || "—") + '</div>' +
+            '<div class="muted" style="margin-top:4px">Deleted ' + csvDate(item.deletedAt) +
+              (expired ? ' · <span style="color:#D93025">Expired</span>' : ' · <span style="color:#059669">' + daysLeft + ' days left</span>') +
+            '</div>' +
+          '</div>' +
+          (!expired ? '<div style="display:flex;gap:8px">' +
+            '<button class="btn bs bsm" onclick="downloadArchiveBackup(\'' + item.id + '\')">📥 Download</button>' +
+            '<button class="btn bg bsm" onclick="restoreFromArchive(\'' + item.id + '\')">↩ Restore</button>' +
+          '</div>' : '<span style="color:#D93025;font-size:13px">Expired — cannot restore</span>') +
+        '</div>' +
+        '<div style="display:flex;gap:20px;font-size:13px;color:#666">' +
+          '<span>🏢 Company data</span>' +
+          '<span>🪪 ' + cards.length + ' cards</span>' +
+          '<span>👷 ' + handymen.length + ' handymen</span>' +
+          (item.deletedCards ? '<span style="color:#aaa">Cards were deleted</span>' : '<span style="color:#059669">Cards preserved</span>') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function downloadArchiveBackup(archiveId) {
+  fsGet("archive", archiveId).then(function(item) {
+    if (!item) { toast("Archive item not found"); return; }
+    var backup = {
+      company: JSON.parse(item.company || "{}"),
+      cards: JSON.parse(item.cards || "[]"),
+      handymen: JSON.parse(item.handymen || "[]"),
+      archivedAt: item.deletedAt
+    };
+    var blob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"});
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "backup-" + (item.name||"company").replace(/\s+/g,"-") + "-" + csvDate(item.deletedAt) + ".json";
+    link.click();
+    toast("Backup downloaded");
+  });
+}
+
+async function restoreFromArchive(archiveId) {
+  var item = await fsGet("archive", archiveId);
+  if (!item) { toast("Archive item not found"); return; }
+
+  var co = JSON.parse(item.company || "{}");
+  var cards = JSON.parse(item.cards || "[]");
+  var handymen = JSON.parse(item.handymen || "[]");
+  var name = item.name || co.name || "Company";
+
+  var restoreCards = item.deletedCards && cards.length > 0 ? confirm("Restore " + cards.length + " NFC cards?") : false;
+  var restoreHM = item.deletedHandymen && handymen.length > 0 ? confirm("Restore " + handymen.length + " handymen?") : false;
+
+  cfm("Restore \"" + name + "\"?",
+    "This will re-create the company" +
+    (restoreCards ? ", " + cards.length + " cards" : "") +
+    (restoreHM ? ", " + handymen.length + " handymen" : "") + ".",
+    async function(btn) {
+      if (btn) btn.textContent = "Restoring company...";
+
+      // Restore company
+      var coFields = {};
+      Object.keys(co).forEach(function(k) { if (k !== "id") coFields[k] = sv(co[k]); });
+      await fsP("companies", co.id, coFields);
+
+      // Restore cards
+      if (restoreCards) {
+        for (var i = 0; i < cards.length; i++) {
+          if (btn) btn.textContent = "Restoring cards (" + (i+1) + "/" + cards.length + ")...";
+          var c = cards[i];
+          var cf = {};
+          Object.keys(c).forEach(function(k) { if (k !== "id") cf[k] = sv(c[k]); });
+          await fsP("nfc_cards", c.id, cf);
+        }
+      }
+
+      // Restore handymen
+      if (restoreHM) {
+        for (var i = 0; i < handymen.length; i++) {
+          if (btn) btn.textContent = "Restoring handymen (" + (i+1) + "/" + handymen.length + ")...";
+          var h = handymen[i];
+          var hf = {};
+          Object.keys(h).forEach(function(k) { if (k !== "id") hf[k] = sv(h[k]); });
+          await fsP("handymen", h.id, hf);
+        }
+      }
+
+      // Mark archive entry as restored
+      await fsMerge("archive", archiveId, { restoredAt: sv(new Date().toISOString()) });
+
+      closeModal("mConfirm");
+      toast("✓ \"" + name + "\" restored successfully!");
+      loadArchiveBadge();
+      await loadArchive();
+    }
+  );
 }
 </script>
 </body>
