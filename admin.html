@@ -7,7 +7,7 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;min-height:100vh}
-    .auth-screen{display:none;position:fixed;inset:0;background:#f0f2f5;z-index:999;align-items:center;justify-content:center}
+    .auth-screen{display:none;position:fixed;inset:0;background:#bff5ff;z-index:999;align-items:center;justify-content:center;overflow:hidden}
     .auth-screen.show{display:flex}
     .auth-box{background:#fff;border-radius:20px;padding:40px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
     .auth-logo{font-size:24px;font-weight:700;color:#111;margin-bottom:4px}
@@ -105,15 +105,52 @@
 <body>
 
 <div class="auth-screen show" id="authScreen">
-  <div class="auth-box">
-    <div class="auth-logo">🪪 Handy<span>Cat</span></div>
-    <div class="auth-sub">Admin Dashboard</div>
-    <div class="auth-err" id="authErr">Incorrect email or password.</div>
-    <div class="fg"><label>Email</label><input type="email" id="authEmail" placeholder="admin@handycat.com" onkeydown="if(event.key==='Enter')login()"/></div>
-    <div class="fg"><label>Password</label><input type="password" id="authPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')login()"/></div>
-    <button class="btn bp" id="loginBtn" style="width:100%;justify-content:center;padding:13px" onclick="login()">
-      <span class="ld"></span><span>Sign In</span>
-    </button>
+  <!-- Decorative illustration bottom right -->
+  <img src="https://www.figma.com/api/mcp/asset/43cf50ac-8f79-4ddd-846d-68dd27b1593d"
+       style="position:absolute;bottom:0;right:0;width:420px;pointer-events:none;user-select:none" alt="" />
+
+  <!-- Login card -->
+  <div style="background:#fff;border-radius:60px;padding:40px;width:562px;box-shadow:0 8px 40px rgba(0,0,0,0.08);position:relative;z-index:1">
+    <div style="display:flex;flex-direction:column;gap:40px">
+
+      <!-- Logo -->
+      <img src="https://www.figma.com/api/mcp/asset/3bb2f674-a328-4872-868c-bdc4b2b74a83"
+           style="width:100px;height:100px;border-radius:50%;object-fit:cover" alt="HandyCat" />
+
+      <!-- Title + Inputs -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:34px;color:#4f00df">Admin Dashboard</div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <!-- Error -->
+          <div id="authErr" style="display:none;color:#D93025;font-size:13px;padding:10px 14px;background:#FEF2F2;border-radius:10px">Incorrect email or password.</div>
+
+          <!-- Email input -->
+          <div style="background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text" onclick="document.getElementById('authEmail').focus()">
+            <div style="font-size:12px;color:#111;font-family:'Inter',sans-serif;margin-bottom:4px">Email</div>
+            <input type="email" id="authEmail" placeholder="admin@handycat.com"
+              onkeydown="if(event.key==='Enter')login()"
+              style="width:100%;border:none;background:transparent;font-size:14px;color:#858585;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0" />
+          </div>
+
+          <!-- Password input -->
+          <div style="background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text" onclick="document.getElementById('authPass').focus()">
+            <div style="font-size:12px;color:#111;font-family:'Inter',sans-serif;margin-bottom:4px">Password</div>
+            <input type="password" id="authPass" placeholder="••••••••"
+              onkeydown="if(event.key==='Enter')login()"
+              style="width:100%;border:none;background:transparent;font-size:14px;color:#858585;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Login button -->
+      <button id="loginBtn" onclick="login()"
+        style="width:100%;height:52px;background:#32e682;border:1.5px solid #1ea95c;border-radius:10px;font-size:18px;font-family:'Work Sans',sans-serif;font-weight:400;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s">
+        <span class="ld" style="display:none"></span>
+        <span>Login</span>
+      </button>
+
+    </div>
   </div>
 </div>
 
@@ -471,7 +508,9 @@ async function login() {
   var pass = document.getElementById("authPass").value;
   if (!email || !pass) { showAuthErr("Please enter email and password"); return; }
   var btn = document.getElementById("loginBtn");
-  btn.disabled = true; btn.classList.add("loading");
+  btn.disabled = true;
+  btn.style.opacity = "0.7";
+  btn.querySelector("span:last-child").textContent = "Signing in...";
   try {
     var r = await fetch(AUTH + ":signInWithPassword?key=" + AKEY, {
       method: "POST",
@@ -483,7 +522,9 @@ async function login() {
       var msg = d.error && d.error.message;
       showAuthErr(msg === "INVALID_PASSWORD" || msg === "EMAIL_NOT_FOUND" || msg === "INVALID_LOGIN_CREDENTIALS"
         ? "Incorrect email or password." : "Sign in failed. Please try again.");
-      btn.disabled = false; btn.classList.remove("loading"); return;
+      btn.disabled = false; btn.style.opacity = "1";
+      btn.querySelector("span:last-child").textContent = "Login";
+      return;
     }
     currentIdToken = d.idToken;
     sessionStorage.setItem("hca_token", d.idToken);
@@ -491,7 +532,8 @@ async function login() {
     showApp();
   } catch(e) {
     showAuthErr("Connection error. Please try again.");
-    btn.disabled = false; btn.classList.remove("loading");
+    btn.disabled = false; btn.style.opacity = "1";
+    btn.querySelector("span:last-child").textContent = "Login";
   }
 }
 
