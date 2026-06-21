@@ -2347,6 +2347,8 @@ async function restoreFromJSON(input) {
     }
   );
 }
+
+async function restoreFromArchive(archiveId) {
   var item = await fsGet("archive", archiveId);
   if (!item) { toast("Archive item not found"); return; }
 
