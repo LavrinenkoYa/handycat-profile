@@ -791,7 +791,9 @@ async function deleteCo() {
         deletedCards: { booleanValue: delCards },
         deletedHandymen: { booleanValue: delHM }
       };
-      await fsP("archive", archiveId, archiveData);
+      var archiveOk = await fsP("archive", archiveId, archiveData);
+      console.log("Archive save result:", archiveOk, "ID:", archiveId);
+      if (!archiveOk) toast("⚠️ Archive save failed — check Firestore rules for 'archive' collection");
 
       // Download JSON backup
       var backup = { company: co, cards: cards, handymen: handymen, archivedAt: now.toISOString() };
