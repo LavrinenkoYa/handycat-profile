@@ -12,6 +12,19 @@
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;min-height:100vh}
     .auth-screen{display:none;position:fixed;inset:0;background:#bff5ff;z-index:999;align-items:center;justify-content:center;overflow:hidden}
     .auth-screen.show{display:flex}
+    /* Login inputs */
+    .login-input-wrap{background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text;transition:border-color .3s cubic-bezier(.4,0,.2,1),background .3s ease,box-shadow .3s ease}
+    .login-input-wrap:hover{border-color:#ddd;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .login-input-wrap.focused{border-color:#4f00df;background:#fff;box-shadow:0 0 0 4px rgba(79,0,223,.08)}
+    .login-input-label{font-size:12px;font-family:'Inter',sans-serif;margin-bottom:3px;color:#111;transition:color .3s ease}
+    .login-input-wrap.focused .login-input-label{color:#858585}
+    .login-input-field{width:100%;border:none;background:transparent;font-size:14px;color:#555;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0;transition:color .3s ease}
+    .login-input-wrap.focused .login-input-field{color:#4f00df}
+    /* Login button */
+    .login-btn{width:100%;height:52px;background:#32e682;border:1.5px solid #1ea95c;border-radius:10px;font-size:18px;font-family:'Work Sans','Inter',sans-serif;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;outline:none;transition:background .3s cubic-bezier(.4,0,.2,1),border-color .3s ease,color .3s ease,transform .15s ease,box-shadow .3s ease}
+    .login-btn:hover{background:#164e23;border-color:#164e23;color:#fff;box-shadow:0 4px 16px rgba(22,78,35,.35);transform:translateY(-1px)}
+    .login-btn:active{transform:translateY(0) scale(.99);box-shadow:0 2px 8px rgba(22,78,35,.2)}
+    .login-btn:disabled{opacity:.65;cursor:not-allowed;transform:none}
     .auth-box{background:#fff;border-radius:20px;padding:40px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
     .auth-logo{font-size:24px;font-weight:700;color:#111;margin-bottom:4px}
     .auth-logo span{color:#185FA5}
@@ -109,8 +122,22 @@
 
 <div class="auth-screen show" id="authScreen">
 
-  <img src="https://raw.githubusercontent.com/LavrinenkoYa/handycat-profile/main/bg_login.png"
-       style="position:absolute;bottom:0;right:0;width:340px;pointer-events:none" alt="" />
+  <!-- Decorative illustration bottom-right (inline SVG of filing cabinet) -->
+  <svg style="position:absolute;bottom:-20px;right:-20px;width:440px;opacity:0.85;pointer-events:none" viewBox="0 0 498 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="60" y="40" width="320" height="380" rx="12" fill="#B8CCE8" stroke="#8AAAD4" stroke-width="2"/>
+    <rect x="80" y="70" width="280" height="70" rx="8" fill="white" stroke="#8AAAD4" stroke-width="1.5"/>
+    <rect x="80" y="158" width="280" height="70" rx="8" fill="white" stroke="#8AAAD4" stroke-width="1.5"/>
+    <rect x="80" y="246" width="280" height="70" rx="8" fill="white" stroke="#8AAAD4" stroke-width="1.5"/>
+    <rect x="80" y="334" width="280" height="60" rx="8" fill="white" stroke="#8AAAD4" stroke-width="1.5"/>
+    <circle cx="220" cy="105" r="8" fill="#8AAAD4"/>
+    <circle cx="220" cy="193" r="8" fill="#8AAAD4"/>
+    <circle cx="220" cy="281" r="8" fill="#8AAAD4"/>
+    <circle cx="220" cy="364" r="8" fill="#8AAAD4"/>
+    <rect x="195" y="101" width="50" height="8" rx="4" fill="#8AAAD4"/>
+    <rect x="195" y="189" width="50" height="8" rx="4" fill="#8AAAD4"/>
+    <rect x="195" y="277" width="50" height="8" rx="4" fill="#8AAAD4"/>
+    <rect x="195" y="360" width="50" height="8" rx="4" fill="#8AAAD4"/>
+  </svg>
 
   <!-- Login card -->
   <div style="background:#fff;border-radius:60px;padding:40px;width:562px;box-shadow:0 8px 40px rgba(0,0,0,0.08);position:relative;z-index:1">
@@ -128,32 +155,30 @@
 
         <div style="display:flex;flex-direction:column;gap:12px">
           <!-- Error -->
-          <div id="authErr" style="display:none;color:#D93025;font-size:13px;padding:10px 14px;background:#FEF2F2;border-radius:10px"></div>
+          <div id="authErr" style="display:none;color:#D93025;font-size:13px;padding:10px 14px;background:#FEF2F2;border-radius:10px;transition:all .3s ease"></div>
 
           <!-- Email -->
-          <div onclick="document.getElementById('authEmail').focus()"
-               style="background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text;transition:border-color .15s"
-               onfocus="this.style.borderColor='#32e682'" onblur="this.style.borderColor='#f1eeee'">
-            <div style="font-size:12px;color:#111;font-family:'Inter',sans-serif;margin-bottom:3px">Email</div>
+          <div class="login-input-wrap" onclick="document.getElementById('authEmail').focus()">
+            <div class="login-input-label" id="emailLabel">Email</div>
             <input type="email" id="authEmail" placeholder="admin@handycat.com"
+              onfocus="loginInputFocus(this)" onblur="loginInputBlur(this)"
               onkeydown="if(event.key==='Enter')login()"
-              style="width:100%;border:none;background:transparent;font-size:14px;color:#555;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0" />
+              class="login-input-field" />
           </div>
 
           <!-- Password -->
-          <div onclick="document.getElementById('authPass').focus()"
-               style="background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text;transition:border-color .15s">
-            <div style="font-size:12px;color:#111;font-family:'Inter',sans-serif;margin-bottom:3px">Password</div>
+          <div class="login-input-wrap" onclick="document.getElementById('authPass').focus()">
+            <div class="login-input-label" id="passLabel">Password</div>
             <input type="password" id="authPass" placeholder="••••••••"
+              onfocus="loginInputFocus(this)" onblur="loginInputBlur(this)"
               onkeydown="if(event.key==='Enter')login()"
-              style="width:100%;border:none;background:transparent;font-size:14px;color:#555;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0" />
+              class="login-input-field" />
           </div>
         </div>
       </div>
 
       <!-- Login button -->
-      <button id="loginBtn" onclick="login()"
-        style="width:100%;height:52px;background:#32e682;border:1.5px solid #1ea95c;border-radius:10px;font-size:18px;font-family:'Work Sans','Inter',sans-serif;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .15s;outline:none">
+      <button id="loginBtn" onclick="login()" class="login-btn">
         <span>Login</span>
       </button>
 
@@ -509,6 +534,13 @@ async function addAppCheck(options) {
 
 // ── AUTH ──────────────────────────────────────────────────────
 var currentIdToken = null;
+
+function loginInputFocus(input) {
+  input.closest('.login-input-wrap').classList.add('focused');
+}
+function loginInputBlur(input) {
+  input.closest('.login-input-wrap').classList.remove('focused');
+}
 
 async function login() {
   var email = document.getElementById("authEmail").value.trim();
