@@ -856,15 +856,20 @@ async function bulkDeactivate() {
   clearSel();
 }
 
+function csvDate(iso) { if(!iso)return""; return new Date(iso).toISOString().slice(0,10); }
+function csvRow(arr) { return arr.map(function(v){ var s=String(v||""); return s.includes(",")||s.includes('"')||s.includes("\n") ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(","); }
+
 function exportFreeCSV() {
   var f = cdCards.filter(function(c) { return c.status === "unassigned"; });
   if (!f.length) { toast("No available cards to export"); return; }
-  var rows = ["Print ID,Token,URL,Status,Created"];
-  f.forEach(function(c) { rows.push([(c.printId || "—"), c.id, BURL + "/c/" + c.id, "available", fd(c.createdAt)].join(",")); });
-  var blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  var rows = [csvRow(["Print ID","Token","URL","Status","Created"])];
+  f.forEach(function(c) {
+    rows.push(csvRow([(c.printId||"—"), c.id, BURL+"/c/"+c.id, "available", csvDate(c.createdAt)]));
+  });
+  var blob = new Blob(["\uFEFF"+rows.join("\r\n")], {type:"text/csv;charset=utf-8;"});
   var l = document.createElement("a"); l.href = URL.createObjectURL(blob);
-  l.download = "available-cards-" + cdId + ".csv"; l.click();
-  toast("CSV downloaded (" + f.length + " cards)");
+  l.download = "available-cards-"+cdId+".csv"; l.click();
+  toast("CSV downloaded ("+f.length+" cards)");
 }
 
 async function deactCard(id) { var ok = await fsPatchFields("nfc_cards", id, { status: sv("deactivated") }); if (ok) { toast("Card deactivated"); await loadCDCards(); } }
@@ -1598,13 +1603,35 @@ async function approveCardReq(reqId, count, companyId) {
 
 async function exportReqCards(reqId, companyName) {
   toast("Loading cards...");
+
+  // Try by requestId first (new cards with requestId field)
   var cards = await fsQ("nfc_cards", [{field:"requestId", value:reqId}]);
-  if (!cards.length) { toast("No cards found for this request"); return; }
-  var rows = ["Print ID,Token,URL,Status,Created"];
+
+  // Fallback: old cards don't have requestId — load all cards for this company
+  if (!cards.length) {
+    var req = allCardReqs.find(function(r) { return r.id === reqId; });
+    if (req && req.companyId) {
+      cards = await fsQ("nfc_cards", [{field:"companyId", value:req.companyId}]);
+    }
+  }
+
+  if (!cards.length) { toast("No cards found"); return; }
+
+  var hmById = CC._hmById || {};
+  var rows = [csvRow(["Print ID","Token","URL","Status","Handyman","Client","Created"])];
   cards.forEach(function(c) {
-    rows.push([(c.printId || "—"), c.id, BURL + "/c/" + c.id, c.status || "unassigned", fd(c.createdAt)].join(","));
+    rows.push(csvRow([
+      c.printId || "—",
+      c.id,
+      BURL + "/c/" + c.id,
+      c.status || "unassigned",
+      c.handymanId ? (hmById[c.handymanId] || c.handymanId) : "—",
+      c.clientId || "—",
+      csvDate(c.createdAt)
+    ]));
   });
-  var blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+
+  var blob = new Blob(["\uFEFF" + rows.join("\r\n")], {type:"text/csv;charset=utf-8;"});
   var l = document.createElement("a"); l.href = URL.createObjectURL(blob);
   l.download = "cards-" + (companyName || reqId) + "-" + new Date().toISOString().slice(0,10) + ".csv";
   l.click();
