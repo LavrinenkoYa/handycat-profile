@@ -194,7 +194,15 @@
   <div class="page" id="page-handymen">
     <div class="ph" style="margin-top:8px"><div><h2>All Handymen</h2><p>Full list of service professionals</p></div></div>
     <input class="search-input" placeholder="🔍 Search by name or phone..." oninput="searchHM(this.value)" />
-    <div class="card"><div class="tw"><table><thead><tr><th>Name</th><th>Company</th><th>Phone</th><th>Skills</th><th>Rating</th><th>Jobs</th><th>Status</th><th></th></tr></thead><tbody id="hmBody"></tbody></table></div></div>
+    <div class="card">
+      <div class="bulk-bar" id="hmBulkBar">
+        <span id="hmBulkCount" style="font-size:13px;font-weight:600;color:#1E40AF"></span>
+        <button class="btn bd bsm" onclick="bulkDeleteHM()">🗑 Delete Selected</button>
+        <button class="btn bw bsm" onclick="bulkDeactivateHM()">⏸ Deactivate Selected</button>
+        <button class="btn bs bsm" onclick="clearHMSel()">✕ Clear</button>
+      </div>
+      <div class="tw"><table><thead><tr><th style="width:36px"><input type="checkbox" id="hmSelAll" onchange="toggleHMSelAll(this)"/></th><th>Name</th><th>Company</th><th>Phone</th><th>Skills</th><th>Rating</th><th>Jobs</th><th>Status</th><th></th></tr></thead><tbody id="hmBody"></tbody></table></div>
+    </div>
   </div>
 
   <!-- HANDYMAN DETAIL -->
@@ -219,7 +227,14 @@
   <div class="page" id="page-clients">
     <div class="ph" style="margin-top:8px"><div><h2>Clients</h2><p>All registered clients</p></div></div>
     <input class="search-input" placeholder="🔍 Search by name or phone..." oninput="searchCl(this.value)" />
-    <div class="card"><div class="tw"><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Orders</th><th>Registered</th><th></th></tr></thead><tbody id="clBody"></tbody></table></div></div>
+    <div class="card">
+      <div class="bulk-bar" id="clBulkBar">
+        <span id="clBulkCount" style="font-size:13px;font-weight:600;color:#1E40AF"></span>
+        <button class="btn bd bsm" onclick="bulkDeleteCl()">🗑 Delete Selected</button>
+        <button class="btn bs bsm" onclick="clearClSel()">✕ Clear</button>
+      </div>
+      <div class="tw"><table><thead><tr><th style="width:36px"><input type="checkbox" id="clSelAll" onchange="toggleClSelAll(this)"/></th><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Orders</th><th>Registered</th><th></th></tr></thead><tbody id="clBody"></tbody></table></div>
+    </div>
   </div>
 
   <!-- CLIENT DETAIL -->
@@ -1050,11 +1065,12 @@ async function loadHMs() {
 
 function renderHMs(hm) {
   var tb = document.getElementById("hmBody");
-  if (!hm.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No handymen found</td></tr>'; return; }
+  if (!hm.length) { tb.innerHTML = '<tr><td colspan="9" class="empty">No handymen found</td></tr>'; return; }
   tb.innerHTML = hm.map(function(h) {
     var coId = (h.companyIds || [])[0] || "";
     var cn = (CC.cos[coId] || {}).name || coId || "—";
     return '<tr>' +
+      '<td><input type="checkbox" class="hm-cb" value="' + h.id + '" onchange="updateHMBulk()"/></td>' +
       '<td><div style="display:flex;align-items:center;gap:8px"><div class="av">' + ini(h.name) + '</div>' +
         '<span style="color:#185FA5;cursor:pointer;font-weight:500" onclick="openHMDetail(\'' + h.id + '\',\'handymen\')">' + (esc(h.name) || "—") + '</span>' +
       '</div></td>' +
@@ -1067,6 +1083,36 @@ function renderHMs(hm) {
       '<td><button class="btn bs bsm" onclick="editHMGlobal(\'' + h.id + '\',\'' + coId + '\')">✏️</button></td>' +
     '</tr>';
   }).join("");
+}
+
+function getHMSel() { return Array.from(document.querySelectorAll(".hm-cb:checked")).map(function(x){return x.value;}); }
+function clearHMSel() { document.querySelectorAll(".hm-cb").forEach(function(x){x.checked=false;}); var sa=document.getElementById("hmSelAll"); if(sa)sa.checked=false; updateHMBulk(); }
+function toggleHMSelAll(cb) { document.querySelectorAll(".hm-cb").forEach(function(x){x.checked=cb.checked;}); updateHMBulk(); }
+function updateHMBulk() {
+  var sel = getHMSel();
+  var bar = document.getElementById("hmBulkBar");
+  if (sel.length > 0) { bar.classList.add("show"); document.getElementById("hmBulkCount").textContent = sel.length + " selected"; }
+  else bar.classList.remove("show");
+}
+async function bulkDeleteHM() {
+  var sel = getHMSel(); if (!sel.length) return;
+  cfm("Delete " + sel.length + " handymen?", "This cannot be undone.", async function(btn) {
+    for (var i = 0; i < sel.length; i++) {
+      if (btn) btn.textContent = "Deleting " + (i+1) + "/" + sel.length + "...";
+      await fsDel("handymen", sel[i]);
+    }
+    closeModal("mConfirm");
+    toast("Deleted " + sel.length + " handymen");
+    clearHMSel();
+    await loadHMs();
+  });
+}
+async function bulkDeactivateHM() {
+  var sel = getHMSel(); if (!sel.length) return;
+  for (var i = 0; i < sel.length; i++) await fsPatchFields("handymen", sel[i], { status: sv("inactive") });
+  toast("Deactivated " + sel.length + " handymen");
+  clearHMSel();
+  await loadHMs();
 }
 
 function searchHM(q) {
@@ -1209,10 +1255,13 @@ async function loadCls() {
 
 function renderCls(cls, oc) {
   var tb = document.getElementById("clBody");
-  if (!cls.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No clients yet</td></tr>'; return; }
+  if (!cls.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No clients yet</td></tr>'; return; }
   tb.innerHTML = cls.map(function(c) {
     return '<tr>' +
-      '<td><div style="display:flex;align-items:center;gap:8px"><div class="av">' + ini(c.name) + '</div>' + (esc(c.name) || "—") + '</div></td>' +
+      '<td><input type="checkbox" class="cl-cb" value="' + c.id + '" onchange="updateClBulk()"/></td>' +
+      '<td><div style="display:flex;align-items:center;gap:8px"><div class="av">' + ini(c.name) + '</div>' +
+        '<span style="color:#185FA5;cursor:pointer;font-weight:500" onclick="openCl(\'' + c.id + '\')">' + (esc(c.name) || "—") + '</span>' +
+      '</div></td>' +
       '<td class="muted">' + (c.phone || "—") + '</td>' +
       '<td class="muted">' + (c.email || "—") + '</td>' +
       '<td class="muted">' + (c.address || "—") + '</td>' +
@@ -1221,6 +1270,29 @@ function renderCls(cls, oc) {
       '<td><button class="btn bs bsm" onclick="openCl(\'' + c.id + '\')">History →</button></td>' +
     '</tr>';
   }).join("");
+}
+
+function getClSel() { return Array.from(document.querySelectorAll(".cl-cb:checked")).map(function(x){return x.value;}); }
+function clearClSel() { document.querySelectorAll(".cl-cb").forEach(function(x){x.checked=false;}); var sa=document.getElementById("clSelAll"); if(sa)sa.checked=false; updateClBulk(); }
+function toggleClSelAll(cb) { document.querySelectorAll(".cl-cb").forEach(function(x){x.checked=cb.checked;}); updateClBulk(); }
+function updateClBulk() {
+  var sel = getClSel();
+  var bar = document.getElementById("clBulkBar");
+  if (sel.length > 0) { bar.classList.add("show"); document.getElementById("clBulkCount").textContent = sel.length + " selected"; }
+  else bar.classList.remove("show");
+}
+async function bulkDeleteCl() {
+  var sel = getClSel(); if (!sel.length) return;
+  cfm("Delete " + sel.length + " clients?", "Their profiles and card links will be removed.", async function(btn) {
+    for (var i = 0; i < sel.length; i++) {
+      if (btn) btn.textContent = "Deleting " + (i+1) + "/" + sel.length + "...";
+      await fsDel("clients", sel[i]);
+    }
+    closeModal("mConfirm");
+    toast("Deleted " + sel.length + " clients");
+    clearClSel();
+    await loadCls();
+  });
 }
 
 function searchCl(q) {
