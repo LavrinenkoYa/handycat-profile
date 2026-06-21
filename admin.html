@@ -1464,14 +1464,6 @@ function renderCardReqs() {
   var tb = document.getElementById("cardReqBody");
   if (!allCardReqs.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No card requests yet</td></tr>'; return; }
   var stMap = {
-    pending: { cls: "bu", label: "&#x1F7E1; Pending" },
-    approved: { cls: "ba", label: "&#x1F7E2; Approved" },
-    rejected: { cls: "bred", label: "&#x1F534; Rejected" }
-  };
-function renderCardReqs() {
-  var tb = document.getElementById("cardReqBody");
-  if (!allCardReqs.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No card requests yet</td></tr>'; return; }
-  var stMap = {
     pending:     { cls: "bu",   label: "&#x1F7E1; Pending" },
     in_progress: { cls: "bbl",  label: "&#x23F3; In Progress" },
     approved:    { cls: "ba",   label: "&#x1F7E2; Approved" },
