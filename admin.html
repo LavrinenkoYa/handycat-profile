@@ -125,6 +125,7 @@
       <button class="nb" onclick="nav('handymen')">Handymen</button>
       <button class="nb" onclick="nav('clients')">Clients</button>
       <button class="nb" onclick="nav('orders')">Orders</button>
+      <button class="nb" onclick="nav('all-cards')">🪪 Cards</button>
       <button class="nb" onclick="nav('applications')">Applications <span id="appsBadge" style="display:none;background:#D93025;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle"></span></button>
     </div>
     <button class="btn bs bsm" onclick="logout()">Sign Out</button>
@@ -226,6 +227,43 @@
     <div class="di" id="clInfo"></div>
     <div style="font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;padding:14px 0 8px">Order History</div>
     <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Category</th><th>Handyman</th><th>Status</th><th>Price</th></tr></thead><tbody id="clOBody"></tbody></table></div></div>
+  </div>
+
+  <!-- ALL CARDS -->
+  <div class="page" id="page-all-cards">
+    <div class="ph" style="margin-top:8px">
+      <div><h2>All NFC Cards</h2><p>Search and manage cards across all companies</p></div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div style="padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;margin-bottom:6px">Search by Print ID or Token</div>
+          <input class="search-input" id="acSearch" placeholder="🔍 00042 or hc-abc123..." oninput="renderAllCards()" style="margin:0"/>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;margin-bottom:6px">Company</div>
+          <select id="acCompany" onchange="renderAllCards()" style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fff;-webkit-appearance:none">
+            <option value="">All companies</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;margin-bottom:6px">Status</div>
+          <select id="acStatus" onchange="renderAllCards()" style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fff;-webkit-appearance:none">
+            <option value="">All statuses</option>
+            <option value="unassigned">Available</option>
+            <option value="assigned">Assigned</option>
+            <option value="active">Activated</option>
+            <option value="deactivated">Deactivated</option>
+          </select>
+        </div>
+        <button class="btn bs bsm" onclick="loadAllCards()">↻ Refresh</button>
+      </div>
+    </div>
+    <div id="acStats" style="margin-bottom:10px"></div>
+    <div class="card">
+      <div class="tw"><table><thead><tr><th>Print ID</th><th>Status</th><th>Company</th><th>Handyman</th><th>Client</th><th>Created</th><th></th></tr></thead>
+      <tbody id="acBody"></tbody></table></div>
+    </div>
   </div>
 
   <!-- APPLICATIONS -->
@@ -559,6 +597,7 @@ function nav(n) {
   if (n === "handymen") loadHMs();
   if (n === "clients") loadCls();
   if (n === "orders") loadOrds();
+  if (n === "all-cards") loadAllCards();
   if (n === "applications") loadApps();
   if (n === "co-detail") { /* already loaded */ }
   if (n === "card-detail") { /* loaded by showCardDetail */ }
@@ -578,8 +617,16 @@ function toast(m) {
 function cfm(t, s, cb) {
   document.getElementById("cfTitle").textContent = t;
   document.getElementById("cfSub").textContent = s;
+  var btn = document.getElementById("cfOk");
+  btn.textContent = "Confirm";
+  btn.disabled = false;
   openModal("mConfirm");
-  document.getElementById("cfOk").onclick = function() { closeModal("mConfirm"); cb(); };
+  btn.onclick = async function() {
+    btn.disabled = true;
+    await cb(btn);
+    btn.textContent = "Confirm";
+    btn.disabled = false;
+  };
 }
 function bdg(status) {
   var m = { active: ["ba", "Active"], inactive: ["bi", "Inactive"], unassigned: ["bu", "Available"], assigned: ["bbl", "With Handyman"], deactivated: ["bi", "Deactivated"], new: ["bu", "New"], in_progress: ["bbl", "In Progress"], completed: ["ba", "Completed"], cancelled: ["bi", "Cancelled"] };
@@ -841,9 +888,20 @@ function updateBulk() {
 }
 async function bulkDelete() {
   var sel = getSel(); if (!sel.length) return;
-  cfm("Delete " + sel.length + " cards?", "This cannot be undone.", async function() {
-    for (var i = 0; i < sel.length; i++) await fsDel("nfc_cards", sel[i]);
-    toast("Deleted " + sel.length + " cards");
+  var assigned = sel.filter(function(id) {
+    var c = cdCards.find(function(x) { return x.id === id; });
+    return c && (c.status === "active" || c.clientId);
+  });
+  var warn = assigned.length ? "\n⚠️ " + assigned.length + " card(s) are active — clients will lose their profile." : "";
+  cfm("Delete " + sel.length + " cards?", "This cannot be undone." + warn, async function(btn) {
+    var deleted = 0;
+    for (var i = 0; i < sel.length; i++) {
+      if (btn) btn.textContent = "Deleting " + (i+1) + "/" + sel.length + "...";
+      var ok = await fsDel("nfc_cards", sel[i]);
+      if (ok) deleted++;
+    }
+    closeModal("mConfirm");
+    toast("Deleted " + deleted + " of " + sel.length + " cards");
     await loadCDCards();
     clearSel();
   });
@@ -852,8 +910,7 @@ async function bulkDeactivate() {
   var sel = getSel(); if (!sel.length) return;
   for (var i = 0; i < sel.length; i++) await fsPatchFields("nfc_cards", sel[i], { status: sv("deactivated") });
   toast("Deactivated " + sel.length + " cards");
-  await loadCDCards();
-  clearSel();
+  await loadCDCards(); clearSel();
 }
 
 function csvDate(iso) { if(!iso)return""; return new Date(iso).toISOString().slice(0,10); }
@@ -874,8 +931,15 @@ function exportFreeCSV() {
 
 async function deactCard(id) { var ok = await fsPatchFields("nfc_cards", id, { status: sv("deactivated") }); if (ok) { toast("Card deactivated"); await loadCDCards(); } }
 function delCard(id) {
-  cfm("Delete card?", "Token: " + id + ". This cannot be undone.", async function() {
-    var ok = await fsDel("nfc_cards", id); if (ok) { toast("Card deleted"); await loadCDCards(); } else toast("Error deleting card");
+  var c = cdCards.find(function(x) { return x.id === id; });
+  var pid = c && c.printId ? c.printId : id;
+  var warn = c && c.status === "active" ? "\n\n⚠️ This card is active — a client registered with it. Their profile link will break."
+           : c && c.status === "assigned" ? "\n\n⚠️ This card is assigned to a handyman."
+           : "";
+  cfm("Delete card " + pid + "?", "This cannot be undone." + warn, async function() {
+    var ok = await fsDel("nfc_cards", id);
+    if (ok) { closeModal("mConfirm"); toast("Card " + pid + " deleted"); await loadCDCards(); }
+    else toast("Error deleting card");
   });
 }
 
@@ -1514,10 +1578,19 @@ async function approveCardReq(reqId, count, companyId) {
   var chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   var pfx = "hc";
 
-  // Get next printId counter
+  // Get next printId — try counter doc first, fallback to scanning all cards
   var counterDoc = await fsGet("counters", "nfc_cards");
   var lastNum = (counterDoc && counterDoc.lastId) ? Number(counterDoc.lastId) : 0;
-  // Also check existing cards to ensure no gaps if counter is behind
+
+  // Always scan for actual max to prevent duplicates (counter may be stale)
+  try {
+    var allCards = await fsL("nfc_cards", 5000);
+    allCards.forEach(function(c) {
+      if (c.printId) { var n = parseInt(c.printId, 10); if (!isNaN(n) && n > lastNum) lastNum = n; }
+    });
+  } catch(e) {}
+
+  // Also check existing cards for this request (idempotent)
   var allExisting = await fsQ("nfc_cards", [{field:"requestId", value:reqId}]);
   var alreadyCreated = allExisting.length;
   var remaining = count - alreadyCreated;
@@ -1802,6 +1875,169 @@ async function updateAppStatus(appId, newStatus) {
   var badge = document.getElementById("appsBadge");
   badge.textContent = pending; badge.style.display = pending > 0 ? "inline" : "none";
   showAppDetail(appId);
+}
+
+// ── ALL CARDS ─────────────────────────────────────────────────
+var allCardsData = [];
+
+async function loadAllCards() {
+  var tb = document.getElementById("acBody");
+  var stats = document.getElementById("acStats");
+  tb.innerHTML = '<tr><td colspan="7" class="empty">Loading all cards...</td></tr>';
+  stats.innerHTML = '';
+
+  // Load all data in parallel
+  var [cards, companies, handymen, clients] = await Promise.all([
+    fsL("nfc_cards", 5000),
+    fsL("companies", 500),
+    fsL("handymen", 500),
+    fsL("clients", 500)
+  ]);
+
+  // Build lookup maps
+  var coMap = {}; companies.forEach(function(c) { coMap[c.id] = c; });
+  var hmMap = {}; handymen.forEach(function(h) { hmMap[h.id] = h; });
+  var clMap = {}; clients.forEach(function(c) { clMap[c.id] = c; });
+
+  allCardsData = cards.map(function(c) {
+    return Object.assign({}, c, {
+      _company: coMap[c.companyId] || null,
+      _handyman: c.handymanId ? hmMap[c.handymanId] : null,
+      _client: c.clientId ? clMap[c.clientId] : null
+    });
+  });
+  allCardsData.sort(function(a,b) { return (a.printId||"").localeCompare(b.printId||""); });
+
+  // Populate company filter
+  var sel = document.getElementById("acCompany");
+  sel.innerHTML = '<option value="">All companies</option>';
+  companies.sort(function(a,b){return(a.name||"").localeCompare(b.name||"");}).forEach(function(c) {
+    sel.innerHTML += '<option value="' + c.id + '">' + esc(c.name||c.id) + '</option>';
+  });
+
+  // Stats
+  var total = cards.length;
+  var active = cards.filter(function(c){return c.status==="active";}).length;
+  var assigned = cards.filter(function(c){return c.status==="assigned";}).length;
+  var free = cards.filter(function(c){return c.status==="unassigned";}).length;
+  stats.innerHTML =
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">' +
+    ['Total: <strong>'+total+'</strong>', 'Active: <strong>'+active+'</strong>', 'Assigned: <strong>'+assigned+'</strong>', 'Available: <strong>'+free+'</strong>']
+    .map(function(s){ return '<div style="background:#fff;border:1px solid #eee;border-radius:8px;padding:8px 14px;font-size:13px;color:#555">'+s+'</div>'; }).join("") +
+    '</div>';
+
+  renderAllCards();
+}
+
+function renderAllCards() {
+  var q = (document.getElementById("acSearch")||{value:""}).value.trim().toLowerCase();
+  var filterCo = (document.getElementById("acCompany")||{value:""}).value;
+  var filterSt = (document.getElementById("acStatus")||{value:""}).value;
+  var tb = document.getElementById("acBody");
+
+  var fil = allCardsData.filter(function(c) {
+    if (filterCo && c.companyId !== filterCo) return false;
+    if (filterSt && c.status !== filterSt) return false;
+    if (q) {
+      var pid = (c.printId||"").toLowerCase();
+      var tok = (c.id||"").toLowerCase();
+      var cl = c._client ? (c._client.name||"").toLowerCase() : "";
+      var hm = c._handyman ? (c._handyman.name||"").toLowerCase() : "";
+      if (!pid.includes(q) && !tok.includes(q) && !cl.includes(q) && !hm.includes(q)) return false;
+    }
+    return true;
+  });
+
+  if (!fil.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No cards found</td></tr>'; return; }
+
+  tb.innerHTML = fil.map(function(c) {
+    var printId = c.printId || c.id.slice(-6).toUpperCase();
+    var co = c._company ? esc(c._company.name) : (c.companyId ? c.companyId.slice(0,8)+"…" : "—");
+    var hm = c._handyman ? esc(c._handyman.name) : "—";
+    var cl = c._client ? esc(c._client.name) : (c.clientId ? "✓ Activated" : "—");
+    return '<tr style="cursor:pointer" onclick="showAllCardDetail(\'' + c.id + '\')">' +
+      '<td><span class="mono" style="color:#185FA5;font-weight:600">' + printId + '</span></td>' +
+      '<td>' + bdg(c.status||"unassigned") + '</td>' +
+      '<td class="muted">' + co + '</td>' +
+      '<td class="muted">' + hm + '</td>' +
+      '<td class="muted">' + cl + '</td>' +
+      '<td class="muted">' + csvDate(c.createdAt) + '</td>' +
+      '<td><span style="font-size:12px;color:#185FA5">View →</span></td>' +
+    '</tr>';
+  }).join("");
+}
+
+async function showAllCardDetail(cardId) {
+  var card = allCardsData.find(function(c){ return c.id === cardId; }) || await fsGet("nfc_cards", cardId);
+  if (!card) return;
+
+  // Re-use existing showCardDetail but set back button to all-cards
+  sp("card-detail");
+  document.getElementById("cardDetBack").setAttribute("onclick", "sp('all-cards')");
+  var content = document.getElementById("cardDetContent");
+  content.innerHTML = '<div style="padding:40px;text-align:center;color:#aaa">Loading...</div>';
+
+  var [hm, cl, co, orders] = await Promise.all([
+    card.handymanId ? fsGet("handymen", card.handymanId) : Promise.resolve(card._handyman || null),
+    card.clientId ? fsGet("clients", card.clientId) : Promise.resolve(card._client || null),
+    card.companyId ? fsGet("companies", card.companyId) : Promise.resolve(card._company || null),
+    fsQ("orders", [{field:"cardToken", value:cardId}])
+  ]);
+  orders.sort(function(a,b){return(b.createdAt||"").localeCompare(a.createdAt||"");});
+
+  var url = BURL + "/c/" + cardId;
+  var printId = card.printId || card.id.slice(-6).toUpperCase();
+
+  content.innerHTML =
+    '<div class="card" style="margin:0 0 14px"><div style="padding:16px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">' +
+        '<div><div style="font-size:28px;font-weight:700;color:#185FA5;font-family:monospace">' + printId + '</div>' +
+        '<div style="font-size:12px;color:#aaa;margin-top:2px">Physical card ID</div></div>' +
+        '<div>' + bdg(card.status||"unassigned") + '</div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">' +
+        '<div><div class="muted">Token</div><div class="mono" style="font-size:11px;margin-top:2px">' + cardId + '</div></div>' +
+        '<div><div class="muted">Company</div><div style="font-size:14px;margin-top:2px">' + esc(co ? co.name : "—") + '</div></div>' +
+        '<div><div class="muted">Created</div><div style="font-size:14px;margin-top:2px">' + csvDate(card.createdAt) + '</div></div>' +
+        '<div style="grid-column:1/-1"><div class="muted">URL</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-top:4px">' +
+            '<span class="mono" style="font-size:12px;color:#185FA5">' + url + '</span>' +
+            '<button class="btn bs bsm" onclick="cp(\'' + url + '\')">📋 Copy</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div></div>' +
+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">' +
+      '<div class="card"><div class="ch"><h3>Handyman</h3></div><div style="padding:14px 16px">' +
+        (hm ? '<div style="display:flex;align-items:center;gap:10px"><div class="av">'+ini(hm.name)+'</div><div>' +
+          '<div style="font-size:15px;font-weight:600;cursor:pointer;color:#185FA5" onclick="openHMDetail(\''+hm.id+'\',\'all-cards\')">'+esc(hm.name)+'</div>' +
+          '<div class="muted">'+esc(hm.phone||"")+'</div>' +
+          (hm.ratingAvg?'<div style="color:#EF9F27;font-size:13px">★ '+Number(hm.ratingAvg).toFixed(1)+'</div>':'') +
+        '</div></div>' : '<div class="empty" style="padding:10px 0">No handyman assigned</div>') +
+      '</div></div>' +
+      '<div class="card"><div class="ch"><h3>Client</h3></div><div style="padding:14px 16px">' +
+        (cl ? '<div style="display:flex;align-items:center;gap:10px"><div class="av">'+ini(cl.name)+'</div><div>' +
+          '<div style="font-size:15px;font-weight:600;cursor:pointer;color:#185FA5" onclick="openCl(\''+cl.id+'\')">'+esc(cl.name)+'</div>' +
+          '<div class="muted">'+esc(cl.phone||"")+'</div>' +
+          '<div class="muted">'+esc(cl.email||"")+'</div>' +
+        '</div></div>' : '<div class="empty" style="padding:10px 0">Card not activated yet</div>') +
+      '</div></div>' +
+    '</div>' +
+
+    '<div class="card"><div class="ch"><h3>Order History ('+orders.length+')</h3></div>' +
+    '<div class="tw"><table><thead><tr><th>Date</th><th>Category</th><th>Status</th><th>Rating</th><th>Price</th><th></th></tr></thead>' +
+    '<tbody>'+(orders.length ? orders.map(function(o) {
+      return '<tr style="cursor:pointer" onclick="showOrderDetail(\''+o.id+'\',\'all-cards\')">' +
+        '<td class="muted">'+csvDate(o.createdAt)+'</td>' +
+        '<td>'+esc(o.category||"—")+'</td>' +
+        '<td>'+bdg(o.status||"new")+'</td>' +
+        '<td>'+(o.clientRating?'<span style="color:#EF9F27">★ '+o.clientRating+'</span>':'<span class="muted">—</span>')+'</td>' +
+        '<td>'+(o.price?"$"+o.price:"<span class='muted'>—</span>")+'</td>' +
+        '<td><span style="font-size:12px;color:#185FA5">View →</span></td>' +
+      '</tr>';
+    }).join("") : '<tr><td colspan="6" class="empty">No orders yet</td></tr>') +
+    '</tbody></table></div></div>';
 }
 </script>
 </body>
