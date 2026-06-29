@@ -161,21 +161,64 @@
 
 <!-- MAIN APP -->
 <div class="screen" id="s-app">
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="topbar-logo">&#x1F3AA; Handy<span>Cat</span></div>
-      <div class="company-name" id="topCompanyName"></div>
-    </div>
-    <div class="topbar-nav">
-      <button class="nb active" onclick="navApp('overview')">Overview</button>
-      <button class="nb" onclick="navApp('handymen')">Handymen</button>
-      <button class="nb" onclick="navApp('cards')">NFC Cards</button>
-      <button class="nb" onclick="navApp('orders')">Orders</button>
-    </div>
-    <button class="btn bs bsm" onclick="signOut()">Sign Out</button>
-  </div>
+<div class="app-layout">
 
-  <div style="overflow-y:auto">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div style="display:flex;flex-direction:column;gap:12px;flex:1">
+
+      <!-- Nav card -->
+      <div class="sb-nav-card">
+        <div class="sb-logo">
+          <svg width="59" height="59" viewBox="0 0 59 59" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="59" height="59" rx="20" fill="#F9F0DF"/><mask id="sbmc0" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="59" height="59"><path d="M0 20C0 8.95431 8.95431 0 20 0H39C50.0457 0 59 8.95431 59 20V39C59 50.0457 50.0457 59 39 59H20C8.95431 59 0 50.0457 0 39V20Z" fill="#E1E0DC"/></mask><g mask="url(#sbmc0)"><path d="M19.0387 66.1786L15.3066 52.2502M5.56641 15.8992L15.3066 52.2502M15.3066 52.2502L26.7818 34.7445C27.6497 33.4205 29.3601 32.9379 30.792 33.613L45.6135 40.6008C46.4583 40.9991 47.0849 41.7491 47.3267 42.6513L51.3136 57.5306" stroke="#FB6305" stroke-width="7.17973" stroke-linecap="round" stroke-linejoin="round"/><path d="M28.565 55.2478C27.808 52.4226 29.4846 49.5186 32.3098 48.7616C35.135 48.0046 38.039 49.6812 38.796 52.5064L41.1072 61.132C41.2524 61.6741 40.9307 62.2313 40.3887 62.3765L32.1207 64.5919C31.5787 64.7372 31.0215 64.4155 30.8762 63.8734L28.565 55.2478Z" fill="#164E23"/><path d="M46.3092 30.3188C43.7238 20.6697 33.8058 14.9436 24.1568 17.529C21.8717 18.1413 19.8066 19.1649 18.0198 20.4987" stroke="#FB6305" stroke-width="5.40701" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+        </div>
+        <nav class="sb-menu">
+          <button class="nb active" onclick="navApp('overview')">
+            <span class="nb-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="nb-label">Overview</span>
+          </button>
+          <button class="nb" onclick="navApp('handymen')">
+            <span class="nb-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5.625C12 5.12772 12.1975 4.65081 12.5492 4.29917C12.9008 3.94754 13.3777 3.75 13.875 3.75C14.3723 3.75 14.8492 3.94754 15.2008 4.29917C15.5525 4.65081 15.75 5.12772 15.75 5.625V10.875" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 7.125V4.125C8.25 3.62772 8.44754 3.15081 8.79917 2.79917C9.15081 2.44754 9.62772 2.25 10.125 2.25C10.6223 2.25 11.0992 2.44754 11.4508 2.79917C11.8025 3.15081 12 3.62772 12 4.125V10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 16.5C12 15.5054 12.3951 14.5516 13.0983 13.8483C13.8016 13.1451 14.7554 12.75 15.75 12.75V10.875C15.75 10.3777 15.9475 9.90081 16.2992 9.54917C16.6508 9.19754 17.1277 9 17.625 9C18.1223 9 18.5992 9.19754 18.9508 9.54917C19.3025 9.90081 19.5 10.3777 19.5 10.875V14.25C19.5 16.2391 18.7098 18.1468 17.3033 19.5533C15.8968 20.9598 13.9891 21.75 12 21.75C10.0109 21.75 8.10322 20.9598 6.6967 19.5533C5.29018 18.1468 4.5 16.2391 4.5 14.25V7.125C4.5 6.62772 4.69754 6.15081 5.04917 5.79917C5.40081 5.44754 5.87772 5.25 6.375 5.25C6.87228 5.25 7.34919 5.44754 7.70083 5.79917C8.05246 6.15081 8.25 6.62772 8.25 7.125V11.25" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="nb-label">Handymen</span>
+          </button>
+          <button class="nb" onclick="navApp('cards')">
+            <span class="nb-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5.25 14.25C6.49264 14.25 7.5 13.2426 7.5 12C7.5 10.7574 6.49264 9.75 5.25 9.75C4.00736 9.75 3 10.7574 3 12C3 13.2426 4.00736 14.25 5.25 14.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.25 14.25C15.4926 14.25 16.5 13.2426 16.5 12C16.5 10.7574 15.4926 9.75 14.25 9.75C13.0074 9.75 12 10.7574 12 12C12 13.2426 13.0074 14.25 14.25 14.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.5 20.25C18.9853 20.25 21 16.5563 21 12C21 7.44365 18.9853 3.75 16.5 3.75C14.0147 3.75 12 7.44365 12 12C12 16.5563 14.0147 20.25 16.5 20.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 20.25C9.98528 20.25 12 16.5563 12 12C12 7.44365 9.98528 3.75 7.5 3.75C5.01472 3.75 3 7.44365 3 12C3 16.5563 5.01472 20.25 7.5 20.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="nb-label">NFC Cards</span>
+          </button>
+          <button class="nb" onclick="navApp('orders')">
+            <span class="nb-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10.125 10.875L13.125 13.875" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.3806 9.36938L17.625 13.125" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.75012 5.99989L5.04106 4.66582C5.80716 3.89961 6.71669 3.29181 7.7177 2.87713C8.71872 2.46246 9.79161 2.24902 10.8751 2.24902C11.9586 2.24902 13.0315 2.46246 14.0325 2.87713C15.0336 3.29181 15.9431 3.89961 16.7092 4.66582L23.0307 11.0305C23.1713 11.1712 23.2502 11.3618 23.2502 11.5607C23.2502 11.7595 23.1713 11.9502 23.0307 12.0908L20.3439 14.7805C20.2032 14.9211 20.0125 15 19.8137 15C19.6149 15 19.4242 14.9211 19.2836 14.7805L15.7501 11.2499L6.2195 20.7805C6.07886 20.9211 5.88817 21 5.68934 21C5.49051 21 5.29982 20.9211 5.15918 20.7805L3.2195 18.8436C3.07895 18.703 3 18.5123 3 18.3135C3 18.1147 3.07895 17.924 3.2195 17.7833L12.7501 8.24989L7.4795 2.97926" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="nb-label">Orders</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- User card -->
+      <div class="sb-user-card">
+        <div class="sb-avatar">
+          <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="22.5" cy="22.5" r="21.5" fill="#33DFFF" stroke="#33DFFF" stroke-width="2"/><path d="M19.2056 15.863C19.8809 15.4289 21.5171 15.2399 22.2507 15.1997C22.9843 15.2399 24.6204 15.4289 25.2958 15.863C26.3811 14.7945 28.8293 12.7317 29.9388 13.029C31.0483 13.3263 30.9035 17.5346 30.6925 19.6015C31.9722 21.8179 32.8605 25.6058 30.0871 28.2544C27.1856 30.3959 23.6538 31.036 22.2507 31.0884C10.818 30.0031 11.8592 22.9783 13.8089 19.6015C13.5978 17.5346 13.4531 13.3263 14.5626 13.029C15.6721 12.7317 18.1202 14.7945 19.2056 15.863Z" stroke="black" stroke-linecap="round" stroke-linejoin="round"/><path d="M27.2262 22.4659C27.2262 21.9164 26.7807 21.4709 26.2313 21.4709C25.6818 21.4709 25.2363 21.9164 25.2363 22.4659" stroke="black" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.1461 22.4659C19.1461 21.9164 18.7007 21.4709 18.1512 21.4709C17.6017 21.4709 17.1562 21.9164 17.1562 22.4659" stroke="black" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.9253 24.0335L10.3125 23.521M14.9253 25.3601C13.6691 25.7219 11.0723 26.5239 10.7346 26.8374" stroke="black" stroke-linecap="round" stroke-linejoin="round"/><path d="M30.0004 24.0335L34.6133 23.521M30.0004 25.3601C31.2567 25.7219 32.5571 25.8617 32.8948 26.1753" stroke="black" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.0157 23.8224C20.9433 23.3882 21.7895 23.2998 22.2217 23.3098C22.6538 23.2998 23.5 23.3882 23.4276 23.8224C23.3372 24.365 22.5533 24.5459 22.6136 25.1188C22.6739 25.6916 23.3372 25.9328 23.699 25.9328C24.0608 25.9328 24.6336 24.8173 25.0557 25.2997C25.4778 25.7821 24.2718 26.7468 23.699 26.777C23.1261 26.8071 22.8548 26.6564 22.2217 26.0836C21.5885 26.6564 21.3172 26.8071 20.7443 26.777C20.1715 26.7468 18.9655 25.7821 19.3876 25.2997C19.8097 24.8173 20.3825 25.9328 20.7443 25.9328C21.1061 25.9328 21.7694 25.6916 21.8297 25.1188C21.89 24.5459 21.1061 24.365 21.0157 23.8224Z" fill="black"/></svg>
+        </div>
+        <div>
+          <div class="sb-company-name" id="topCompanyName"></div>
+          <div class="sb-email" id="sbUserEmail"></div>
+        </div>
+      </div>
+
+      <!-- Sign out -->
+      <button class="sb-signout-card" onclick="signOut()">Sign out</button>
+    </div>
+    <div class="sb-footer">Handycat LLC 2026</div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="sb-main">
 
     <!-- OVERVIEW -->
     <div class="page active" id="cp-overview">
@@ -286,7 +329,8 @@
       <button class="btn bp" id="reqCardsBtn" onclick="submitCardRequest()"><span class="ld"></span><span>Send Request</span></button>
     </div>
   </div>
-</div>
+  </main><!-- /sb-main -->
+</div><!-- /app-layout -->
 
 <div class="toast" id="toast"></div>
 
@@ -359,7 +403,10 @@ function navApp(n){
   document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active");});
   document.querySelectorAll(".nb").forEach(function(b){b.classList.remove("active");});
   document.getElementById("cp-"+n).classList.add("active");
-  document.querySelectorAll(".nb").forEach(function(b){if(b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'"+n+"'"))b.classList.add("active");});
+  var mainRoutes=["overview","handymen","cards","orders"];
+  if(mainRoutes.indexOf(n)!==-1){
+    document.querySelectorAll(".nb").forEach(function(b){if(b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'"+n+"'"))b.classList.add("active");});
+  }
   if(n==="cards"){loadPendingReqs().then(loadCards);}
   else if(n==="overview")loadOverview();
   else if(n==="handymen")renderHM();
@@ -459,6 +506,7 @@ function signOut(){localStorage.removeItem("hc_company_id");localStorage.removeI
 async function loadApp(){
   var c=S.company;
   document.getElementById("topCompanyName").textContent=c.name||"Company";
+  var emailEl=document.getElementById("sbUserEmail");if(emailEl&&c.email)emailEl.textContent=c.email;
   document.getElementById("overviewTitle").textContent=c.name||"Dashboard";
   document.getElementById("overviewSub").textContent="Welcome back, "+c.name+"!";
 
