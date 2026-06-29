@@ -8,7 +8,7 @@
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;min-height:100vh}
     .screen{display:none!important;min-height:100vh}
-    .screen.active{display:block!important}
+    /* screen.active handled above per-element */
     #s-loading.active{display:flex!important;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#fff}
     #s-auth.active{display:flex!important;align-items:center;justify-content:center;background:#f0f2f5}
     .spinner{width:36px;height:36px;border:3px solid #e8e8e8;border-top-color:#185FA5;border-radius:50%;animation:spin .8s linear infinite}
@@ -21,20 +21,37 @@
     .auth-sub{font-size:14px;color:#888;margin-bottom:28px;line-height:1.5}
     .auth-err{background:#FCEBEB;color:#A32D2D;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
 
-    /* APP LAYOUT */
-    #s-app.active{display:grid!important;grid-template-rows:54px 1fr;min-height:100vh}
-    .topbar{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-    .topbar-left{display:flex;align-items:center;gap:16px}
-    .topbar-logo{font-size:16px;font-weight:700;color:#111}
-    .topbar-logo span{color:#185FA5}
-    .company-name{font-size:14px;color:#888;border-left:1px solid #e0e0e0;padding-left:14px}
-    .topbar-nav{display:flex;gap:2px}
-    .nb{padding:6px 12px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:#666;transition:all .15s}
-    .nb:hover{background:#f0f2f5;color:#111}
-    .nb.active{background:#185FA5;color:#fff}
-
+    /* APP LAYOUT — SIDEBAR */
+    body{overflow:hidden}
+    #s-app.active{display:flex!important;height:100vh;overflow:hidden;background:#f5f5f5;min-height:unset}
+    .screen:not(#s-app).active{display:block!important}
+    .app-layout{display:flex;width:100%;height:100%}
+    .sidebar{width:298px;flex-shrink:0;height:100vh;padding:24px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;overflow-y:auto}
+    .sidebar::-webkit-scrollbar{display:none}
+    .sb-nav-card{background:#fff;border-radius:30px;padding:24px;flex-shrink:0}
+    .sb-logo{width:59px;height:59px;background:#f9f0df;border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:32px;overflow:hidden;flex-shrink:0}
+    .sb-menu{display:flex;flex-direction:column;gap:8px}
+    .nb{display:flex;align-items:center;gap:14px;width:100%;border:none;background:transparent;cursor:pointer;padding:0;font-family:inherit;text-align:left;border-radius:14px;transition:background .15s}
+    .nb-icon{width:45px;height:45px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+    .nb-label{font-size:15px;font-weight:400;color:#858585;font-family:'Inter',sans-serif;white-space:nowrap;transition:color .2s}
+    .nb:hover .nb-icon{background:#e8e8e8}
+    .nb:hover .nb-label{color:#333}
+    .nb.active .nb-icon{background:#164e23}
+    .nb.active .nb-label{color:#164e23;font-weight:500}
+    .nb.active .nb-icon svg path,.nb.active .nb-icon svg circle{stroke:#fff}
+    .sb-user-card{background:#fff;border-radius:30px;padding:24px;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
+    .sb-avatar{width:45px;height:45px;border-radius:50%;background:#33dfff;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+    .sb-company-name{font-size:14px;font-weight:600;color:#111;font-family:'Inter',sans-serif}
+    .sb-email{font-size:12px;color:#858585;font-family:'Inter',sans-serif;word-break:break-all}
+    .sb-signout-card{background:#fff;border-radius:30px;padding:13px 20px;display:inline-flex;cursor:pointer;border:none;font-size:13px;color:#858585;font-family:'Inter',sans-serif;width:fit-content;transition:color .15s}
+    .sb-signout-card:hover{color:#111}
+    .sb-footer{font-size:12px;color:#858585;font-family:'Inter',sans-serif;padding-bottom:4px}
+    .sb-main{flex:1;overflow-y:auto;height:100vh}
+    .sb-main::-webkit-scrollbar{width:6px}
+    .sb-main::-webkit-scrollbar-track{background:transparent}
+    .sb-main::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
     /* PAGES */
-    .page{display:none;padding:20px;max-width:960px;margin:0 auto}
+    .page{display:none;padding:24px;max-width:960px;margin:0 auto}
     .page.active{display:block}
     .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
     .ph h2{font-size:18px;font-weight:600;color:#111}
@@ -79,6 +96,17 @@
     .stat-n{font-size:24px;font-weight:700;color:#111}
     .stat-l{font-size:12px;color:#888;margin-top:3px}
     @media(max-width:600px){.stats-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:900px){
+      #s-app.active{flex-direction:column!important}
+      .sidebar{width:100%;height:auto;flex-direction:row;padding:12px 16px;overflow-x:auto}
+      .sb-nav-card{padding:12px 16px;border-radius:16px;display:flex;align-items:center;gap:8px;flex:1}
+      .sb-logo{width:36px;height:36px;margin-bottom:0;border-radius:10px;flex-shrink:0}
+      .sb-menu{flex-direction:row;gap:4px}
+      .nb-label{display:none}
+      .nb-icon{width:36px;height:36px}
+      .sb-user-card,.sb-signout-card,.sb-footer{display:none}
+      .sb-main{height:calc(100vh - 72px)}
+    }
     @media(max-width:900px){
       #s-app.active{flex-direction:column!important;height:100vh;overflow:hidden}
       body{overflow:hidden}
@@ -149,6 +177,24 @@
     .co-login-btn .ld{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
     .co-login-btn.loading .ld{display:inline-block}
     .magic-sent{display:none;margin-top:4px;background:#D1FAE5;color:#065F46;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.5}
+
+    /* ── LOGIN SCREEN ── */
+    .co-auth-screen{display:none;position:fixed;inset:0;background:#bff5ff;z-index:999;align-items:center;justify-content:center;overflow:hidden}
+    .co-auth-screen.active{display:flex!important}
+    .login-input-wrap{background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text;transition:border-color .3s cubic-bezier(.4,0,.2,1),background .3s ease,box-shadow .3s ease}
+    .login-input-wrap:hover{border-color:#ddd;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .login-input-wrap.focused{border-color:#4f00df;background:#fff;box-shadow:0 0 0 4px rgba(79,0,223,.08)}
+    .login-input-label{font-size:12px;font-family:'Inter',sans-serif;margin-bottom:3px;color:#111;transition:color .3s ease}
+    .login-input-wrap.focused .login-input-label{color:#858585}
+    .login-input-field{width:100%;border:none;background:transparent;font-size:14px;color:#555;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0;transition:color .3s ease}
+    .login-input-wrap.focused .login-input-field{color:#4f00df}
+    .co-login-btn{width:100%;height:52px;background:#32e682;border:1.5px solid #1ea95c;border-radius:10px;font-size:18px;font-family:'Work Sans','Inter',sans-serif;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;outline:none;transition:background .3s cubic-bezier(.4,0,.2,1),border-color .3s ease,color .3s ease,transform .15s ease,box-shadow .3s ease;gap:8px}
+    .co-login-btn:hover{background:#164e23;border-color:#164e23;color:#fff;box-shadow:0 4px 16px rgba(22,78,35,.35);transform:translateY(-1px)}
+    .co-login-btn:active{transform:translateY(0) scale(.99)}
+    .co-login-btn:disabled{opacity:.65;cursor:not-allowed;transform:none}
+    .co-login-btn .ld{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+    .co-login-btn.loading .ld{display:inline-block}
+    .magic-sent{display:none;background:#D1FAE5;color:#065F46;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.5}
   </style>
 <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
@@ -605,6 +651,7 @@ function signOut(){localStorage.removeItem("hc_company_id");localStorage.removeI
 async function loadApp(){
   var c=S.company;
   document.getElementById("topCompanyName").textContent=c.name||"Company";
+  var sbEmail=document.getElementById("sbUserEmail");if(sbEmail)sbEmail.textContent=localStorage.getItem("hc_company_email")||c.email||"";
   var emailEl=document.getElementById("sbUserEmail");if(emailEl&&c.email)emailEl.textContent=c.email;
   document.getElementById("overviewTitle").textContent=c.name||"Dashboard";
   document.getElementById("overviewSub").textContent="Welcome back, "+c.name+"!";
