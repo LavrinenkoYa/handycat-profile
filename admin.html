@@ -98,15 +98,30 @@
     .mono{font-family:monospace;font-size:12px;color:#185FA5}
     .muted{color:#888;font-size:12px}
     .uc{font-family:monospace;font-size:11px;color:#888;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-bottom:20px}
-    .coc{background:#fff;border-radius:14px;border:2px solid transparent;padding:16px;cursor:pointer;transition:all .15s}
-    .coc:hover{border-color:#185FA5;box-shadow:0 2px 12px rgba(24,95,165,.1)}
+    /* Companies page */
+    .co-page-header{background:#fff;border-radius:30px;padding:26px;margin-bottom:24px}
+    .co-page-title{font-size:32px;font-weight:500;color:#1d1f1e;font-family:'Inter',sans-serif;line-height:1}
+    .co-page-sub{font-size:18px;color:#858585;font-family:'Inter',sans-serif;margin-top:8px;margin-bottom:24px}
+    .co-search{display:flex;align-items:center;gap:14px;border:1.5px solid #eceae6;border-radius:10px;padding:9px 14px;width:100%;box-sizing:border-box}
+    .co-search input{border:none;outline:none;font-size:15px;color:#333;font-family:'Inter',sans-serif;background:transparent;flex:1}
+    .co-search input::placeholder{color:#858585}
+    .co-add-btn{background:#32e682;border:1px solid #1ea95c;border-radius:10px;padding:0 24px;height:44px;font-size:15px;font-family:'Inter',sans-serif;color:#111;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;transition:background .2s,color .2s}
+    .co-add-btn:hover{background:#164e23;color:#fff;border-color:#164e23}
+    .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-bottom:20px}
+    .coc{background:#fff;border-radius:30px;padding:26px;cursor:pointer;transition:box-shadow .2s;border:2px solid transparent}
+    .coc:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);border-color:#eceae6}
     .coc.off{opacity:.55}
-    .cn{font-size:15px;font-weight:600;color:#111;margin-bottom:3px}
-    .cm{font-size:12px;color:#888}
-    .cst{display:flex;gap:14px;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0}
-    .cst .sn{font-size:18px;font-weight:600;color:#111}
-    .cst .sl{font-size:11px;color:#aaa}
+    /* company name row */
+    .coc-name-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+    .coc-avatar{width:26px;height:26px;border-radius:50%;background:#32e682;border:2px solid #1ea95c;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+    .coc-avatar.off{background:#aaa;border-color:#999}
+    .cn{font-size:16px;font-weight:600;color:#111;font-family:'Inter',sans-serif}
+    .cm{font-size:14px;color:#858585;font-family:'Inter',sans-serif;display:flex;gap:7px;margin-bottom:0}
+    .co-divider{height:2px;background:#f5f5f5;margin:16px 0}
+    .cst{display:flex;gap:0;align-items:flex-start}
+    .cst-item{display:flex;flex-direction:column;gap:8px;flex:1}
+    .cst .sn{font-size:18px;font-weight:700;color:#111;font-family:'Inter',sans-serif;line-height:1}
+    .cst .sl{font-size:14px;color:#858585;font-family:'Inter',sans-serif}
     .fl{display:flex;gap:6px;flex-wrap:wrap}
     .fb{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #e0e0e0;background:#fff;color:#666;transition:all .15s}
     .fb:hover{border-color:#185FA5;color:#185FA5}
@@ -298,11 +313,24 @@
 
   <!-- COMPANIES -->
   <div class="page active" id="page-companies">
-    <div class="ph" style="margin-top:8px">
-      <div><h2>Companies</h2><p>Manage client companies</p></div>
-      <button class="btn bp" onclick="openAddCompany()">+ Add Company</button>
+    <!-- Header card -->
+    <div class="co-page-header">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px">
+        <div>
+          <div class="co-page-title">Companies</div>
+          <div class="co-page-sub">Manage client companies</div>
+        </div>
+        <button class="co-add-btn" onclick="openAddCompany()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Add company
+        </button>
+      </div>
+      <!-- Search -->
+      <div class="co-search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#858585" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#858585" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input placeholder="Search" oninput="searchCos(this.value)" id="coSearchInput" />
+      </div>
     </div>
-    <input class="search-input" placeholder="🔍 Search by name or location..." oninput="searchCos(this.value)" />
     <div class="cgrid" id="coGrid"><div class="muted" style="padding:16px">Loading...</div></div>
   </div>
 
@@ -888,16 +916,22 @@ function renderCos(cos) {
   g.innerHTML = cos.map(function(c) {
     var s = cs[c.id] || { t: 0, a: 0, u: 0 };
     var ok = c.status !== "inactive";
-    var nm = c.name || c.id || "Unnamed";
+    var nm = esc(c.name || c.id || "Unnamed");
+    var initials = nm.split(" ").map(function(w){return w[0]||"";}).join("").slice(0,2).toUpperCase();
     return '<div class="coc' + (ok ? "" : " off") + '" onclick="openCo(\'' + c.id + '\')">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
-        '<div class="cn">' + nm + '</div>' + bdg(ok ? "active" : "inactive") +
+      '<div class="coc-name-row">' +
+        '<div class="coc-avatar' + (ok ? "" : " off") + '">' + initials + '</div>' +
+        '<div class="cn">' + nm + '</div>' +
       '</div>' +
-      '<div class="cm">' + (c.location || "") + (c.email ? " · " + c.email : "") + '</div>' +
+      '<div class="cm">' +
+        (c.location ? '<span>' + esc(c.location) + '</span>' : '') +
+        (c.email ? '<span>' + esc(c.email) + '</span>' : '') +
+      '</div>' +
+      '<div class="co-divider"></div>' +
       '<div class="cst">' +
-        '<div><div class="sn">' + s.t + '</div><div class="sl">Cards</div></div>' +
-        '<div style="margin-left:14px"><div class="sn">' + s.a + '</div><div class="sl">Active</div></div>' +
-        '<div style="margin-left:14px"><div class="sn">' + s.u + '</div><div class="sl">Available</div></div>' +
+        '<div class="cst-item"><div class="sn">' + s.t + '</div><div class="sl">Cards</div></div>' +
+        '<div class="cst-item"><div class="sn">' + s.a + '</div><div class="sl">Active</div></div>' +
+        '<div class="cst-item"><div class="sn">' + s.u + '</div><div class="sl">Available</div></div>' +
       '</div>' +
     '</div>';
   }).join("");
@@ -907,7 +941,11 @@ function searchCos(q) {
   var all = CC._allCos || [];
   if (!q) { renderCos(all); return; }
   q = q.toLowerCase();
-  renderCos(all.filter(function(c) { return (esc(c.name) || "").toLowerCase().includes(q) || (c.location || "").toLowerCase().includes(q); }));
+  renderCos(all.filter(function(c) {
+    return (c.name||"").toLowerCase().includes(q) ||
+           (c.location||"").toLowerCase().includes(q) ||
+           (c.email||"").toLowerCase().includes(q);
+  }));
 }
 
 function openAddCompany() {
