@@ -131,6 +131,31 @@
     @media(min-width:600px){.overlay{align-items:center}}
     .modal{background:#fff;border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
     @media(min-width:600px){.modal{border-radius:16px}}
+    /* Right-side drawer overlay */
+    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.21);z-index:200;display:none}
+    .drawer-overlay.open{display:block}
+    .drawer{position:fixed;top:0;right:0;width:501px;max-width:100vw;height:100vh;background:#fff;z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto}
+    .drawer-overlay.open .drawer{transform:translateX(0)}
+    .drawer-header{padding:40px 40px 24px}
+    .drawer-title{font-size:20px;font-weight:600;color:#111;font-family:'Inter',sans-serif;margin-bottom:6px}
+    .drawer-sub{font-size:14px;color:#858585;font-family:'Inter',sans-serif}
+    .drawer-close{position:absolute;top:40px;right:40px;width:50px;height:50px;border-radius:50%;background:#f1eeee;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+    .drawer-close:hover{background:#e0ddd8}
+    .drawer-body{padding:0 40px;display:flex;flex-direction:column;gap:20px;flex:1}
+    .drawer-footer{padding:32px 40px 40px;display:flex;gap:12px;justify-content:flex-end}
+    .dfg{display:flex;flex-direction:column;gap:8px}
+    .dfg label{font-size:12px;color:#111;font-family:'Inter',sans-serif;font-weight:400}
+    .dfg input,.dfg textarea{width:100%;padding:12px 14px;background:#fef9f9;border:1px solid #f1eeee;border-radius:10px;font-size:12px;color:#333;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;transition:border-color .2s,box-shadow .2s}
+    .dfg input:focus,.dfg textarea:focus{border-color:#164e23;box-shadow:0 0 0 3px rgba(22,78,35,.08);background:#fff}
+    .dfg textarea{resize:vertical;min-height:132px}
+    .dbtn-cancel{padding:13px 40px;background:#f1eeee;border:none;border-radius:10px;font-size:15px;color:#111;font-family:'Inter',sans-serif;cursor:pointer;transition:background .15s}
+    .dbtn-cancel:hover{background:#e0ddd8}
+    .dbtn-save{padding:13px 40px;background:#32e682;border:1px solid #1ea95c;border-radius:10px;font-size:15px;color:#111;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s,color .2s}
+    .dbtn-save:hover{background:#164e23;color:#fff;border-color:#164e23}
+    .dbtn-save .ld{display:none;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+    .dbtn-save.loading .ld{display:inline-block}
+    .dbtn-delete{padding:13px 20px;background:#fff;border:1px solid #f0c0bc;border-radius:10px;font-size:15px;color:#D93025;font-family:'Inter',sans-serif;cursor:pointer;margin-right:auto;transition:background .15s}
+    .dbtn-delete:hover{background:#fef2f2}
     .mt{font-size:16px;font-weight:600;color:#111;margin-bottom:5px}
     .ms{font-size:13px;color:#888;margin-bottom:18px}
     .ma{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
@@ -543,23 +568,51 @@
 <!-- ADD/EDIT COMPANY -->
   </main><!-- /sb-main -->
 
-<div class="overlay" id="mAddCo">
-  <div class="modal">
-    <div class="mt" id="mCoT">New Company</div><div class="ms">Fill in company details</div>
+<!-- ADD/EDIT COMPANY DRAWER -->
+<div class="drawer-overlay" id="mAddCo" onclick="closeDrawer(event)">
+  <div class="drawer" onclick="event.stopPropagation()">
     <input type="hidden" id="editCoId" />
-    <div class="fgr">
-      <div class="fg"><label>Company Name *</label><input id="coName" placeholder="FixPro Services" /></div>
-      <div class="fg"><label>Location / City</label><input id="coLoc" placeholder="New York, NY" /></div>
+
+    <!-- Close button -->
+    <button class="drawer-close" onclick="closeModal('mAddCo')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#555" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+
+    <!-- Header -->
+    <div class="drawer-header">
+      <div class="drawer-title" id="mCoT">New Company</div>
+      <div class="drawer-sub">Fill in company details</div>
     </div>
-    <div class="fgr">
-      <div class="fg"><label>Email</label><input id="coEmail" placeholder="info@fixpro.com" /></div>
-      <div class="fg"><label>Phone</label><input id="coPhone" placeholder="+1 (555) 000-0000" /></div>
+
+    <!-- Fields -->
+    <div class="drawer-body">
+      <div class="dfg">
+        <label>Company Name *</label>
+        <input id="coName" placeholder="FixPro Services" />
+      </div>
+      <div class="dfg">
+        <label>Local / City</label>
+        <input id="coLoc" placeholder="New York, NY" />
+      </div>
+      <div class="dfg">
+        <label>Email *</label>
+        <input id="coEmail" type="email" placeholder="info@sitename.com" />
+      </div>
+      <div class="dfg">
+        <label>Phone</label>
+        <input id="coPhone" placeholder="+1 (555) 000-0000" />
+      </div>
+      <div class="dfg">
+        <label>Description</label>
+        <textarea id="coDesc" placeholder="Brief description of the company..."></textarea>
+      </div>
     </div>
-    <div class="fg"><label>Description</label><textarea id="coDesc" placeholder="Brief description of the company..."></textarea></div>
-    <div class="ma">
-      <button class="btn bd" id="deleteCoBtn" style="display:none;margin-right:auto" onclick="deleteCo()">🗑 Delete Company</button>
-      <button class="btn bs" onclick="closeModal('mAddCo')">Cancel</button>
-      <button class="btn bp" onclick="saveCo()">Save</button>
+
+    <!-- Footer buttons -->
+    <div class="drawer-footer">
+      <button class="dbtn-delete" id="deleteCoBtn" style="display:none" onclick="deleteCo()">🗑 Delete</button>
+      <button class="dbtn-cancel" onclick="closeModal('mAddCo')">Cancel</button>
+      <button class="dbtn-save" onclick="saveCo()"><span class="ld"></span><span>Save</span></button>
     </div>
   </div>
 </div>
@@ -859,8 +912,35 @@ function sp(n) {
   document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
   document.getElementById("page-" + n).classList.add("active");
 }
-function openModal(id) { document.getElementById(id).classList.add("open"); }
-function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+function openModal(id) {
+  var el = document.getElementById(id);
+  el.classList.add("open");
+  // Drawer: animate in after frame
+  if (el.classList.contains("drawer-overlay")) {
+    requestAnimationFrame(function() {
+      var d = el.querySelector(".drawer");
+      if (d) d.style.transform = "translateX(0)";
+    });
+  }
+  document.body.style.overflow = "hidden";
+}
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el.classList.contains("drawer-overlay")) {
+    var d = el.querySelector(".drawer");
+    if (d) d.style.transform = "translateX(100%)";
+    setTimeout(function() { el.classList.remove("open"); }, 280);
+  } else {
+    el.classList.remove("open");
+  }
+  document.body.style.overflow = "";
+}
+function closeDrawer(e) {
+  // Close when clicking backdrop
+  if (e.target.classList.contains("drawer-overlay")) {
+    closeModal(e.target.id);
+  }
+}
 function toast(m) {
   var e = document.getElementById("toast");
   e.textContent = m; e.classList.add("show");
@@ -953,6 +1033,9 @@ function openAddCompany() {
   document.getElementById("editCoId").value = "";
   document.getElementById("deleteCoBtn").style.display = "none";
   ["coName", "coLoc", "coEmail", "coPhone", "coDesc"].forEach(function(id) { document.getElementById(id).value = ""; });
+  // Reset drawer position before opening
+  var drawer = document.querySelector("#mAddCo .drawer");
+  if (drawer) drawer.style.transform = "translateX(100%)";
   openModal("mAddCo");
 }
 
@@ -966,12 +1049,17 @@ function editCompany() {
   document.getElementById("coEmail").value = c.email || "";
   document.getElementById("coPhone").value = c.phone || "";
   document.getElementById("coDesc").value = c.description || "";
+  // Reset drawer position before opening
+  var drawer = document.querySelector("#mAddCo .drawer");
+  if (drawer) drawer.style.transform = "translateX(100%)";
   openModal("mAddCo");
 }
 
 async function saveCo() {
   var name = document.getElementById("coName").value.trim();
   if (!name) { toast("Please enter a company name"); return; }
+  var btn = document.querySelector(".dbtn-save");
+  if (btn) btn.classList.add("loading");
   var eid = document.getElementById("editCoId").value;
   var id = eid || (name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now().toString(36));
   var ec = CC.cos[eid] || {};
@@ -981,6 +1069,7 @@ async function saveCo() {
     description: sv(document.getElementById("coDesc").value),
     status: sv(ec.status || "active"), createdAt: sv(ec.createdAt || new Date().toISOString())
   });
+  if (btn) btn.classList.remove("loading");
   if (ok) { closeModal("mAddCo"); toast(eid ? "Company updated!" : "Company created!"); if (eid) openCo(eid); else loadCos(); }
   else toast("Error saving company");
 }
