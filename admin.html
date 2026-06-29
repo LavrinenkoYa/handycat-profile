@@ -1262,7 +1262,7 @@ async function deleteCo() {
 }
 
 // ── COMPANY DETAIL ────────────────────────────────────────────
-async async function openCo(id) {
+async function openCo(id) {
   cdId = id; cdCF = "all";
   nav("co-detail");
   var c = CC.cos[id] || { name: id };
@@ -2893,10 +2893,7 @@ async function restoreFromArchive(archiveId) {
   );
 }
 
-</script>
-</div><!-- /app-layout -->
-</body>
-</html>function renderCDStats(cards) {
+function renderCDStats(cards) {
   var tot = cards.length;
   var avail = cards.filter(function(c){ var withHM = c.status==="assigned"||!!((CC._hmByToken||{})[c.id]); return !withHM&&c.status!=="active"&&c.status!=="deactivated"; }).length;
   var withHM = cards.filter(function(c){ return c.status==="assigned"||!!((CC._hmByToken||{})[c.id]); }).length;
@@ -2907,3 +2904,7 @@ async function restoreFromArchive(archiveId) {
   }).join("");
 }
 
+</script>
+</div><!-- /app-layout -->
+</body>
+</html>
