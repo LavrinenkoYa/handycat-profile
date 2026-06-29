@@ -132,6 +132,23 @@
     .fl{display:flex;gap:6px;flex-wrap:wrap}
     .fb{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #e0e0e0;background:#fff;color:#666;transition:all .15s}
     .fb.active{background:#185FA5;color:#fff;border-color:#185FA5}
+    /* ── LOGIN SCREEN ── */
+    .co-auth-screen{display:none;position:fixed;inset:0;background:#bff5ff;z-index:999;align-items:center;justify-content:center;overflow:hidden}
+    .co-auth-screen.active{display:flex}
+    .login-input-wrap{background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;cursor:text;transition:border-color .3s cubic-bezier(.4,0,.2,1),background .3s ease,box-shadow .3s ease}
+    .login-input-wrap:hover{border-color:#ddd;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .login-input-wrap.focused{border-color:#4f00df;background:#fff;box-shadow:0 0 0 4px rgba(79,0,223,.08)}
+    .login-input-label{font-size:12px;font-family:'Inter',sans-serif;margin-bottom:3px;color:#111;transition:color .3s ease}
+    .login-input-wrap.focused .login-input-label{color:#858585}
+    .login-input-field{width:100%;border:none;background:transparent;font-size:14px;color:#555;font-family:'Inter',sans-serif;font-weight:600;outline:none;padding:0;transition:color .3s ease}
+    .login-input-wrap.focused .login-input-field{color:#4f00df}
+    .co-login-btn{width:100%;height:52px;background:#32e682;border:1.5px solid #1ea95c;border-radius:10px;font-size:18px;font-family:'Work Sans','Inter',sans-serif;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;outline:none;transition:background .3s cubic-bezier(.4,0,.2,1),border-color .3s ease,color .3s ease,transform .15s ease,box-shadow .3s ease;gap:8px}
+    .co-login-btn:hover{background:#164e23;border-color:#164e23;color:#fff;box-shadow:0 4px 16px rgba(22,78,35,.35);transform:translateY(-1px)}
+    .co-login-btn:active{transform:translateY(0) scale(.99);box-shadow:0 2px 8px rgba(22,78,35,.2)}
+    .co-login-btn:disabled{opacity:.65;cursor:not-allowed;transform:none}
+    .co-login-btn .ld{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+    .co-login-btn.loading .ld{display:inline-block}
+    .magic-sent{display:none;margin-top:4px;background:#D1FAE5;color:#065F46;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.5}
   </style>
 <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
@@ -143,18 +160,47 @@
   <div style="font-size:14px;color:#888">Loading your dashboard...</div>
 </div>
 
-<!-- AUTH — email entry for magic link -->
-<div class="screen" id="s-auth">
-  <div class="auth-box">
-    <div class="auth-logo">&#x1F3AA; Handy<span>Cat</span></div>
-    <div class="auth-sub">Enter your company email to receive a sign-in link, or use the link from your approval email.</div>
-    <div class="auth-err" id="authErr"></div>
-    <div class="fg"><label>Company Email</label><input type="email" id="authEmail" placeholder="john@yourcompany.com" onkeydown="if(event.key==='Enter')sendMagicLink()"/></div>
-    <button class="btn bp" style="width:100%;justify-content:center;padding:13px" id="magicBtn" onclick="sendMagicLink()">
-      <span class="ld"></span><span>Send Sign-in Link</span>
-    </button>
-    <div id="magicSent" style="display:none;margin-top:16px;background:#D1FAE5;color:#065F46;padding:12px;border-radius:8px;font-size:13px;text-align:center">
-      &#x2713; Check your email! Click the link to sign in.
+<!-- AUTH — magic link login -->
+<div class="co-auth-screen" id="s-auth">
+  <img src="https://raw.githubusercontent.com/LavrinenkoYa/handycat-profile/main/bg_login.png" style="position:absolute;bottom:0;right:0;width:340px;pointer-events:none" alt="" />
+  <div style="background:#fff;border-radius:60px;padding:40px;width:520px;max-width:calc(100vw - 32px);box-shadow:0 8px 40px rgba(0,0,0,0.08);position:relative;z-index:1">
+    <div style="display:flex;flex-direction:column;gap:32px">
+
+      <!-- Logo -->
+      <div style="width:100px;height:100px;background:#32e682;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <img src="https://raw.githubusercontent.com/LavrinenkoYa/handycat-profile/main/logo.svg" style="width:62px;height:47px" alt="HandyCat" />
+      </div>
+
+      <!-- Title + Input -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:34px;color:#4f00df;line-height:1.1">Company Dashboard</div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <!-- Error -->
+          <div id="authErr" style="display:none;color:#D93025;font-size:13px;padding:10px 14px;background:#FEF2F2;border-radius:10px"></div>
+
+          <!-- Email input -->
+          <div class="login-input-wrap" onclick="document.getElementById('authEmail').focus()">
+            <div class="login-input-label" id="coEmailLabel">Company Email</div>
+            <input type="email" id="authEmail" placeholder="you@yourcompany.com"
+              onfocus="coInputFocus(this)" onblur="coInputBlur(this)"
+              onkeydown="if(event.key==='Enter')sendMagicLink()"
+              class="login-input-field" />
+          </div>
+
+          <!-- Success message -->
+          <div class="magic-sent" id="magicSent">
+            &#x2713;&nbsp; Check your inbox! We sent a sign-in link to your email. It expires in 7 days.
+          </div>
+        </div>
+      </div>
+
+      <!-- Button -->
+      <button id="magicBtn" onclick="sendMagicLink()" class="co-login-btn">
+        <span class="ld"></span>
+        <span>Send Sign-in Link</span>
+      </button>
+
     </div>
   </div>
 </div>
@@ -400,7 +446,11 @@ function nv(v){return{doubleValue:Number(v||0)};}
 function av(a){return{arrayValue:{values:(a||[]).map(function(x){return{stringValue:x};})}};}
 
 // ── UI ────────────────────────────────────────────────────────
-function show(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});document.getElementById(id).classList.add("active");}
+function show(id){
+  // Hide all screens (both screen and co-auth-screen)
+  document.querySelectorAll(".screen,.co-auth-screen").forEach(function(s){s.classList.remove("active");});
+  document.getElementById(id).classList.add("active");
+}
 function toast(m){var e=document.getElementById("toast");e.textContent=m;e.classList.add("show");setTimeout(function(){e.classList.remove("show");},2800);}
 function ini(n){return(n||"?").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase();}
 function fd(iso){if(!iso)return"";return new Date(iso).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});}
@@ -429,44 +479,67 @@ function showPage(n){document.querySelectorAll(".page").forEach(function(p){p.cl
 
 // ── AUTH ──────────────────────────────────────────────────────
 async function init(){
-  // Check URL for magic token
   var params=new URLSearchParams(window.location.search);
   var token=params.get("token");
-  var email=params.get("email")||localStorage.getItem("hc_company_email");
 
   if(token){
-    // Validate token from Firestore
+    show("s-loading");
+    // Validate token
     var tok=await fsGet("company_tokens",token);
-    if(!tok){showError("Link Invalid","This sign-in link is invalid.");return;}
-    if(tok.used){showError("Link Expired","This sign-in link has already been used. Please request a new one.");}
+    if(!tok){showError("Link Invalid","This sign-in link is invalid or has already been used.");return;}
+    // BUG FIX 1: was missing return on used check
+    if(tok.used){showError("Link Expired","This sign-in link has already been used. Please request a new one from the sign-in page.");return;}
     var expiry=new Date(tok.expiresAt||0);
-    if(expiry<new Date()){showError("Link Expired","This sign-in link has expired. Please sign in with your email.");return;}
-    // Mark token as used
+    if(expiry<new Date()){showError("Link Expired","This sign-in link has expired. Please sign in again.");return;}
+
+    // Mark token as used ONLY after all checks pass
     await fsMerge("company_tokens",token,{used:{booleanValue:true}});
-    // Load company
-    var company=await fsGet("companies",tok.companyId);
-    if(!company||company.status==="inactive"){showError("Account Inactive","Your company account is not active. Contact support.");return;}
-    S.company=company;S.companyId=tok.companyId;
-    localStorage.setItem("hc_company_id",tok.companyId);
+
+    // BUG FIX 2: try exact companyId first, then try without case change
+    var companyId=tok.companyId;
+    var company=await fsGet("companies",companyId);
+    if(!company){
+      // Try lowercase as fallback
+      company=await fsGet("companies",companyId.toLowerCase());
+      if(company) companyId=companyId.toLowerCase();
+    }
+    if(!company){showError("Account Not Found","Company account not found. Please contact support.");return;}
+    if(company.status==="inactive"){showError("Account Inactive","Your company account is not active. Please contact support.");return;}
+
+    S.company=company;S.companyId=companyId;
+    localStorage.setItem("hc_company_id",companyId);
     localStorage.setItem("hc_company_email",tok.email||"");
-    // Clean URL
+    localStorage.setItem("hc_company_session",Date.now()+30*24*60*60*1000); // 30 day session
     window.history.replaceState({},"","/company");
     await loadApp();
     return;
   }
 
-  // Check localStorage session
+  // BUG FIX 3: check localStorage session validity
   var savedId=localStorage.getItem("hc_company_id");
-  if(savedId){
+  var sessionExpiry=Number(localStorage.getItem("hc_company_session")||0);
+  if(savedId&&sessionExpiry>Date.now()){
+    show("s-loading");
     var company=await fsGet("companies",savedId);
     if(company&&company.status!=="inactive"){
       S.company=company;S.companyId=savedId;
       await loadApp();return;
     }
+    // Session invalid — clear and show auth
+    localStorage.removeItem("hc_company_id");
+    localStorage.removeItem("hc_company_session");
   }
 
-  // No session — show auth
   show("s-auth");
+}
+
+function coInputFocus(input){
+  var wrap=input.closest(".login-input-wrap");
+  if(wrap){wrap.classList.add("focused");}
+}
+function coInputBlur(input){
+  var wrap=input.closest(".login-input-wrap");
+  if(wrap){wrap.classList.remove("focused");}
 }
 
 async function sendMagicLink(){
@@ -474,14 +547,28 @@ async function sendMagicLink(){
   if(!email||!email.includes("@")){showAuthErr("Please enter a valid email address");return;}
   var btn=document.getElementById("magicBtn");setLoading(btn,true);
 
-  // Find company by email
-  var apps=await fsQ("company_applications",[{field:"email",value:email},{field:"status",value:"approved"}]);
-  if(!apps.length){
-    setLoading(btn,false);
-    showAuthErr("No approved company found with this email. Make sure you're using the email from your application.");return;
+  // BUG FIX: search company directly by email (most reliable)
+  var companies=await fsQ("companies",[{field:"email",value:email}]);
+  var companyId=null;
+  if(companies.length){
+    var co=companies.find(function(c){return c.status!=="inactive";});
+    if(co) companyId=co.id;
   }
-  var app=apps[0];
-  var companyId=app.appId?app.appId.toLowerCase():app.id.toLowerCase();
+  // Fallback: search via approved application
+  if(!companyId){
+    var apps=await fsQ("company_applications",[{field:"email",value:email}]);
+    var approvedApp=apps.find(function(a){return a.status==="approved"||a.status==="active";});
+    if(approvedApp){
+      // Try to find the company created from this application
+      var appCompanyId=approvedApp.id.toLowerCase();
+      var co2=await fsGet("companies",appCompanyId);
+      if(co2&&co2.status!=="inactive") companyId=appCompanyId;
+    }
+  }
+  if(!companyId){
+    setLoading(btn,false);
+    showAuthErr("No active company found for this email. Make sure you're using the email from your application.");return;
+  }
 
   // Generate new magic token
   var token="tok-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
@@ -512,7 +599,7 @@ async function sendMagicLink(){
 
 function showAuthErr(msg){var el=document.getElementById("authErr");el.textContent=msg;el.style.display="block";}
 function showError(title,msg){document.getElementById("errTitle").textContent=title;document.getElementById("errMsg").textContent=msg;show("s-error");}
-function signOut(){localStorage.removeItem("hc_company_id");localStorage.removeItem("hc_company_email");show("s-auth");}
+function signOut(){localStorage.removeItem("hc_company_id");localStorage.removeItem("hc_company_email");localStorage.removeItem("hc_company_session");S.company=null;S.companyId=null;show("s-auth");}
 
 // ── LOAD APP ──────────────────────────────────────────────────
 async function loadApp(){
