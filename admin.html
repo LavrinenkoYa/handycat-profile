@@ -433,6 +433,12 @@
           <button class="cd-edit-btn" onclick="editCompany()" title="Edit company"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M17.6484 5.84207L14.157 2.35066C14.0555 2.24909 13.9349 2.16851 13.8022 2.11354C13.6695 2.05857 13.5272 2.03027 13.3836 2.03027C13.24 2.03027 13.0977 2.05857 12.965 2.11354C12.8323 2.16851 12.7117 2.24909 12.6102 2.35066L2.97656 11.985C2.87479 12.0865 2.7941 12.207 2.73912 12.3398C2.68415 12.4725 2.65599 12.6148 2.65625 12.7585V16.2499C2.65625 16.54 2.77149 16.8182 2.9766 17.0233C3.18172 17.2284 3.45992 17.3436 3.75 17.3436H7.24141C7.38508 17.3439 7.52739 17.3157 7.66013 17.2608C7.79288 17.2058 7.91343 17.1251 8.01485 17.0233L17.6484 7.38895C17.75 7.28738 17.8306 7.1668 17.8856 7.03409C17.9405 6.90139 17.9688 6.75915 17.9688 6.61551C17.9688 6.47187 17.9405 6.32963 17.8856 6.19692C17.8306 6.06422 17.75 5.94364 17.6484 5.84207ZM7.35156 16.36C7.3224 16.3894 7.28278 16.406 7.24141 16.4061H3.75C3.70856 16.4061 3.66882 16.3897 3.63952 16.3604C3.61021 16.3311 3.59375 16.2913 3.59375 16.2499V12.7585C3.59393 12.7171 3.6105 12.6775 3.63985 12.6483L10.625 5.66238L14.3367 9.37488L7.35156 16.36ZM16.9852 6.72645L15 8.7116L11.2883 4.99988L13.2734 3.01395C13.288 2.99942 13.3052 2.98789 13.3242 2.98003C13.3431 2.97217 13.3635 2.96812 13.384 2.96812C13.4045 2.96812 13.4249 2.97217 13.4438 2.98003C13.4628 2.98789 13.48 2.99942 13.4945 3.01395L16.9852 6.50535C16.9997 6.51986 17.0112 6.5371 17.0191 6.55606C17.0269 6.57503 17.031 6.59537 17.031 6.6159C17.031 6.63643 17.0269 6.65677 17.0191 6.67573C17.0112 6.6947 16.9997 6.71193 16.9852 6.72645Z" fill="#343330"/></svg></button>
         </div>
         <div class="cd-meta" id="cdMeta">—</div>
+        <div style="margin-top:16px">
+          <button class="cd-add-cards-btn" onclick="openModal('mGenCards')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 26 26" fill="none"><path d="M13 2.64062C10.9511 2.64062 8.94823 3.24819 7.24464 4.38649C5.54105 5.5248 4.21327 7.14271 3.42919 9.03564C2.64511 10.9286 2.43996 13.0115 2.83968 15.021C3.2394 17.0305 4.22604 18.8764 5.67482 20.3252C7.1236 21.774 8.96947 22.7606 10.979 23.1603C12.9885 23.56 15.0714 23.3549 16.9644 22.5708C18.8573 21.7867 20.4752 20.459 21.6135 18.7554C22.7518 17.0518 23.3594 15.0489 23.3594 13C23.3562 10.2535 22.2637 7.62044 20.3216 5.67838C18.3796 3.73632 15.7465 2.64385 13 2.64062ZM17.6719 13C17.6719 13.1616 17.6077 13.3166 17.4934 13.4309C17.3791 13.5452 17.2241 13.6094 17.0625 13.6094H13.6094V17.0625C13.6094 17.2241 13.5452 17.3791 13.4309 17.4934C13.3166 17.6077 13.1616 17.6719 13 17.6719C12.8384 17.6719 12.6834 17.6077 12.5691 17.4934C12.4548 17.3791 12.3906 17.2241 12.3906 17.0625V13.6094H8.9375C8.77589 13.6094 8.62089 13.5452 8.50661 13.4309C8.39233 13.3166 8.32813 13.1616 8.32813 13C8.32813 12.8384 8.39233 12.6834 8.50661 12.5691C8.62089 12.4548 8.77589 12.3906 8.9375 12.3906H12.3906V8.9375C12.3906 8.77588 12.4548 8.62089 12.5691 8.50661C12.6834 8.39233 12.8384 8.32812 13 8.32812C13.1616 8.32812 13.3166 8.39233 13.4309 8.50661C13.5452 8.62089 13.6094 8.77588 13.6094 8.9375V12.3906H17.0625C17.2241 12.3906 17.3791 12.4548 17.4934 12.5691C17.6077 12.6834 17.6719 12.8384 17.6719 13Z" fill="white"/></svg>
+            Add Cards
+          </button>
+        </div>
       </div>
     </div>
 
@@ -459,7 +465,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#858585" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#858585" stroke-width="1.5" stroke-linecap="round"/></svg>
           <input id="cardSearchInput" placeholder="Search by Print ID or token..." oninput="filterCardsBySearch(this.value)" style="font-size:14px"/>
         </div>
-        <button class="cd-add-cards-btn" onclick="openModal('mGenCards')"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 2.64062C10.9511 2.64062 8.94823 3.24819 7.24464 4.38649C5.54105 5.5248 4.21327 7.14271 3.42919 9.03564C2.64511 10.9286 2.43996 13.0115 2.83968 15.021C3.2394 17.0305 4.22604 18.8764 5.67482 20.3252C7.1236 21.774 8.96947 22.7606 10.979 23.1603C12.9885 23.56 15.0714 23.3549 16.9644 22.5708C18.8573 21.7867 20.4752 20.459 21.6135 18.7554C22.7518 17.0518 23.3594 15.0489 23.3594 13C23.3562 10.2535 22.2637 7.62044 20.3216 5.67838C18.3796 3.73632 15.7465 2.64385 13 2.64062ZM17.6719 13C17.6719 13.1616 17.6077 13.3166 17.4934 13.4309C17.3791 13.5452 17.2241 13.6094 17.0625 13.6094H13.6094V17.0625C13.6094 17.2241 13.5452 17.3791 13.4309 17.4934C13.3166 17.6077 13.1616 17.6719 13 17.6719C12.8384 17.6719 12.6834 17.6077 12.5691 17.4934C12.4548 17.3791 12.3906 17.2241 12.3906 17.0625V13.6094H8.9375C8.77589 13.6094 8.62089 13.5452 8.50661 13.4309C8.39233 13.3166 8.32813 13.1616 8.32813 13C8.32813 12.8384 8.39233 12.6834 8.50661 12.5691C8.62089 12.4548 8.77589 12.3906 8.9375 12.3906H12.3906V8.9375C12.3906 8.77588 12.4548 8.62089 12.5691 8.50661C12.6834 8.39233 12.8384 8.32812 13 8.32812C13.1616 8.32812 13.3166 8.39233 13.4309 8.50661C13.5452 8.62089 13.6094 8.77588 13.6094 8.9375V12.3906H17.0625C17.2241 12.3906 17.3791 12.4548 17.4934 12.5691C17.6077 12.6834 17.6719 12.8384 17.6719 13Z" fill="white"/></svg> Add Cards</button>
+
       </div>
       <!-- Bulk bar -->
       <div class="cd-bulk-bar" id="bulkBar">
@@ -702,8 +708,9 @@
     </div>
 
     <!-- Footer buttons -->
-    <div class="drawer-footer">
+    <div class="drawer-footer" style="flex-wrap:wrap;gap:10px">
       <button class="dbtn-delete" id="deleteCoBtn" style="display:none" onclick="deleteCo()">🗑 Delete</button>
+      <button class="dbtn-delete" id="deactivateCoBtn" style="display:none;background:#fff4e5;color:#c47000;border-color:#f5c06a" onclick="toggleCo()">⏸ <span id="deactivateCoBtnLabel">Deactivate</span></button>
       <button class="dbtn-cancel" onclick="closeModal('mAddCo')">Cancel</button>
       <button class="dbtn-save" onclick="saveCo()"><span class="ld"></span><span>Save</span></button>
     </div>
@@ -1155,7 +1162,19 @@ function editCompany() {
   var c = CC.cos[cdId] || {};
   document.getElementById("mCoT").textContent = "Edit Company";
   document.getElementById("editCoId").value = cdId;
-  // Delete/deactivate handled in separate confirm
+  // Show delete and deactivate buttons
+  var delBtn = document.getElementById("deleteCoBtn");
+  var deactBtn = document.getElementById("deactivateCoBtn");
+  var deactLabel = document.getElementById("deactivateCoBtnLabel");
+  if (delBtn) delBtn.style.display = "flex";
+  if (deactBtn) {
+    deactBtn.style.display = "flex";
+    var isActive = c.status !== "inactive";
+    if (deactLabel) deactLabel.textContent = isActive ? "Deactivate" : "Activate";
+    deactBtn.style.background = isActive ? "#fff4e5" : "#f0fdf4";
+    deactBtn.style.color = isActive ? "#c47000" : "#166534";
+    deactBtn.style.borderColor = isActive ? "#f5c06a" : "#86efac";
+  }
   document.getElementById("coName").value = c.name || "";
   document.getElementById("coLoc").value = c.location || "";
   document.getElementById("coEmail").value = c.email || "";
@@ -1187,10 +1206,15 @@ async function saveCo() {
 }
 
 async function toggleCo() {
-  var c = CC.cos[cdId];
-  var ns = c.status === "inactive" ? "active" : "inactive";
+  var co = CC.cos[cdId];
+  var ns = co.status === "inactive" ? "active" : "inactive";
   var ok = await fsPatchFields("companies", cdId, { status: sv(ns) });
-  if (ok) { CC.cos[cdId].status = ns; openCo(cdId); toast("Status updated"); }
+  if (ok) {
+    CC.cos[cdId].status = ns;
+    closeModal("mAddCo");
+    await openCo(cdId);
+    toast(ns === "active" ? "✓ Company activated" : "✓ Company deactivated");
+  }
 }
 
 async function deleteCo() {
@@ -1308,7 +1332,7 @@ function renderCDHMTable(hm) {
       '<td style="color:#4f00df;font-weight:700;font-size:14px">' + (h.skills||[]).slice(0,2).join(", ") + '</td>' +
       '<td>' + cardTok + '</td>' +
       '<td>' + statusBadge + '</td>' +
-      '<td style="text-align:right">' +
+      '<td style="text-align:right;white-space:nowrap;vertical-align:middle">' +
         '<button class="cd-action-btn" onclick="editHM(\''+ h.id +'\')" title="Edit"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M17.6484 5.84207L14.157 2.35066C14.0555 2.24909 13.9349 2.16851 13.8022 2.11354C13.6695 2.05857 13.5272 2.03027 13.3836 2.03027C13.24 2.03027 13.0977 2.05857 12.965 2.11354C12.8323 2.16851 12.7117 2.24909 12.6102 2.35066L2.97656 11.985C2.87479 12.0865 2.7941 12.207 2.73912 12.3398C2.68415 12.4725 2.65599 12.6148 2.65625 12.7585V16.2499C2.65625 16.54 2.77149 16.8182 2.9766 17.0233C3.18172 17.2284 3.45992 17.3436 3.75 17.3436H7.24141C7.38508 17.3439 7.52739 17.3157 7.66013 17.2608C7.79288 17.2058 7.91343 17.1251 8.01485 17.0233L17.6484 7.38895C17.75 7.28738 17.8306 7.1668 17.8856 7.03409C17.9405 6.90139 17.9688 6.75915 17.9688 6.61551C17.9688 6.47187 17.9405 6.32963 17.8856 6.19692C17.8306 6.06422 17.75 5.94364 17.6484 5.84207Z" fill="#343330"/></svg></button>' +
         '<button class="cd-action-btn" onclick="deleteHMConfirm(\''+ h.id +'\')" title="Delete"><svg width="20" height="20" viewBox="0 0 26 26" fill="none"><path d="M21.9375 5.07812H4.0625C3.90088 5.07812 3.74589 5.14233 3.63161 5.25661C3.51733 5.37089 3.45313 5.52588 3.45312 5.6875C3.45313 5.84912 3.51733 6.00411 3.63161 6.11839C3.74589 6.23267 3.90088 6.29687 4.0625 6.29688H5.07812V21.125C5.07812 21.5021 5.22793 21.8638 5.49458 22.1304C5.76124 22.3971 6.1229 22.5469 6.5 22.5469H19.5C19.8771 22.5469 20.2388 22.3971 20.5054 22.1304C20.7721 21.8638 20.9219 21.5021 20.9219 21.125V6.29688H21.9375C22.0991 6.29687 22.2541 6.23267 22.3684 6.11839C22.4827 6.00411 22.5469 5.84912 22.5469 5.6875C22.5469 5.52588 22.4827 5.37089 22.3684 5.25661C22.2541 5.14233 22.0991 5.07812 21.9375 5.07812Z" fill="#858585"/></svg></button>' +
       '</td></tr>';
@@ -1340,12 +1364,12 @@ async function loadCDCards() {
   cdHM = results[1];
   renderCDHMTable(cdHM);
 
-  // Build lookup: token → handyman name (from handyman records)
+  // Build lookup: token → handyman object
   var hmByToken = {};
-  cdHM.forEach(function(h) { if (h.assignedCardToken) hmByToken[h.assignedCardToken] = h.name; });
-  // Also build lookup: handymanId → name (for cards that have handymanId field)
+  cdHM.forEach(function(h) { if (h.assignedCardToken) hmByToken[h.assignedCardToken] = h; });
+  // Build lookup: handymanId → handyman object
   var hmById = {};
-  cdHM.forEach(function(h) { hmById[h.id] = h.name; });
+  cdHM.forEach(function(h) { hmById[h.id] = h; });
 
   document.getElementById("cdCCnt").textContent = "(" + cdCards.length + ")";
   var s = { t: cdCards.length, u: 0, wh: 0, a: 0, d: 0 };
@@ -1357,10 +1381,10 @@ async function loadCDCards() {
     else s.u++;
   });
   document.getElementById("cdStats").innerHTML =
-    '<div class="sb"><div class="sn">' + s.t + '</div><div class="sl">Total Cards</div></div>' +
-    '<div class="sb"><div class="sn">' + s.u + '</div><div class="sl">Available</div></div>' +
-    '<div class="sb"><div class="sn">' + s.wh + '</div><div class="sl">With Handymen</div></div>' +
-    '<div class="sb"><div class="sn">' + s.a + '</div><div class="sl">Activated by Clients</div></div>';
+    '<div class="cd-stat"><div class="cd-stat-num">' + s.t + '</div><div class="cd-stat-label">Total Cards</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num">' + s.u + '</div><div class="cd-stat-label">Available</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num">' + s.wh + '</div><div class="cd-stat-label">With Handymen</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num">' + s.a + '</div><div class="cd-stat-label">Activated by Clients</div></div>';
   CC._hmByToken = hmByToken;
   CC._hmById = hmById;
   renderCDCards();
