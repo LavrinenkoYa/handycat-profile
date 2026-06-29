@@ -740,9 +740,9 @@
         </select>
       </div>
     </div><!-- /drawer-body -->
-    <div class="drawer-footer">
-      <button class="dbtn-cancel" onclick="closeModal('mAddHM')">Cancel</button>
-      <button class="dbtn-save" onclick="saveHM()"><span class="ld"></span><span>Save</span></button>
+    <div class="drawer-footer" style="justify-content:flex-start;gap:10px">
+      <button class="dbtn-delete" id="deleteHMBtn" style="display:none" onclick="deleteHMFromDrawer()">🗑 Delete</button>
+      <button class="dbtn-save" style="margin-left:auto" onclick="saveHM()"><span class="ld"></span><span>Save</span></button>
     </div>
   </div>
 </div>
@@ -1333,7 +1333,7 @@ function renderCDHMTable(hm) {
       '<td>' + statusBadge + '</td>' +
       '<td style="text-align:right;white-space:nowrap;vertical-align:middle">' +
         '<button class="cd-action-btn" onclick="editHM(\''+ h.id +'\')" title="Edit"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M17.6484 5.84207L14.157 2.35066C14.0555 2.24909 13.9349 2.16851 13.8022 2.11354C13.6695 2.05857 13.5272 2.03027 13.3836 2.03027C13.24 2.03027 13.0977 2.05857 12.965 2.11354C12.8323 2.16851 12.7117 2.24909 12.6102 2.35066L2.97656 11.985C2.87479 12.0865 2.7941 12.207 2.73912 12.3398C2.68415 12.4725 2.65599 12.6148 2.65625 12.7585V16.2499C2.65625 16.54 2.77149 16.8182 2.9766 17.0233C3.18172 17.2284 3.45992 17.3436 3.75 17.3436H7.24141C7.38508 17.3439 7.52739 17.3157 7.66013 17.2608C7.79288 17.2058 7.91343 17.1251 8.01485 17.0233L17.6484 7.38895C17.75 7.28738 17.8306 7.1668 17.8856 7.03409C17.9405 6.90139 17.9688 6.75915 17.9688 6.61551C17.9688 6.47187 17.9405 6.32963 17.8856 6.19692C17.8306 6.06422 17.75 5.94364 17.6484 5.84207Z" fill="#343330"/></svg></button>' +
-        '<button class="cd-action-btn" onclick="deleteHMConfirm(\''+ h.id +'\')" title="Delete"><svg width="20" height="20" viewBox="0 0 26 26" fill="none"><path d="M21.9375 5.07812H4.0625C3.90088 5.07812 3.74589 5.14233 3.63161 5.25661C3.51733 5.37089 3.45313 5.52588 3.45312 5.6875C3.45313 5.84912 3.51733 6.00411 3.63161 6.11839C3.74589 6.23267 3.90088 6.29687 4.0625 6.29688H5.07812V21.125C5.07812 21.5021 5.22793 21.8638 5.49458 22.1304C5.76124 22.3971 6.1229 22.5469 6.5 22.5469H19.5C19.8771 22.5469 20.2388 22.3971 20.5054 22.1304C20.7721 21.8638 20.9219 21.5021 20.9219 21.125V6.29688H21.9375C22.0991 6.29687 22.2541 6.23267 22.3684 6.11839C22.4827 6.00411 22.5469 5.84912 22.5469 5.6875C22.5469 5.52588 22.4827 5.37089 22.3684 5.25661C22.2541 5.14233 22.0991 5.07812 21.9375 5.07812Z" fill="#858585"/></svg></button>' +
+ +
       '</td></tr>';
   }).join("");
 }
@@ -1343,6 +1343,17 @@ function filterHMSearch(q) {
   if (!q) { renderCDHMTable(all); return; }
   q = q.toLowerCase();
   renderCDHMTable(all.filter(function(h){ return (h.name||"").toLowerCase().includes(q)||(h.phone||"").toLowerCase().includes(q); }));
+}
+
+function deleteHMFromDrawer() {
+  var hmId = document.getElementById("editHMId").value;
+  if (!hmId) return;
+  closeModal("mAddHM");
+  cfm("Delete Handyman", "This action cannot be undone.", async function() {
+    var ok = await fsDel("handymen", hmId);
+    closeModal("mConfirm");
+    if (ok) { toast("✓ Handyman deleted"); await loadCDHM(); } else toast("Error deleting");
+  });
 }
 
 function deleteHMConfirm(hmId) {
@@ -1543,6 +1554,9 @@ async function openAddHM() {
     var free = (cdCards||[]).filter(function(card){ return !card.assignedHandymanId && card.status!=="active" && card.status!=="deactivated"; });
     free.forEach(function(card){ var o=document.createElement("option"); o.value=card.id; o.textContent=(card.printId?String(card.printId).padStart(6,"0")+" · ":"")+card.id; sel.appendChild(o); });
   }
+  // Hide delete button when creating new
+  var delBtn = document.getElementById("deleteHMBtn");
+  if (delBtn) delBtn.style.display = "none";
   var drawer = document.querySelector("#mAddHM .drawer");
   if (drawer) drawer.style.transform = "translateX(100%)";
   openModal("mAddHM");
@@ -1558,6 +1572,9 @@ async function editHM(id) {
   document.getElementById("hmSkills").value = (h.skills || []).join(", ");
   document.getElementById("hmExp").value = h.experienceYears || "";
   fillFreeCards(h.assignedCardToken);
+  // Show delete button only when editing
+  var delBtn = document.getElementById("deleteHMBtn");
+  if (delBtn) delBtn.style.display = "flex";
   var drawer = document.querySelector("#mAddHM .drawer");
   if (drawer) drawer.style.transform = "translateX(100%)";
   openModal("mAddHM");
