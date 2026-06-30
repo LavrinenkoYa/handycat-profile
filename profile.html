@@ -138,43 +138,6 @@
     .empty-state .ei{font-size:36px;margin-bottom:8px}
     .pad{padding:0 12px}
     .divider{height:8px;background:#f5f5f7}
-
-    /* ── New Order Wizard (Figma style, mobile-adapted) ── */
-    .wiz-header{background:#fff;padding:16px;border-bottom:1px solid #f0f0f0;position:sticky;top:0;z-index:10}
-    .wiz-hm-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-    .wiz-hm-av{width:40px;height:40px;border-radius:50%;background:#33dfff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#111;flex-shrink:0}
-    .wiz-hm-name{font-size:14px;font-weight:600;color:#164e23}
-    .wiz-hm-sub{font-size:12px;color:#9b9d9d}
-    .wiz-progress{display:flex;gap:6px}
-    .wiz-step-dot{flex:1;height:4px;border-radius:2px;background:#f1eeee;transition:background .3s}
-    .wiz-step-dot.done{background:#32e682}
-    .wiz-step-dot.active{background:#4f00df}
-    .wiz-icon-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:20px auto 16px}
-    .wiz-title{font-size:22px;font-weight:700;color:#4f00df;text-align:center;margin-bottom:6px;font-family:inherit}
-    .wiz-sub{font-size:14px;color:#0d0c19;text-align:center;margin-bottom:24px;padding:0 8px;line-height:1.5}
-    .wiz-field{background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;padding:13px 18px;margin-bottom:14px;transition:border-color .2s}
-    .wiz-field:focus-within{border-color:#4f00df}
-    .wiz-field label{display:block;font-size:11px;color:#051d1a;margin-bottom:2px}
-    .wiz-field input,.wiz-field textarea,.wiz-field select{width:100%;border:none;background:transparent;font-size:14px;font-weight:600;color:#111;outline:none;font-family:inherit;padding:0}
-    .wiz-field textarea{resize:vertical;min-height:80px;font-weight:400}
-    .wiz-field select{appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 22 22" fill="none"><path d="M18.2392 8.61433L11.3642 15.4893C11.2675 15.5859 11.1365 15.6401 10.9998 15.6401C10.8632 15.6401 10.7321 15.5859 10.6355 15.4893L3.76046 8.61433C3.66938 8.51659 3.61979 8.3873 3.62215 8.25372C3.62451 8.12014 3.67862 7.99269 3.77309 7.89822C3.86756 7.80374 3.99502 7.74963 4.1286 7.74727C4.26218 7.74492 4.39146 7.7945 4.48921 7.88558L10.9998 14.3953L17.5105 7.88558C17.6082 7.7945 17.7375 7.74492 17.8711 7.74727C18.0047 7.74963 18.1321 7.80374 18.2266 7.89822C18.321 7.99269 18.3752 8.12014 18.3775 8.25372C18.3799 8.3873 18.3303 8.51659 18.2392 8.61433Z" fill="%23343330"/></svg>');background-repeat:no-repeat;background-position:right center;background-size:18px;padding-right:24px}
-    .wiz-photo-add{background:#fef9f9;border:2px solid #f1eeee;border-radius:18px;width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex-shrink:0}
-    .wiz-photo-add span{font-size:12px;color:#051d1a}
-    .wiz-photo-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
-    .wiz-photo-thumb{width:90px;height:90px;border-radius:18px;object-fit:cover;flex-shrink:0}
-    .wiz-btn-row{display:flex;gap:10px;padding:0 0 24px}
-    .wiz-btn-next{flex:1;background:#32e682;border:1px solid #1ea95c;border-radius:10px;padding:14px;font-size:16px;color:#111;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s}
-    .wiz-btn-next:hover{background:#164e23;color:#fff}
-    .wiz-btn-next:disabled{opacity:.6;cursor:not-allowed}
-    .wiz-btn-back{background:transparent;border:none;padding:14px 18px;font-size:16px;color:#9b9d9d;cursor:pointer}
-    .wiz-success-icon{width:80px;height:80px;border-radius:50%;background:#32e682;display:flex;align-items:center;justify-content:center;margin:32px auto 20px}
-    .wiz-id-row{display:flex;gap:10px;margin-top:20px}
-    .wiz-id-chip{background:#fef9f9;border:2px solid #f1eeee;border-radius:14px;padding:13px 16px;font-size:13px;color:#051d1a;display:flex;align-items:center;gap:8px;flex:1;cursor:pointer}
-    .urgency-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-    .urgency-btn{background:#fef9f9;border:2px solid #f1eeee;border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:all .15s}
-    .urgency-btn.sel{border-color:#4f00df;background:#f3edff}
-    .urgency-btn .ue{font-size:24px;margin-bottom:6px;display:block}
-    .urgency-btn .ul{font-size:13px;font-weight:600;color:#111}
   </style>
 <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
@@ -247,106 +210,37 @@
 </div>
 
 <div class="screen" id="s-new-order">
-  <div class="wiz-header">
-    <div class="wiz-hm-row">
-      <div class="wiz-hm-av" id="wizHMAv"></div>
-      <div><div class="wiz-hm-name" id="wizHMName">Open Request</div><div class="wiz-hm-sub" id="wizHMSub">Tell us what you need</div></div>
-    </div>
-    <div class="wiz-progress" id="wizProgress">
-      <div class="wiz-step-dot" data-step="1"></div>
-      <div class="wiz-step-dot" data-step="2"></div>
-      <div class="wiz-step-dot" data-step="3"></div>
-      <div class="wiz-step-dot" data-step="4"></div>
-    </div>
+  <div class="topbar">
+    <div class="back-btn" onclick="showProfile()">← Back</div>
+    <h1>New Request</h1>
   </div>
-
-  <!-- STEP 1: Information -->
-  <div class="wiz-step" id="wizStep1" style="padding:0 16px">
-    <div class="wiz-icon-circle" style="background:#fff4e1">📺</div>
-    <div class="wiz-title">Let's start with your details</div>
-    <div class="wiz-sub">Tell us your name and how we can address you.</div>
-    <div class="wiz-field"><label>Full Name *</label><input id="wizName" placeholder="Jackie Chan"/></div>
-    <div class="wiz-field"><label>Phone Number *</label><input id="wizPhone" type="tel" placeholder="+1 555 000 0000"/></div>
-    <div class="wiz-field"><label>Email Address</label><input id="wizEmail" type="email" placeholder="name@sitename.com"/></div>
-    <div class="wiz-field"><label>Address</label><input id="wizAddress" placeholder="Street, city"/></div>
-    <div class="wiz-btn-row">
-      <button class="wiz-btn-back" onclick="showProfile()">Cancel</button>
-      <button class="wiz-btn-next" onclick="wizNext(1)"><span>Next</span></button>
+  <div style="padding:10px 12px 24px">
+    <div class="section" style="margin:0 0 10px">
+      <div class="section-title">Category</div>
+      <div class="cat-grid" id="catGrid"></div>
+      <div id="otherWrap" style="display:none"><input id="otherCat" placeholder="Describe the type of work..."/></div>
     </div>
-  </div>
-
-  <!-- STEP 2: Problem details -->
-  <div class="wiz-step" id="wizStep2" style="padding:0 16px;display:none">
-    <div class="wiz-icon-circle" style="background:#bff5ff">🐾</div>
-    <div class="wiz-title">What can we help you with?</div>
-    <div class="wiz-sub">Tell us what happened and what kind of help you need.</div>
-    <div class="wiz-field"><label>Service Category *</label>
-      <select id="wizCategory"><option value="">Select category</option></select>
+    <div class="section" style="margin:0 0 10px">
+      <div class="section-title">Description *</div>
+      <textarea id="ordDesc" placeholder="Describe the problem in detail so your handyman can come prepared. What's broken? Where is it? Any relevant history?"></textarea>
     </div>
-    <div class="wiz-field"><label>Short Title of the Issue</label><input id="wizTitle" placeholder="e.g. Leaking kitchen faucet"/></div>
-    <div class="wiz-field"><label>Problem Description *</label><textarea id="wizDesc" placeholder="Your message here — what's broken, where is it, any history?"></textarea></div>
-    <div class="wiz-field"><label>Property Type</label>
-      <select id="wizPropertyType"><option value="">Select type</option><option>Apartment</option><option>House</option><option>Office</option><option>Other</option></select>
-    </div>
-    <div style="margin-bottom:8px"><label style="font-size:11px;color:#051d1a;display:block;margin-bottom:8px">Photos (optional)</label>
-      <div class="wiz-photo-row" id="wizPhotoRow">
-        <div class="wiz-photo-add" onclick="document.getElementById('wizPhotoInput').click()">
-          <span style="font-size:20px">+</span><span>Add photo</span>
-        </div>
-        <input type="file" id="wizPhotoInput" accept="image/*" multiple onchange="handlePhotos(this)" style="display:none"/>
+    <div class="section" style="margin:0 0 10px">
+      <div class="section-title">Photos <span style="font-weight:400;text-transform:none;font-size:11px">(optional)</span></div>
+      <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
+        <div style="font-size:28px;margin-bottom:6px">📷</div>
+        <div style="font-size:14px;font-weight:500;color:#555">Tap to add photos</div>
+        <div style="font-size:12px;color:#aaa;margin-top:3px">Up to 4 photos, 5MB each</div>
+        <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotos(this)"/>
       </div>
+      <div class="photo-previews" id="photoPreviews"></div>
     </div>
-    <div class="wiz-btn-row">
-      <button class="wiz-btn-back" onclick="wizBack(2)">Back</button>
-      <button class="wiz-btn-next" onclick="wizNext(2)"><span>Next</span></button>
+    <div class="section" style="margin:0 0 10px">
+      <div class="section-title">Handyman</div>
+      <div id="hmPickerList"></div>
     </div>
-  </div>
-
-  <!-- STEP 3: Urgency -->
-  <div class="wiz-step" id="wizStep3" style="padding:0 16px;display:none">
-    <div class="wiz-icon-circle" style="background:#fde2e2">⏱️</div>
-    <div class="wiz-title">How urgent is this?</div>
-    <div class="wiz-sub">This helps your handyman prioritize the visit.</div>
-    <div class="urgency-grid" id="urgencyGrid">
-      <button class="urgency-btn" data-val="low" onclick="selUrgency('low',this)"><span class="ue">🌱</span><span class="ul">Low — anytime this month</span></button>
-      <button class="urgency-btn" data-val="normal" onclick="selUrgency('normal',this)"><span class="ue">📅</span><span class="ul">Normal — this week</span></button>
-      <button class="urgency-btn" data-val="high" onclick="selUrgency('high',this)"><span class="ue">⚡</span><span class="ul">High — in 1-2 days</span></button>
-      <button class="urgency-btn" data-val="emergency" onclick="selUrgency('emergency',this)"><span class="ue">🚨</span><span class="ul">Emergency — today</span></button>
-    </div>
-    <div class="wiz-btn-row">
-      <button class="wiz-btn-back" onclick="wizBack(3)">Back</button>
-      <button class="wiz-btn-next" onclick="wizNext(3)"><span>Next</span></button>
-    </div>
-  </div>
-
-  <!-- STEP 4: Tip / Review & Submit -->
-  <div class="wiz-step" id="wizStep4" style="padding:0 16px;display:none">
-    <div class="wiz-icon-circle" style="background:#f3edff">💜</div>
-    <div class="wiz-title">Add a tip? (optional)</div>
-    <div class="wiz-sub">Show appreciation for great work — 100% goes to your handyman.</div>
-    <div class="urgency-grid">
-      <button class="urgency-btn" data-val="0" onclick="selTip(0,this)"><span class="ul">No tip</span></button>
-      <button class="urgency-btn" data-val="5" onclick="selTip(5,this)"><span class="ul">5%</span></button>
-      <button class="urgency-btn" data-val="10" onclick="selTip(10,this)"><span class="ul">10%</span></button>
-      <button class="urgency-btn" data-val="15" onclick="selTip(15,this)"><span class="ul">15%</span></button>
-    </div>
-    <div class="wiz-btn-row">
-      <button class="wiz-btn-back" onclick="wizBack(4)">Back</button>
-      <button class="wiz-btn-next" id="submitOrderBtn" onclick="submitOrder()"><span class="ld"></span><span class="btn-label">Submit Request</span></button>
-    </div>
-  </div>
-
-  <!-- STEP 5: Success -->
-  <div class="wiz-step" id="wizStep5" style="padding:0 16px;display:none">
-    <div class="wiz-success-icon"><svg width="36" height="36" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.0483 5.3606L7.04834 14.3606C6.96924 14.4396 6.86202 14.484 6.75022 14.484C6.63842 14.484 6.5312 14.4396 6.45209 14.3606L2.51459 10.4231C2.44007 10.3431 2.3995 10.2374 2.40143 10.1281C2.40336 10.0188 2.44764 9.91448 2.52493 9.83719C2.60223 9.75989 2.70651 9.71562 2.8158 9.71369C2.92509 9.71176 3.03087 9.75233 3.11084 9.82685L6.75022 13.4655L15.4521 4.76435C15.5321 4.68983 15.6378 4.64926 15.7471 4.65119C15.8564 4.65312 15.9607 4.69739 16.038 4.77469C16.1153 4.85198 16.1596 4.95626 16.1615 5.06556C16.1634 5.17485 16.1229 5.28063 16.0483 5.3606Z" fill="white"/></svg></div>
-    <div class="wiz-title">Your request has been submitted successfully</div>
-    <div class="wiz-sub">Your service request has been created. We've notified your handyman with all the details.</div>
-    <div class="wiz-id-row">
-      <div class="wiz-id-chip" onclick="copyWizId()"><svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.6875 7.51562H4.0625C3.6854 7.51562 3.32374 7.66543 3.05708 7.93208C2.79043 8.19874 2.64063 8.5604 2.64062 8.9375V20.3125C2.64062 20.6896 2.79043 21.0513 3.05708 21.3179C3.32374 21.5846 3.6854 21.7344 4.0625 21.7344H18.6875C19.0646 21.7344 19.4263 21.5846 19.6929 21.3179C19.9596 21.0513 20.1094 20.6896 20.1094 20.3125V8.9375C20.1094 8.5604 19.9596 8.19874 19.6929 7.93208C19.4263 7.66543 19.0646 7.51562 18.6875 7.51562ZM18.8906 20.3125C18.8906 20.3664 18.8692 20.418 18.8311 20.4561C18.793 20.4942 18.7414 20.5156 18.6875 20.5156H4.0625C4.00863 20.5156 3.95696 20.4942 3.91887 20.4561C3.88078 20.418 3.85938 20.3664 3.85938 20.3125V8.9375C3.85938 8.88363 3.88078 8.83196 3.91887 8.79387C3.95696 8.75578 4.00863 8.73438 4.0625 8.73438H18.6875C18.7414 8.73438 18.793 8.75578 18.8311 8.79387C18.8692 8.83196 18.8906 8.88363 18.8906 8.9375V20.3125ZM23.3594 5.6875V17.875C23.3594 18.0366 23.2952 18.1916 23.1809 18.3059C23.0666 18.4202 22.9116 18.4844 22.75 18.4844C22.5884 18.4844 22.4334 18.4202 22.3191 18.3059C22.2048 18.1916 22.1406 18.0366 22.1406 17.875V5.6875C22.1406 5.63363 22.1192 5.58196 22.0811 5.54387C22.043 5.50578 21.9914 5.48438 21.9375 5.48438H6.5C6.33838 5.48437 6.18339 5.42017 6.06911 5.30589C5.95483 5.19161 5.89063 5.03662 5.89062 4.875C5.89062 4.71338 5.95483 4.55839 6.06911 4.44411C6.18339 4.32983 6.33838 4.26563 6.5 4.26562H21.9375C22.3146 4.26563 22.6763 4.41543 22.9429 4.68208C23.2096 4.94874 23.3594 5.3104 23.3594 5.6875Z" fill="#164E23"/></svg><span id="wizOrderIdDisplay">Id: —</span></div>
-    </div>
-    <div class="wiz-btn-row" style="margin-top:24px">
-      <button class="wiz-btn-next" onclick="showProfile()"><span>Done</span></button>
-    </div>
+    <button class="btn btn-primary" id="submitOrderBtn" onclick="submitOrder()">
+      <span class="ld"></span><span class="btn-label">Submit Request</span>
+    </button>
   </div>
 </div>
 
@@ -683,90 +577,37 @@ async function markComplete(orderId){
 
 // ── NEW ORDER ─────────────────────────────────────────────────
 async function showNewOrder(){
-  S.selCat=null;S.selHMId=null;S.photoFiles=[];S.wizUrgency=null;S.wizTip=0;S.wizStep=1;
-  ["wizName","wizPhone","wizEmail","wizAddress","wizTitle","wizDesc"].forEach(function(id){var el=document.getElementById(id);if(el)el.value="";});
-  document.getElementById("wizPhotoRow").querySelectorAll("img").forEach(function(img){img.remove();});
-  document.querySelectorAll(".urgency-btn").forEach(function(b){b.classList.remove("sel");});
+  S.selCat=null;S.selHMId=null;S.photoFiles=[];
+  document.getElementById("ordDesc").value="";
+  document.getElementById("otherCat").value="";
+  document.getElementById("photoPreviews").innerHTML="";
+  document.getElementById("otherWrap").style.display="none";
+  // Build categories
+  var grid=document.getElementById("catGrid");
+  grid.innerHTML=CATS.map(function(c){
+    return'<button class="cat-btn" id="cat-'+c.id+'" onclick="selCat(\''+c.id+'\')">'+
+      '<span class="cat-icon">'+c.icon+'</span>'+c.label+'</button>';
+  }).join("");
+  // Build HM picker with loading
+  var list=document.getElementById("hmPickerList");
+  list.innerHTML='<div style="text-align:center;padding:16px;color:#aaa"><div class="spinner" style="margin:0 auto 8px;width:24px;height:24px;border-width:2px"></div>Loading...</div>';
   var btn2=document.getElementById("submitOrderBtn");setLoading(btn2,false);
-  // Pre-fill from client profile if available
-  if(S.client){
-    document.getElementById("wizName").value=S.client.name||"";
-    document.getElementById("wizPhone").value=S.client.phone||"";
-    document.getElementById("wizEmail").value=S.client.email||"";
-    document.getElementById("wizAddress").value=S.client.address||"";
-  }
-  // Populate category select
-  var sel=document.getElementById("wizCategory");
-  sel.innerHTML='<option value="">Select category</option>'+CATS.map(function(c){return'<option value="'+c.id+'">'+c.icon+' '+c.label+'</option>';}).join("");
-  // Header — show assigned handyman if known, else "Open Request"
-  var hmAv=document.getElementById("wizHMAv");
-  var hmName=document.getElementById("wizHMName");
-  var hmSub=document.getElementById("wizHMSub");
-  var defaultHM=(S.handyman&&S.handyman.name)?S.handyman:null;
-  if(defaultHM){
-    hmAv.textContent=ini(defaultHM.name);
-    hmName.textContent=defaultHM.name;
-    hmSub.textContent=defaultHM.ratingAvg?("★ "+Number(defaultHM.ratingAvg).toFixed(1)+" rating"):"Your handyman";
-    S.selHMId=defaultHM.id;
-  } else {
-    hmAv.textContent="?";
-    hmName.textContent="Open Request";
-    hmSub.textContent="Any available handyman can respond";
-    S.selHMId="any";
-  }
-  wizGoToStep(1);
   show("s-new-order");
-}
-
-// ── WIZARD NAVIGATION ────────────────────────────────────────
-function wizGoToStep(n){
-  S.wizStep=n;
-  for(var i=1;i<=5;i++){var el=document.getElementById("wizStep"+i);if(el)el.style.display=(i===n)?"block":"none";}
-  document.querySelectorAll(".wiz-step-dot").forEach(function(dot){
-    var step=Number(dot.getAttribute("data-step"));
-    dot.classList.remove("done","active");
-    if(step<n)dot.classList.add("done");
-    else if(step===n)dot.classList.add("active");
-  });
-  window.scrollTo(0,0);
-}
-
-function wizNext(fromStep){
-  if(fromStep===1){
-    var name=document.getElementById("wizName").value.trim();
-    var phone=document.getElementById("wizPhone").value.trim();
-    if(!name){toast("Please enter your name");return;}
-    if(!phone){toast("Please enter your phone number");return;}
-  }
-  if(fromStep===2){
-    var cat=document.getElementById("wizCategory").value;
-    var desc=document.getElementById("wizDesc").value.trim();
-    if(!cat){toast("Please select a service category");return;}
-    if(!desc){toast("Please describe the problem");return;}
-    S.selCat=cat;
-  }
-  if(fromStep===3){
-    if(!S.wizUrgency){toast("Please select urgency level");return;}
-  }
-  wizGoToStep(fromStep+1);
-}
-function wizBack(fromStep){ wizGoToStep(fromStep-1); }
-
-function selUrgency(val,btn){
-  S.wizUrgency=val;
-  document.querySelectorAll("#urgencyGrid .urgency-btn").forEach(function(b){b.classList.remove("sel");});
-  btn.classList.add("sel");
-}
-function selTip(val,btn){
-  S.wizTip=val;
-  btn.parentElement.querySelectorAll(".urgency-btn").forEach(function(b){b.classList.remove("sel");});
-  btn.classList.add("sel");
-}
-function copyWizId(){
-  var el=document.getElementById("wizOrderIdDisplay");
-  var id=(el.textContent||"").replace("Id: ","");
-  navigator.clipboard.writeText(id);
-  toast("Copied!");
+  // Load handymen
+  var hmIds={};
+  S.orders.forEach(function(o){if(o.handymanId&&o.handymanId!=="any")hmIds[o.handymanId]=true;});
+  var compHM=[];
+  if(S.card.companyId){compHM=await fsQ("handymen",[{field:"companyIds",value:S.card.companyId,op:"ARRAY_CONTAINS"}]);}
+  var allHM=[];var seen={};
+  // History handymen first
+  await Promise.all(Object.keys(hmIds).map(async function(id){
+    if(seen[id])return;seen[id]=true;
+    var h=S.hmMap[id]||await fsGet("handymen",id);
+    if(h){allHM.push(Object.assign({fromHistory:true},h));}
+  }));
+  compHM.forEach(function(h){if(!seen[h.id]){seen[h.id]=true;allHM.push(h);}});
+  S.allHM=allHM;
+  renderHMPicker(allHM);
 }
 
 function selCat(id){
@@ -820,11 +661,10 @@ function handlePhotos(input){
     var reader=new FileReader();
     reader.onload=function(e){
       var idx=S.photoFiles.indexOf(file);
-      var row=document.getElementById("wizPhotoRow");
-      var wrap=document.createElement("div");wrap.style.position="relative";wrap.id="prev-"+idx;
-      wrap.innerHTML='<img src="'+e.target.result+'" class="wiz-photo-thumb"/>'+
-        '<button onclick="removePhoto('+idx+')" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#111;color:#fff;border:none;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>';
-      row.insertBefore(wrap,row.firstChild);
+      var prev=document.getElementById("photoPreviews");
+      var div=document.createElement("div");div.className="photo-preview";div.id="prev-"+idx;
+      div.innerHTML='<img src="'+e.target.result+'"/><button class="remove-photo" onclick="removePhoto('+idx+')">✕</button>';
+      prev.appendChild(div);
     };
     reader.readAsDataURL(file);
   });
@@ -835,41 +675,23 @@ function removePhoto(idx){
   S.photoFiles.splice(idx,1);
   var prev=document.getElementById("prev-"+idx);
   if(prev)prev.remove();
-  // Renumber remaining wizard photo previews
-  var row=document.getElementById("wizPhotoRow");
-  var previews=Array.from(row.children).filter(function(el){return el.id&&el.id.indexOf("prev-")===0;});
-  previews.forEach(function(el,i){
-    el.id="prev-"+i;
-    var btn=el.querySelector("button");
-    if(btn)btn.setAttribute("onclick","removePhoto("+i+")");
-  });
+  // Renumber remaining
+  var previews=document.querySelectorAll(".photo-preview");
+  previews.forEach(function(el,i){el.id="prev-"+i;el.querySelector(".remove-photo").setAttribute("onclick","removePhoto("+i+")");});
 }
 
 async function submitOrder(){
-  var name=document.getElementById("wizName").value.trim();
-  var phone=document.getElementById("wizPhone").value.trim();
-  var email=document.getElementById("wizEmail").value.trim();
-  var address=document.getElementById("wizAddress").value.trim();
-  var catId=document.getElementById("wizCategory").value;
-  var title=document.getElementById("wizTitle").value.trim();
-  var desc=document.getElementById("wizDesc").value.trim();
-  var propertyType=document.getElementById("wizPropertyType").value;
-  if(!catId){toast("Please select a service category");return;}
-  if(!desc){toast("Please describe the problem");return;}
-
+  if(!S.selCat){toast("Please select a category");return;}
+  if(!S.selHMId){toast("Please choose a handyman or Quick Search");return;}
+  var desc=document.getElementById("ordDesc").value.trim();
+  if(!desc){toast("Please describe the work needed");return;}
+  var catLabel=S.selCat==="other"?(document.getElementById("otherCat").value.trim()||"Other"):(CATS.find(function(c){return c.id===S.selCat;})||{}).label||"Other";
   var btn=document.getElementById("submitOrderBtn");setLoading(btn,true);
   var orderId="ord-"+Date.now().toString(36);
   var isPublic=S.selHMId==="any";
   var hmId=isPublic?"":S.selHMId;
-  var hm=!isPublic?(S.handyman&&S.handyman.id===hmId?S.handyman:null):null;
+  var hm=!isPublic?S.allHM.find(function(h){return h.id===hmId;}):null;
   var now=new Date().toISOString();
-  var catLabel=(CATS.find(function(c){return c.id===catId;})||{}).label||"Other";
-
-  // Save/update client contact info
-  if(S.client&&S.client.id){
-    await fsMerge("clients",S.client.id,{name:sv(name),phone:sv(phone),email:sv(email),address:sv(address)});
-  }
-
   // Upload photos first
   var photoUrls=[];
   if(S.photoFiles.length){
@@ -879,31 +701,23 @@ async function submitOrder(){
       if(url)photoUrls.push(url);
     }
   }
-
   var ok=await fsP("orders",orderId,{
     clientId:sv(S.client.id),
     handymanId:sv(hmId),
     companyId:sv(hm&&hm.companyIds?hm.companyIds[0]:S.card.companyId||""),
     cardToken:sv(S.token),
     category:sv(catLabel),
-    title:sv(title),
     description:sv(desc),
-    propertyType:sv(propertyType),
-    urgency:sv(S.wizUrgency||"normal"),
-    tipPercent:nv(S.wizTip||0),
     status:sv("new"),
     isPublic:bv(isPublic),
     photos:av(photoUrls),
     createdAt:sv(now)
   });
-
   if(ok){
     var newCount=(S.client.ordersCount||0)+1;
     await fsMerge("clients",S.client.id,{ordersCount:nv(newCount)});
     S.client.ordersCount=newCount;
-    document.getElementById("wizOrderIdDisplay").textContent="Id: "+orderId;
-    setLoading(btn,false);
-    wizGoToStep(5);
+    toast(isPublic?"Request posted! Handymen will be notified. 🔍":"Request sent to "+((hm||{}).name||"your handyman")+"! 🛠️");
     await loadProfile();
   } else {
     setLoading(btn,false);
