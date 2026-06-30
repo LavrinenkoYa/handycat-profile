@@ -4,6 +4,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
   <title>HandyCat</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/LavrinenkoYa/handycat-profile/main/favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://raw.githubusercontent.com/LavrinenkoYa/handycat-profile/main/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/LavrinenkoYa/handycat-profile/main/favicon-180.png">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;min-height:100vh;max-width:480px;margin:0 auto}
@@ -91,8 +94,6 @@
     /* HM PICKER */
     .hm-opt{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #f1eeee;border-radius:18px;cursor:pointer;margin-bottom:8px;background:#fef9f9;transition:all .15s}
     .hm-opt.sel{border-color:#4f00df;background:#f3edff}
-    .hm-opt.quick{border-color:#33dfff;background:#ecfdff}
-    .hm-opt.quick.sel{border-color:#4f00df;background:#f3edff}
     .hm-av{width:40px;height:40px;border-radius:50%;background:#33dfff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0d0c19;flex-shrink:0}
     .hm-av.purple{background:#c5b5ff;color:#0d0c19}
     .hm-info{flex:1}
@@ -126,7 +127,9 @@
     .tl-label{font-size:13px;color:#666}
     .tl-label.done{color:#111;font-weight:500}
     .photo-gallery{display:flex;gap:8px;flex-wrap:wrap}
-    .gallery-img{width:80px;height:80px;border-radius:8px;object-fit:cover;cursor:pointer}
+    .gallery-img{width:80px;height:80px;border-radius:14px;object-fit:cover;cursor:pointer}
+    .photo-add-tile{width:80px;height:80px;border-radius:14px;border:2px dashed #f1eeee;background:#fef9f9;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#4f00df;transition:border-color .15s}
+    .photo-add-tile:hover{border-color:#4f00df}
 
     /* STAR PICKER */
     .star-row{display:flex;gap:8px;margin:8px 0 14px}
@@ -152,9 +155,9 @@
     .pf-rating-pill{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
     .pf-rating-pill .spark{color:#4f86ff;font-size:16px}
     .pf-rating-pill .val{font-size:14px;color:#164e23;font-weight:500}
-    .pf-send-btn{background:#32e682;border:none;border-radius:310px;height:52px;margin:0 16px 24px;display:flex;align-items:center;justify-content:center;font-size:17px;color:#111;cursor:pointer;transition:background .2s}
+    .pf-send-btn{background:#32e682;border:none;border-radius:310px;height:52px;width:calc(100% - 32px);margin:0 16px 24px;display:flex;align-items:center;justify-content:center;font-size:17px;color:#111;cursor:pointer;transition:background .2s}
     .pf-send-btn:hover{background:#164e23;color:#fff}
-    .pf-orders-wrap{background:#ecf4ff;border-radius:40px 40px 0 0;padding:20px 16px;min-height:60vh}
+    .pf-orders-wrap{background:#ecf4ff;border-radius:40px 40px 0 0;padding:20px 16px;min-height:calc(100vh - 240px)}
     .pf-filter-row{display:flex;gap:10px;background:#fff;border-radius:20px;padding:8px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
     .pf-filter{flex:1;text-align:center;padding:7px 4px;border-radius:20px;font-size:14px;color:#111;cursor:pointer;background:transparent;border:none;font-family:inherit;transition:all .15s}
     .pf-filter.active{background:#164e23;color:#fff}
@@ -219,9 +222,6 @@
 </div>
 
 <div class="screen" id="s-profile">
-  <div class="pf-topbar">
-    <div class="pf-icon-btn" title="Messages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="#164e23" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <div class="pf-icon-btn notif" title="Notifications"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke="#343330" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.73 21a2 2 0 01-3.46 0" stroke="#343330" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   </div>
 
   <div class="pf-header-row">
@@ -428,6 +428,35 @@ async function uploadPhoto(file, path) {
   } catch(e) { return null; }
 }
 
+async function handleDetailPhotos(input,orderId){
+  var files=Array.from(input.files);
+  var order=S.orders.find(function(o){return o.id===orderId;});
+  if(!order)return;
+  var existing=order.photos||[];
+  var remaining=4-existing.length;
+  files=files.slice(0,Math.max(0,remaining));
+  if(!files.length){toast("Max 4 photos per request");input.value="";return;}
+  toast("Uploading...");
+  var newUrls=[];
+  for(var i=0;i<files.length;i++){
+    var file=files[i];
+    if(file.size>5*1024*1024)continue;
+    var url=await uploadPhoto(file,"orders/"+orderId+"/photo-"+Date.now()+"-"+i);
+    if(url)newUrls.push(url);
+  }
+  if(!newUrls.length){toast("Upload failed. Please try again.");input.value="";return;}
+  var allPhotos=existing.concat(newUrls);
+  var ok=await fsMerge("orders",orderId,{photos:av(allPhotos)});
+  if(ok){
+    order.photos=allPhotos;
+    toast("Photo"+(newUrls.length>1?"s":"")+" added!");
+    showOrderDetail(orderId);
+  } else {
+    toast("Could not save photo. Please try again.");
+  }
+  input.value="";
+}
+
 // ── UI HELPERS ────────────────────────────────────────────────
 function show(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});document.getElementById(id).classList.add("active");window.scrollTo(0,0);}
 function toast(m){var e=document.getElementById("toast");e.textContent=m;e.classList.add("show");setTimeout(function(){e.classList.remove("show");},3000);}
@@ -609,12 +638,17 @@ async function showOrderDetail(orderId){
     {label:"In progress",done:order.status==="in_progress"||order.status==="completed"},
     {label:"Completed",done:order.status==="completed"}
   ];
-  var photosHtml="";
-  if(order.photos&&order.photos.length){
-    photosHtml='<div class="detail-section" style="margin:0 12px 10px">'+
+  var canAddPhotos=(order.status==="new"||order.status==="in_progress");
+  var photosHtml='<div class="detail-section" style="margin:0 12px 10px">'+
       '<div class="section-title">Photos</div>'+
-      '<div class="photo-gallery">'+order.photos.map(function(url){return'<img class="gallery-img" src="'+url+'" onclick="window.open(\''+url+'\',\'_blank\')">';}).join("")+'</div>'+
+      '<div class="photo-gallery" id="detailPhotoGallery">'+
+        (order.photos&&order.photos.length?order.photos.map(function(url){return'<img class="gallery-img" src="'+url+'" onclick="window.open(\''+url+'\',\'_blank\')">';}).join(""):'')+
+        (canAddPhotos?'<div class="photo-add-tile" onclick="document.getElementById(\'detailPhotoInput\').click()"><div style="font-size:22px">+</div><div style="font-size:11px">Add</div></div>':'')+
+      '</div>'+
+      (canAddPhotos?'<input type="file" id="detailPhotoInput" accept="image/*" multiple style="display:none" onchange="handleDetailPhotos(this,\''+orderId+'\')"/>':'')+
     '</div>';
+  if(!order.photos||!order.photos.length){
+    if(!canAddPhotos)photosHtml="";
   }
   var reviewHtml="";
   if(order.clientRating){
