@@ -257,6 +257,68 @@
     .gen-close:hover{background:#e0ddd8}
     .gen-row{display:flex;gap:22px;margin-bottom:22px}
     .gen-prog{font-size:13px;color:#888;min-height:18px;margin-bottom:8px}
+
+    /* ── Universal page header (Clients/Orders/Apps/Archive) ── */
+    .pg-header{background:#fff;border-radius:30px;padding:26px;margin-bottom:24px}
+    .pg-title{font-size:32px;font-weight:500;color:#1d1f1e;font-family:'Inter',sans-serif;line-height:1}
+    .pg-sub{font-size:18px;color:#858585;font-family:'Inter',sans-serif;margin-top:8px}
+    .pg-toprow{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+    /* Universal table wrap (white card, rounded, same as cd-table-wrap) */
+    .pg-table-wrap{background:#fff;border-radius:30px;overflow:hidden}
+    .pg-table-toolbar{padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid #f5f5f5}
+    .pg-table{width:100%;border-collapse:collapse}
+    .pg-table th{background:#f9f9f9;padding:14px 8px;font-size:12px;font-weight:700;color:#858585;text-transform:uppercase;font-family:'Inter',sans-serif;text-align:left;white-space:nowrap}
+    .pg-table th:first-child{padding-left:20px}
+    .pg-table td{padding:14px 8px;font-size:14px;color:#333;font-family:'Inter',sans-serif;border-top:1px solid #f5f5f5;vertical-align:middle}
+    .pg-table td:first-child{padding-left:20px}
+    .pg-table tr:hover td{background:#fafafa}
+    .pg-empty{text-align:center;padding:40px;color:#888;font-size:14px;font-family:'Inter',sans-serif}
+    /* Pill filter group (re-usable, same look as cd-pill) */
+    .pg-pill{padding:8px 14px;border-radius:100px;font-size:14px;border:1px solid #858585;background:transparent;color:#111;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+    .pg-pill.active{background:#164e23;color:#fff;border-color:#164e23}
+    /* Action button — blue, same as cd-add-hm-btn */
+    .pg-action-btn{background:#5e94de;border:1px solid #0f4ed4;border-radius:10px;padding:8px 14px;font-size:15px;color:#fff;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;transition:background .2s}
+    .pg-action-btn:hover{background:#0f4ed4}
+    /* Status badges — reuse cd-status-* but add a few more variants */
+    .pg-badge{padding:4px 10px;border-radius:100px;font-size:12px;font-weight:700;display:inline-block;white-space:nowrap;font-family:'Inter',sans-serif}
+    .pg-badge-green{background:#d1fae5;color:#065f46}
+    .pg-badge-yellow{background:#f8f8bc;color:#955f26}
+    .pg-badge-red{background:#fee2e2;color:#991b1b}
+    .pg-badge-purple{background:#ede9fe;color:#5b21b6}
+    .pg-badge-gray{background:#f5f5f5;color:#888}
+    .pg-badge-blue{background:#dbeafe;color:#1e40af}
+    /* Avatar circle, blue (used for clients/handymen lists) */
+    .pg-av{width:32px;height:32px;border-radius:50%;background:#5e94de;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;font-family:'Inter',sans-serif}
+    /* Link-style text (underlined clickable name) */
+    .pg-link{text-decoration:underline;cursor:pointer;color:#111;font-size:14px}
+    /* Bulk action bar — reuse cd-bulk-bar style under different id namespace */
+    .pg-bulk-bar{display:none;background:#eef3ff;padding:8px 20px;align-items:center;gap:12px}
+    .pg-bulk-bar.show{display:flex}
+    .pg-bulk-label{font-size:14px;color:#4f00df;font-weight:700;font-family:'Inter',sans-serif;margin-right:4px}
+    .pg-bulk-del{background:#de1417;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:15px;cursor:pointer;font-family:'Inter',sans-serif}
+    .pg-bulk-clear{background:#858585;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:15px;cursor:pointer;font-family:'Inter',sans-serif}
+    .pg-cb{width:18px;height:18px;accent-color:#4f00df;cursor:pointer}
+    /* Detail page header (Client/Order detail — same pattern as company detail) */
+    .pg-detail-meta{font-size:15px;color:#858585;font-family:'Inter',sans-serif}
+    /* Info grid for detail pages (key/value pairs) */
+    .pg-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .pg-info-label{font-size:12px;font-weight:700;color:#858585;text-transform:uppercase;font-family:'Inter',sans-serif;margin-bottom:4px}
+    .pg-info-value{font-size:15px;color:#111;font-family:'Inter',sans-serif}
+    /* Section title above a card */
+    .pg-section-title{font-size:18px;font-weight:600;color:#111;font-family:'Inter',sans-serif;margin-bottom:14px}
+    /* Generic white rounded card (info blocks, used in detail pages) */
+    .pg-card{background:#fff;border-radius:30px;padding:24px;margin-bottom:20px}
+    /* Textarea / input for decision boxes (Applications) — reuse dfg style but standalone */
+    .pg-textarea{width:100%;padding:12px 14px;background:#fef9f9;border:1px solid #f1eeee;border-radius:10px;font-size:14px;color:#333;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;min-height:90px;resize:vertical;transition:border-color .2s,box-shadow .2s}
+    .pg-textarea:focus{border-color:#164e23;box-shadow:0 0 0 3px rgba(22,78,35,.08);background:#fff}
+    /* Decision buttons (approve/revision/reject) */
+    .pg-decision-btn{padding:11px 20px;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s}
+    .pg-decision-btn:hover{opacity:.85}
+    .pg-decision-approve{background:#32e682;border-color:#1ea95c;color:#111}
+    .pg-decision-revision{background:#fff4e5;border-color:#f5c06a;color:#c47000}
+    .pg-decision-reject{background:#fee2e2;border-color:#f0c0bc;color:#D93025}
+    /* Photo thumbnail grid */
+    .pg-photo{width:80px;height:80px;border-radius:10px;object-fit:cover;cursor:pointer}
   </style>
   <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
@@ -542,25 +604,59 @@
 
   <!-- CLIENTS -->
   <div class="page" id="page-clients">
-    <div class="ph" style="margin-top:8px"><div><h2>Clients</h2><p>All registered clients</p></div></div>
-    <input class="search-input" placeholder="🔍 Search by name or phone..." oninput="searchCl(this.value)" />
-    <div class="card">
-      <div class="bulk-bar" id="clBulkBar">
-        <span id="clBulkCount" style="font-size:13px;font-weight:600;color:#1E40AF"></span>
-        <button class="btn bd bsm" onclick="bulkDeleteCl()">Delete Selected</button>
-        <button class="btn bs bsm" onclick="clearClSel()">Clear</button>
+    <div class="pg-header">
+      <div class="pg-toprow" style="margin-bottom:24px">
+        <div>
+          <div class="pg-title">Clients</div>
+          <div class="pg-sub">All registered clients</div>
+        </div>
       </div>
-      <div class="tw"><table><thead><tr><th style="width:36px"><input type="checkbox" id="clSelAll" onchange="toggleClSelAll(this)"/></th><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Orders</th><th>Registered</th><th></th></tr></thead><tbody id="clBody"></tbody></table></div>
+      <div class="co-search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#858585" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#858585" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input placeholder="Search by name or phone..." oninput="searchCl(this.value)" />
+      </div>
+    </div>
+
+    <div class="pg-table-wrap">
+      <div class="pg-bulk-bar" id="clBulkBar">
+        <span class="pg-bulk-label" id="clBulkCount"></span>
+        <button class="pg-bulk-del" onclick="bulkDeleteCl()">Delete Selected</button>
+        <button class="pg-bulk-clear" onclick="clearClSel()">Clear</button>
+      </div>
+      <table class="pg-table">
+        <thead><tr>
+          <th style="width:44px"><input type="checkbox" class="pg-cb" id="clSelAll" onchange="toggleClSelAll(this)"/></th>
+          <th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Orders</th><th>Registered</th><th style="width:90px"></th>
+        </tr></thead>
+        <tbody id="clBody"></tbody>
+      </table>
     </div>
   </div>
 
   <!-- CLIENT DETAIL -->
   <div class="page" id="page-cl-detail">
-    <div class="back" onclick="nav('clients')">← Back to Clients</div>
-    <div class="ph"><div><h2 id="clName">—</h2><p id="clMeta">—</p></div></div>
-    <div class="di" id="clInfo"></div>
-    <div style="font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;padding:14px 0 8px">Order History</div>
-    <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Category</th><th>Handyman</th><th>Status</th><th>Price</th></tr></thead><tbody id="clOBody"></tbody></table></div></div>
+    <div style="margin-bottom:12px">
+      <button class="cd-back-btn" onclick="nav('clients')" title="Back"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></button>
+    </div>
+    <div class="pg-header" style="margin-bottom:20px">
+      <div class="pg-toprow">
+        <div>
+          <div class="cd-title" id="clName">—</div>
+          <div class="pg-detail-meta" id="clMeta" style="margin-top:6px">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="pg-card">
+      <div class="pg-section-title">Client Information</div>
+      <div class="pg-info-grid" id="clInfo"></div>
+    </div>
+    <div class="pg-section-title" style="margin-top:24px;margin-bottom:14px">Order History</div>
+    <div class="pg-table-wrap">
+      <table class="pg-table">
+        <thead><tr><th>Date</th><th>Category</th><th>Handyman</th><th>Status</th><th>Price</th></tr></thead>
+        <tbody id="clOBody"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- ALL CARDS -->
@@ -630,22 +726,35 @@
 
   <!-- ORDER DETAIL -->
   <div class="page" id="page-order-detail">
-    <div class="back" id="ordDetBack">← Back</div>
+    <div style="margin-bottom:12px">
+      <button class="cd-back-btn" id="ordDetBack" title="Back"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></button>
+    </div>
     <div id="ordDetContent" style="padding-bottom:24px"></div>
   </div>
 
   <!-- ORDERS -->
   <div class="page" id="page-orders">
-    <div class="ph" style="margin-top:8px">
-      <div><h2>Orders</h2><p>All service orders</p></div>
-      <div class="fl">
-        <button class="fb active" onclick="filterOrds('all',this)">All</button>
-        <button class="fb" onclick="filterOrds('new',this)">New</button>
-        <button class="fb" onclick="filterOrds('in_progress',this)">In Progress</button>
-        <button class="fb" onclick="filterOrds('completed',this)">Completed</button>
+    <div class="pg-header">
+      <div class="pg-toprow">
+        <div>
+          <div class="pg-title">Orders</div>
+          <div class="pg-sub">All service orders</div>
+        </div>
       </div>
     </div>
-    <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Client</th><th>Handyman</th><th>Company</th><th>Category</th><th>Status</th><th>Price</th></tr></thead><tbody id="ordBody"></tbody></table></div></div>
+    <div class="pg-table-wrap">
+      <div class="pg-table-toolbar">
+        <button class="pg-pill active" onclick="filterOrds('all',this)">All</button>
+        <button class="pg-pill" onclick="filterOrds('new',this)">New</button>
+        <button class="pg-pill" onclick="filterOrds('in_progress',this)">In Progress</button>
+        <button class="pg-pill" onclick="filterOrds('completed',this)">Completed</button>
+        <button class="pg-pill" onclick="filterOrds('cancelled',this)">Cancelled</button>
+      </div>
+      <table class="pg-table">
+        <thead><tr><th>Date</th><th>Client</th><th>Handyman</th><th>Company</th><th>Category</th><th>Status</th><th>Price</th></tr></thead>
+        <tbody id="ordBody"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- ARCHIVE -->
@@ -1835,19 +1944,19 @@ async function loadCls() {
 
 function renderCls(cls, oc) {
   var tb = document.getElementById("clBody");
-  if (!cls.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No clients yet</td></tr>'; return; }
+  if (!cls.length) { tb.innerHTML = '<tr><td colspan="8" class="pg-empty">No clients yet</td></tr>'; return; }
   tb.innerHTML = cls.map(function(c) {
     return '<tr>' +
-      '<td><input type="checkbox" class="cl-cb" value="' + c.id + '" onchange="updateClBulk()"/></td>' +
-      '<td><div style="display:flex;align-items:center;gap:8px"><div class="av">' + ini(c.name) + '</div>' +
-        '<span style="color:#185FA5;cursor:pointer;font-weight:500" onclick="openCl(\'' + c.id + '\')">' + (esc(c.name) || "—") + '</span>' +
+      '<td><input type="checkbox" class="pg-cb cl-cb" value="' + c.id + '" onchange="updateClBulk()"/></td>' +
+      '<td><div style="display:flex;align-items:center;gap:10px"><div class="pg-av">' + ini(c.name) + '</div>' +
+        '<span class="pg-link" onclick="openCl(\'' + c.id + '\')">' + (esc(c.name) || "—") + '</span>' +
       '</div></td>' +
-      '<td class="muted">' + (c.phone || "—") + '</td>' +
-      '<td class="muted">' + (c.email || "—") + '</td>' +
-      '<td class="muted">' + (c.address || "—") + '</td>' +
-      '<td>' + (oc[c.id] || 0) + '</td>' +
-      '<td class="muted">' + fd(c.createdAt) + '</td>' +
-      '<td><button class="btn bs bsm" onclick="openCl(\'' + c.id + '\')">History →</button></td>' +
+      '<td style="color:#858585">' + (c.phone || "—") + '</td>' +
+      '<td style="color:#858585">' + (c.email || "—") + '</td>' +
+      '<td style="color:#858585">' + (c.address || "—") + '</td>' +
+      '<td style="font-weight:700;color:#4f00df">' + (oc[c.id] || 0) + '</td>' +
+      '<td style="color:#858585">' + fd(c.createdAt) + '</td>' +
+      '<td style="text-align:right"><button class="cd-action-btn" onclick="openCl(\'' + c.id + '\')" title="View"><svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.3681 13.4307L15.0556 20.7432C14.9401 20.8508 14.7873 20.9094 14.6295 20.9066C14.4716 20.9039 14.321 20.8399 14.2093 20.7283C14.0977 20.6166 14.0337 20.466 14.0309 20.3081C14.0281 20.1502 14.0867 19.9975 14.1944 19.8819L20.4659 13.6094H4.0625C3.90088 13.6094 3.74589 13.5452 3.63161 13.431C3.51733 13.3167 3.45313 13.1617 3.45312 13.0001C3.45312 12.8384 3.51733 12.6834 3.63161 12.5692C3.74589 12.4549 3.90088 12.3907 4.0625 12.3907H20.4659L14.1944 6.11818C14.0867 6.00267 14.0281 5.84988 14.0309 5.69201C14.0337 5.53414 14.0977 5.38351 14.2093 5.27187C14.321 5.16022 14.4716 5.09626 14.6295 5.09348C14.7873 5.09069 14.9401 5.14929 15.0556 5.25693L22.3681 12.5694C22.4822 12.6837 22.5463 12.8386 22.5463 13.0001C22.5463 13.1615 22.4822 13.3164 22.3681 13.4307Z" fill="#4F00DF"/></svg></button></td>' +
     '</tr>';
   }).join("");
 }
@@ -1883,24 +1992,24 @@ function searchCl(q) {
 }
 
 async function openCl(id) {
-  sp("cl-detail");
+  nav("cl-detail");
   var c = CC.cl[id] || {};
   document.getElementById("clName").textContent = c.name || id;
   document.getElementById("clMeta").textContent = (c.phone || "") + (c.email ? " · " + c.email : "");
   document.getElementById("clInfo").innerHTML =
-    '<div><div class="dl">Phone</div><div class="dv">' + (c.phone || "—") + '</div></div>' +
-    '<div><div class="dl">Email</div><div class="dv">' + (c.email || "—") + '</div></div>' +
-    '<div><div class="dl">Address</div><div class="dv">' + (c.address || "—") + '</div></div>' +
-    '<div><div class="dl">Registered</div><div class="dv">' + fd(c.createdAt) + '</div></div>';
+    '<div><div class="pg-info-label">Phone</div><div class="pg-info-value">' + (c.phone || "—") + '</div></div>' +
+    '<div><div class="pg-info-label">Email</div><div class="pg-info-value">' + (c.email || "—") + '</div></div>' +
+    '<div><div class="pg-info-label">Address</div><div class="pg-info-value">' + (c.address || "—") + '</div></div>' +
+    '<div><div class="pg-info-label">Registered</div><div class="pg-info-value">' + fd(c.createdAt) + '</div></div>';
   var tb = document.getElementById("clOBody");
-  tb.innerHTML = '<tr><td colspan="5" class="empty">Loading...</td></tr>';
+  tb.innerHTML = '<tr><td colspan="5" class="pg-empty">Loading...</td></tr>';
   var ords = await fsQ("orders", [{ field: "clientId", value: id }]);
-  if (!ords.length) { tb.innerHTML = '<tr><td colspan="5" class="empty">No orders yet</td></tr>'; return; }
+  if (!ords.length) { tb.innerHTML = '<tr><td colspan="5" class="pg-empty">No orders yet</td></tr>'; return; }
   var hma = {};
   try { var hms = await fsL("handymen"); hms.forEach(function(h) { hma[h.id] = h.name; }); } catch (e) {}
   tb.innerHTML = ords.map(function(o) {
     return '<tr style="cursor:pointer" onclick="showOrderDetail(\''+o.id+'\',\'cl-detail\')">' +
-      '<td class="muted">' + fd(o.createdAt) + '</td>' +
+      '<td style="color:#858585">' + fd(o.createdAt) + '</td>' +
       '<td>' + (esc(o.category) || "—") + '</td>' +
       '<td>' + (hma[o.handymanId] || "—") + '</td>' +
       '<td>' + bdg(o.status || "new") + '</td>' +
@@ -1993,10 +2102,9 @@ async function showCardDetail(cardId) {
 }
 // ── ORDER DETAIL ──────────────────────────────────────────────
 async function showOrderDetail(orderId, backPage) {
-  sp("order-detail");
+  nav("order-detail");
   var backBtn = document.getElementById("ordDetBack");
-  backBtn.setAttribute("onclick", "sp('" + backPage + "')");
-  backBtn.textContent = "← Back";
+  backBtn.setAttribute("onclick", "nav('" + backPage + "')");
   var content = document.getElementById("ordDetContent");
   content.innerHTML = '<div style="padding:60px;text-align:center"><div style="color:#aaa">Loading...</div></div>';
 
@@ -2015,78 +2123,71 @@ async function showOrderDetail(orderId, backPage) {
 
   var photosHtml = "";
   if (order.photos && order.photos.length) {
-    photosHtml = '<div class="card" style="margin:0 0 14px"><div class="card-header" style="padding:12px 16px"><h3>Photos</h3></div>'+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px">'+
-      order.photos.map(function(url){ return '<img src="'+url+'" style="width:80px;height:80px;border-radius:8px;object-fit:cover;cursor:pointer" onclick="window.open(\''+url+'\',\'_blank\')" />'; }).join("")+
+    photosHtml = '<div class="pg-card"><div class="pg-section-title">Photos</div>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
+      order.photos.map(function(url){ return '<img src="'+url+'" class="pg-photo" onclick="window.open(\''+url+'\',\'_blank\')" />'; }).join("")+
       '</div></div>';
   }
 
   var reviewHtml = "";
   if (order.clientRating) {
-    reviewHtml = '<div class="card" style="margin:0 0 14px"><div class="card-header" style="padding:12px 16px"><h3>Client Review</h3></div>'+
-      '<div style="padding:12px 16px">'+
-        '<div style="color:#EF9F27;font-size:18px;margin-bottom:6px">' + "★".repeat(order.clientRating) + '<span style="color:#ddd">' + "★".repeat(5 - order.clientRating) + '</span></div>'+
-        (order.clientReview ? '<div style="font-size:14px;color:#555;line-height:1.5">' + order.clientReview + '</div>' : '<div class="muted">No written review</div>')+
-      '</div></div>';
+    reviewHtml = '<div class="pg-card"><div class="pg-section-title">Client Review</div>'+
+        '<div style="color:#EF9F27;font-size:20px;margin-bottom:8px">' + "★".repeat(order.clientRating) + '<span style="color:#ddd">' + "★".repeat(5 - order.clientRating) + '</span></div>'+
+        (order.clientReview ? '<div style="font-size:14px;color:#555;line-height:1.6">' + order.clientReview + '</div>' : '<div style="color:#aaa">No written review</div>')+
+      '</div>';
   }
 
   content.innerHTML =
     // Header
-    '<div class="card" style="margin:0 0 14px">'+
-      '<div style="padding:16px">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
-          '<span class="badge ' + (badgeMap[order.status]||"bi") + '">' + (statusLabels[order.status]||order.status) + '</span>'+
-          '<span class="muted">' + fd(order.createdAt) + '</span>'+
+    '<div class="pg-header" style="margin-bottom:20px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+          bdg(order.status||"new") +
+          '<span style="color:#858585;font-size:14px">' + fd(order.createdAt) + '</span>'+
         '</div>'+
-        '<div style="font-size:20px;font-weight:600;color:#111;margin-bottom:6px">' + (esc(order.category) || "—") + '</div>'+
-        (order.description ? '<div style="font-size:14px;color:#555;line-height:1.6">' + order.description + '</div>' : '')+
-      '</div>'+
+        '<div class="cd-title" style="font-size:28px">' + (esc(order.category) || "—") + '</div>'+
+        (order.description ? '<div style="font-size:15px;color:#555;line-height:1.6;margin-top:10px">' + order.description + '</div>' : '')+
     '</div>'+
 
     // Parties
-    '<div class="card" style="margin:0 0 14px">'+
-      '<div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px">'+
+    '<div class="pg-card">'+
+      '<div class="pg-info-grid">'+
         '<div>'+
-          '<div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Client</div>'+
-          (cl ? '<div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="openCl(\''+cl.id+'\')"><div class="av">'+(esc(cl.name) || "?").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase()+'</div><div><div style="font-size:14px;font-weight:600;color:#185FA5">'+(esc(cl.name) || "—")+'</div><div class="muted">'+(cl.phone||"")+'</div></div></div>' : '<span class="muted">—</span>')+
+          '<div class="pg-info-label" style="margin-bottom:10px">Client</div>'+
+          (cl ? '<div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openCl(\''+cl.id+'\')"><div class="pg-av">'+ini(cl.name)+'</div><div><div class="pg-link" style="font-weight:600">'+(esc(cl.name) || "—")+'</div><div style="color:#858585;font-size:13px">'+(cl.phone||"")+'</div></div></div>' : '<span style="color:#bbb">—</span>')+
         '</div>'+
         '<div>'+
-          '<div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Handyman</div>'+
-          (hm ? '<div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="openHMDetail(\''+hm.id+'\',\'order-detail\')"><div class="av">'+(esc(hm.name) || "?").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase()+'</div><div><div style="font-size:14px;font-weight:600;color:#185FA5">'+(esc(hm.name) || "—")+'</div><div class="muted">'+(esc(hm.phone) || "")+'</div></div></div>' : (order.isPublic ? '<div style="font-size:13px;color:#8B5CF6">&#x1F50D; Open request</div>' : '<span class="muted">—</span>'))+
+          '<div class="pg-info-label" style="margin-bottom:10px">Handyman</div>'+
+          (hm ? '<div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openHMDetail(\''+hm.id+'\',\'order-detail\')"><div class="pg-av">'+ini(hm.name)+'</div><div><div class="pg-link" style="font-weight:600">'+(esc(hm.name) || "—")+'</div><div style="color:#858585;font-size:13px">'+(esc(hm.phone) || "")+'</div></div></div>' : (order.isPublic ? '<div style="font-size:13px;color:#8B5CF6">&#x1F50D; Open request</div>' : '<span style="color:#bbb">—</span>'))+
         '</div>'+
       '</div>'+
     '</div>'+
 
     // Details
-    '<div class="card" style="margin:0 0 14px">'+
-      '<div style="padding:16px">'+
-        '<div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Details</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'+
-          '<div><div class="muted">Company</div><div style="font-size:14px;color:#111;margin-top:2px">' + (co ? co.name : "—") + '</div></div>'+
-          '<div><div class="muted">Price</div><div style="font-size:14px;color:#111;margin-top:2px">' + (order.price ? "$" + order.price : "—") + '</div></div>'+
-          '<div><div class="muted">Created</div><div style="font-size:14px;color:#111;margin-top:2px">' + fd(order.createdAt) + '</div></div>'+
-          (order.completedAt ? '<div><div class="muted">Completed</div><div style="font-size:14px;color:#111;margin-top:2px">' + fd(order.completedAt) + '</div></div>' : '')+
+    '<div class="pg-card">'+
+        '<div class="pg-section-title">Details</div>'+
+        '<div class="pg-info-grid">'+
+          '<div><div class="pg-info-label">Company</div><div class="pg-info-value">' + (co ? co.name : "—") + '</div></div>'+
+          '<div><div class="pg-info-label">Price</div><div class="pg-info-value">' + (order.price ? "$" + order.price : "—") + '</div></div>'+
+          '<div><div class="pg-info-label">Created</div><div class="pg-info-value">' + fd(order.createdAt) + '</div></div>'+
+          (order.completedAt ? '<div><div class="pg-info-label">Completed</div><div class="pg-info-value">' + fd(order.completedAt) + '</div></div>' : '')+
         '</div>'+
-      '</div>'+
     '</div>'+
 
     photosHtml + reviewHtml +
 
     // Status update
-    '<div class="card" style="margin:0 0 14px">'+
-      '<div style="padding:16px">'+
-        '<div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Update Status</div>'+
-        '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+    '<div class="pg-card">'+
+        '<div class="pg-section-title">Update Status</div>'+
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'+
           statusOptions.map(function(s){
             var isCurrent = order.status === s;
-            return '<button class="btn '+(isCurrent?"bp":"bs")+' bsm" '+(isCurrent?"disabled":"")+' onclick="updateOrderStatus(\''+orderId+'\',\''+s+'\')">'+statusLabels[s]+'</button>';
+            return '<button class="pg-pill'+(isCurrent?" active":"")+'" '+(isCurrent?"disabled":"")+' onclick="updateOrderStatus(\''+orderId+'\',\''+s+'\')">'+statusLabels[s]+'</button>';
           }).join("")+
         '</div>'+
-        '<div style="margin-top:12px;display:flex;gap:8px;align-items:center">'+
-          '<input id="ordPrice" type="number" placeholder="Set price ($)" style="max-width:160px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px" value="'+(order.price||"")+'"/>'+
-          '<button class="btn bp bsm" onclick="updateOrderPrice(\''+orderId+'\')">Save Price</button>'+
+        '<div style="display:flex;gap:10px;align-items:center">'+
+          '<input id="ordPrice" type="number" placeholder="Set price ($)" style="max-width:160px;padding:11px 14px;background:#fef9f9;border:1px solid #f1eeee;border-radius:10px;font-size:14px" value="'+(order.price||"")+'"/>'+
+          '<button class="dbtn-save" style="padding:11px 20px" onclick="updateOrderPrice(\''+orderId+'\')">Save Price</button>'+
         '</div>'+
-      '</div>'+
     '</div>';
 }
 
@@ -2118,26 +2219,26 @@ async function loadOrds() {
 function renderOrds() {
   var tb = document.getElementById("ordBody");
   var fil = allOrds.filter(function(o) { return ordF === "all" || o.status === ordF; });
-  if (!fil.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No orders found</td></tr>'; return; }
+  if (!fil.length) { tb.innerHTML = '<tr><td colspan="7" class="pg-empty">No orders found</td></tr>'; return; }
   var hma = CC._hma || {};
   tb.innerHTML = fil.map(function(o) {
     var cn = (CC.cos[o.companyId] || {}).name || o.companyId || "—";
     var cln = (CC.cl[o.clientId] || {}).name || o.clientId || "—";
     return '<tr style="cursor:pointer" onclick="showOrderDetail(\''+o.id+'\',\'orders\')">' +
-      '<td class="muted">' + fd(o.createdAt) + '</td>' +
+      '<td style="color:#858585">' + fd(o.createdAt) + '</td>' +
       '<td>' + cln + '</td>' +
       '<td>' + (hma[o.handymanId] || "—") + '</td>' +
-      '<td class="muted">' + cn + '</td>' +
+      '<td style="color:#858585">' + cn + '</td>' +
       '<td>' + (esc(o.category) || "—") + '</td>' +
       '<td>' + bdg(o.status || "new") + '</td>' +
-      '<td>' + (o.price ? "$" + o.price : "—") + '</td>' +
+      '<td style="font-weight:600">' + (o.price ? "$" + o.price : "—") + '</td>' +
     '</tr>';
   }).join("");
 }
 
 function filterOrds(s, btn) {
   ordF = s;
-  document.querySelectorAll("#page-orders .fb").forEach(function(b) { b.classList.remove("active"); });
+  document.querySelectorAll("#page-orders .pg-pill").forEach(function(b) { b.classList.remove("active"); });
   btn.classList.add("active");
   renderOrds();
 }
