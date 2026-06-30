@@ -12,13 +12,14 @@
     #s-loading.active{display:flex !important;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#fff;min-height:100vh}
     .spinner{width:36px;height:36px;border:3px solid #e8e8e8;border-top-color:#185FA5;border-radius:50%;animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .topbar{background:#fff;padding:14px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
-    .topbar h1{font-size:16px;font-weight:600;color:#111}
-    .back-btn{color:#185FA5;font-size:14px;cursor:pointer;padding:4px 0;white-space:nowrap}
-    .btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;border:none;width:100%;transition:opacity .15s;position:relative}
-    .btn:active{opacity:.8}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .btn-primary{background:#185FA5;color:#fff}
+    .topbar{background:#fff;padding:16px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10}
+    .topbar h1{font-size:20px;font-weight:700;color:#4f00df;font-family:'Albert Sans',sans-serif}
+    .back-btn{width:40px;height:40px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:18px;color:#0d0c19}
+    .btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;border-radius:310px;font-size:17px;font-weight:400;cursor:pointer;border:none;width:100%;transition:background .2s,color .2s;position:relative;font-family:'Work Sans',sans-serif}
+    .btn:active{transform:scale(.99)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn-primary{background:#32e682;color:#0d0c19}
+    .btn-primary:hover{background:#164e23;color:#fff}
     .btn-secondary{background:#f0f0f0;color:#333}
     .btn-outline{background:#fff;color:#185FA5;border:1.5px solid #185FA5}
     .btn-danger{background:#FEE2E2;color:#D93025}
@@ -27,14 +28,15 @@
     .btn .ld{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
     .btn.loading .ld{display:block}
     .btn.loading .btn-label{opacity:0}
-    .section{background:#fff;border-radius:16px;padding:16px;margin:10px 12px}
-    .section-title{font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
-    input,textarea,select{width:100%;padding:12px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;color:#111;background:#fff;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none}
-    input:focus,textarea:focus,select:focus{border-color:#185FA5}
-    textarea{resize:none;min-height:90px}
-    .fg{margin-bottom:14px}
-    .fg label{display:block;font-size:13px;font-weight:500;color:#555;margin-bottom:6px}
-    .fg .hint{font-size:12px;color:#aaa;margin-top:4px}
+    .section{background:#fff;border-radius:20px;padding:18px;margin:10px 16px}
+    .section-title{font-size:14px;font-weight:600;color:#0d0c19;margin-bottom:12px;font-family:'Albert Sans',sans-serif}
+    input,textarea,select{width:100%;padding:16px 18px;border:2px solid #f1eeee;border-radius:18px;font-size:14px;color:#0d0c19;background:#fef9f9;outline:none;font-family:'Work Sans',sans-serif;-webkit-appearance:none;appearance:none;transition:border-color .2s,box-shadow .2s}
+    input:focus,textarea:focus,select:focus{border-color:#4f00df;background:#fff;box-shadow:0 0 0 3px rgba(79,0,223,.06)}
+    select{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 22 22" fill="none"><path d="M18.2392 8.61433L11.3642 15.4893C11.2675 15.5859 11.1365 15.6401 10.9998 15.6401C10.8632 15.6401 10.7321 15.5859 10.6355 15.4893L3.76046 8.61433C3.66938 8.51659 3.61979 8.3873 3.62215 8.25372C3.62451 8.12014 3.67862 7.99269 3.77309 7.89822C3.86756 7.80374 3.99502 7.74963 4.1286 7.74727C4.26218 7.74492 4.39146 7.7945 4.48921 7.88558L10.9998 14.3953L17.5105 7.88558C17.6082 7.7945 17.7375 7.74492 17.8711 7.74727C18.0047 7.74963 18.1321 7.80374 18.2266 7.89822C18.321 7.99269 18.3752 8.12014 18.3775 8.25372C18.3799 8.3873 18.3303 8.51659 18.2392 8.61433Z" fill="%23343330"/></svg>');background-repeat:no-repeat;background-position:right 16px center;background-size:18px;padding-right:44px}
+    textarea{resize:vertical;min-height:120px}
+    .fg{margin-bottom:16px}
+    .fg label{display:block;font-size:13px;color:#0d0c19;margin-bottom:6px;font-family:'Work Sans',sans-serif}
+    .fg .hint{font-size:12px;color:#9b9d9d;margin-top:4px}
 
     /* REGISTER */
     #s-register{background:#fff}
@@ -81,18 +83,18 @@
     .oc-stars{font-size:12px;color:#EF9F27}
 
     /* CATEGORY GRID */
-    .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-    .cat-btn{padding:11px 8px;border-radius:10px;border:1.5px solid #e0e0e0;background:#fff;font-size:13px;font-weight:500;color:#333;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px}
-    .cat-btn.sel{border-color:#185FA5;background:#EFF6FF;color:#185FA5}
-    .cat-icon{font-size:20px}
+    .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+    .cat-btn{padding:14px 8px;border-radius:14px;border:2px solid #f1eeee;background:#fef9f9;font-size:13px;font-weight:500;color:#0d0c19;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Work Sans',sans-serif}
+    .cat-btn.sel{border-color:#4f00df;background:#f3edff;color:#4f00df}
+    .cat-icon{font-size:22px}
 
     /* HM PICKER */
-    .hm-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid #e0e0e0;border-radius:12px;cursor:pointer;margin-bottom:8px;background:#fff;transition:all .15s}
-    .hm-opt.sel{border-color:#185FA5;background:#EFF6FF}
-    .hm-opt.quick{border-color:#8B5CF6;background:#F5F3FF}
-    .hm-opt.quick.sel{border-color:#7C3AED;background:#EDE9FE}
-    .hm-av{width:40px;height:40px;border-radius:50%;background:#B5D4F4;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0C447C;flex-shrink:0}
-    .hm-av.purple{background:#DDD6FE;color:#6D28D9}
+    .hm-opt{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #f1eeee;border-radius:18px;cursor:pointer;margin-bottom:8px;background:#fef9f9;transition:all .15s}
+    .hm-opt.sel{border-color:#4f00df;background:#f3edff}
+    .hm-opt.quick{border-color:#33dfff;background:#ecfdff}
+    .hm-opt.quick.sel{border-color:#4f00df;background:#f3edff}
+    .hm-av{width:40px;height:40px;border-radius:50%;background:#33dfff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0d0c19;flex-shrink:0}
+    .hm-av.purple{background:#c5b5ff;color:#0d0c19}
     .hm-info{flex:1}
     .hm-name{font-size:14px;font-weight:600;color:#111}
     .hm-meta{font-size:12px;color:#888;margin-top:1px}
@@ -102,11 +104,11 @@
     .pill-purple{background:#EDE9FE;color:#6D28D9}
 
     /* PHOTO UPLOAD */
-    .photo-upload-area{border:2px dashed #ddd;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s;background:#fafafa}
-    .photo-upload-area:hover{border-color:#185FA5}
+    .photo-upload-area{border:2px solid #f1eeee;border-radius:18px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s;background:#fef9f9}
+    .photo-upload-area:hover{border-color:#4f00df}
     .photo-upload-area input{display:none}
     .photo-previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .photo-preview{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;flex-shrink:0}
+    .photo-preview{position:relative;width:80px;height:80px;border-radius:14px;overflow:hidden;flex-shrink:0}
     .photo-preview img{width:100%;height:100%;object-fit:cover}
     .photo-preview .remove-photo{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
@@ -234,7 +236,7 @@
     </div>
   </div>
 
-  <button class="pf-send-btn" onclick="showNewOrder()">Send</button>
+  <button class="pf-send-btn" onclick="showNewOrder()">New Request</button>
 
   <div class="pf-orders-wrap">
     <div class="pf-filter-row" id="pfFilterRow">
@@ -251,42 +253,49 @@
 
 <div class="screen" id="s-new-order">
   <div class="topbar">
-    <div class="back-btn" onclick="showProfile()">← Back</div>
+    <div class="back-btn" onclick="showProfile()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></div>
     <h1>New Request</h1>
   </div>
-  <div style="padding:10px 12px 24px">
-    <div class="section" style="margin:0 0 10px">
+  <div style="padding:16px 0 24px;text-align:center">
+    <div style="width:72px;height:72px;border-radius:50%;background:#bff5ff;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px">&#x1F43E;</div>
+    <div style="font-size:22px;font-weight:700;color:#4f00df;font-family:'Albert Sans',sans-serif;margin-bottom:6px">What can we help you with?</div>
+    <div style="font-size:14px;color:#908f98;padding:0 24px">Tell us what happened and what kind of help you need.</div>
+  </div>
+  <div style="padding:0 0 24px">
+    <div class="section" style="margin:0 16px 10px">
       <div class="section-title">Category</div>
       <div class="cat-grid" id="catGrid"></div>
       <div id="otherWrap" style="display:none"><input id="otherCat" placeholder="Describe the type of work..."/></div>
     </div>
-    <div class="section" style="margin:0 0 10px">
+    <div class="section" style="margin:0 16px 10px">
       <div class="section-title">Description *</div>
       <textarea id="ordDesc" placeholder="Describe the problem in detail so your handyman can come prepared. What's broken? Where is it? Any relevant history?"></textarea>
     </div>
-    <div class="section" style="margin:0 0 10px">
-      <div class="section-title">Photos <span style="font-weight:400;text-transform:none;font-size:11px">(optional)</span></div>
+    <div class="section" style="margin:0 16px 10px">
+      <div class="section-title">Photos <span style="font-weight:400;color:#9b9d9d;font-size:12px">(optional)</span></div>
       <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
         <div style="font-size:28px;margin-bottom:6px">📷</div>
-        <div style="font-size:14px;font-weight:500;color:#555">Tap to add photos</div>
-        <div style="font-size:12px;color:#aaa;margin-top:3px">Up to 4 photos, 5MB each</div>
+        <div style="font-size:14px;font-weight:500;color:#0d0c19">Tap to add photos</div>
+        <div style="font-size:12px;color:#9b9d9d;margin-top:3px">Up to 4 photos, 5MB each</div>
         <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotos(this)"/>
       </div>
       <div class="photo-previews" id="photoPreviews"></div>
     </div>
-    <div class="section" style="margin:0 0 10px">
+    <div class="section" style="margin:0 16px 10px">
       <div class="section-title">Handyman</div>
       <div id="hmPickerList"></div>
     </div>
-    <button class="btn btn-primary" id="submitOrderBtn" onclick="submitOrder()">
-      <span class="ld"></span><span class="btn-label">Submit Request</span>
-    </button>
+    <div style="padding:0 16px">
+      <button class="btn btn-primary" id="submitOrderBtn" onclick="submitOrder()">
+        <span class="ld"></span><span class="btn-label">Submit Request</span>
+      </button>
+    </div>
   </div>
 </div>
 
 <div class="screen" id="s-order-detail">
   <div class="topbar">
-    <div class="back-btn" onclick="showProfile()">← Back</div>
+    <div class="back-btn" onclick="showProfile()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></div>
     <h1>Order Details</h1>
   </div>
   <div id="orderDetailContent" style="padding-bottom:24px"></div>
@@ -294,7 +303,7 @@
 
 <div class="screen" id="s-rate">
   <div class="topbar">
-    <div class="back-btn" onclick="showProfile()">← Skip</div>
+    <div class="back-btn" onclick="showProfile()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></div>
     <h1>Rate Your Experience</h1>
   </div>
   <div style="padding:10px 12px 24px">
