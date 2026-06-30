@@ -138,6 +138,42 @@
     .empty-state .ei{font-size:36px;margin-bottom:8px}
     .pad{padding:0 12px}
     .divider{height:8px;background:#f5f5f7}
+
+    /* ── Profile screen — Figma redesign ── */
+    .pf-topbar{display:flex;align-items:center;justify-content:space-between;padding:16px}
+    .pf-icon-btn{width:37px;height:37px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+    .pf-icon-btn.notif{background:#fff}
+    .pf-header-row{display:flex;align-items:center;gap:16px;padding:0 16px 16px}
+    .pf-av{width:69px;height:69px;border-radius:20px;background:#86c0ff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#0d0c19;flex-shrink:0}
+    .pf-name{font-size:26px;font-weight:700;color:#164e23;font-family:'Albert Sans',sans-serif;line-height:1.1}
+    .pf-loc{font-size:16px;color:#0d0c19;text-decoration:underline;margin-top:2px}
+    .pf-rating-pill{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
+    .pf-rating-pill .spark{color:#4f86ff;font-size:16px}
+    .pf-rating-pill .val{font-size:14px;color:#164e23;font-weight:500}
+    .pf-send-btn{background:#32e682;border:none;border-radius:310px;height:52px;margin:0 16px 24px;display:flex;align-items:center;justify-content:center;font-size:17px;color:#111;cursor:pointer;transition:background .2s}
+    .pf-send-btn:hover{background:#164e23;color:#fff}
+    .pf-orders-wrap{background:#ecf4ff;border-radius:40px 40px 0 0;padding:20px 16px;min-height:60vh}
+    .pf-filter-row{display:flex;gap:10px;background:#fff;border-radius:20px;padding:8px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+    .pf-filter{flex:1;text-align:center;padding:7px 4px;border-radius:20px;font-size:14px;color:#111;cursor:pointer;background:transparent;border:none;font-family:inherit;transition:all .15s}
+    .pf-filter.active{background:#164e23;color:#fff}
+    .pf-order-card{background:#fff;border-radius:20px;padding:14px;margin-bottom:12px;cursor:pointer;transition:transform .1s}
+    .pf-order-card:active{transform:scale(.99)}
+    .pf-order-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .pf-order-av{width:45px;height:45px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#0d0c19;flex-shrink:0}
+    .pf-order-hm-name{font-size:18px;font-weight:700;color:#0d0c19;font-family:'Albert Sans',sans-serif}
+    .pf-order-hm-loc{font-size:14px;color:#000;text-decoration:underline}
+    .pf-order-meta-row{display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+    .pf-order-rating{display:flex;align-items:center;gap:5px;font-size:14px;color:#164e23}
+    .pf-order-rating .spark{color:#4f86ff}
+    .pf-order-chat{display:flex;align-items:center;gap:5px;font-size:14px;color:#164e23}
+    .pf-order-date{font-size:14px;color:#908f98;margin-left:auto}
+    .pf-order-desc{font-size:14px;color:#2f2b60;line-height:1.5}
+    .pf-order-desc .more{font-weight:700;text-decoration:underline;cursor:pointer;color:#2f2b60}
+    .pf-order-photo{width:100%;height:160px;border-radius:14px;object-fit:cover;margin-top:10px}
+    .pf-status-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;flex-shrink:0}
+    .pf-load-more{background:#32e682;border:none;border-radius:310px;height:52px;width:100%;font-size:17px;color:#111;cursor:pointer;margin-top:8px;transition:background .2s}
+    .pf-load-more:hover{background:#164e23;color:#fff}
+    .pf-empty{text-align:center;padding:40px 16px;color:#908f98;font-size:14px}
   </style>
 <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
@@ -181,31 +217,35 @@
 </div>
 
 <div class="screen" id="s-profile">
-  <div class="profile-header">
-    <div class="profile-top">
-      <div class="profile-av" id="profAv"></div>
-      <div>
-        <div class="profile-name" id="profName"></div>
-        <div class="profile-phone" id="profPhone"></div>
-        <div class="profile-rating-row">
-          <span class="stars-yellow" id="profStars"></span>
-          <span class="rating-n" id="profRatingN"></span>
-          <span class="rating-c" id="profRatingC"></span>
-        </div>
-      </div>
+  <div class="pf-topbar">
+    <div class="pf-icon-btn" title="Messages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="#164e23" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="pf-icon-btn notif" title="Notifications"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke="#343330" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.73 21a2 2 0 01-3.46 0" stroke="#343330" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  </div>
+
+  <div class="pf-header-row">
+    <div class="pf-av" id="profAv"></div>
+    <div style="flex:1;min-width:0">
+      <div class="pf-name" id="profName"></div>
+      <div class="pf-loc" id="profPhone"></div>
     </div>
-    <div class="stats-row">
-      <div class="stat-box"><div class="stat-n" id="profOrdCount">0</div><div class="stat-l">Orders</div></div>
-      <div class="stat-box"><div class="stat-n" id="profRatingStat">—</div><div class="stat-l">Rating</div></div>
-      <div class="stat-box"><div class="stat-n" id="profHMCount">0</div><div class="stat-l">Handymen</div></div>
+    <div class="pf-rating-pill">
+      <span class="spark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" fill="#4f86ff"/></svg></span>
+      <span class="val" id="profRatingPillText">— (0)</span>
     </div>
   </div>
-  <div id="pendingSection"></div>
-  <div id="activeSection"></div>
-  <div class="pad"><button class="btn btn-primary" style="margin:10px 0 4px" onclick="showNewOrder()">+ New Request</button></div>
-  <div class="section" style="margin-top:10px">
-    <div class="section-title">Order History</div>
+
+  <button class="pf-send-btn" onclick="showNewOrder()">Send</button>
+
+  <div class="pf-orders-wrap">
+    <div class="pf-filter-row" id="pfFilterRow">
+      <button class="pf-filter active" data-f="all" onclick="setOrderFilter('all',this)">All Orders</button>
+      <button class="pf-filter" data-f="active" onclick="setOrderFilter('active',this)">Active</button>
+      <button class="pf-filter" data-f="reviews" onclick="setOrderFilter('reviews',this)">Reviews</button>
+    </div>
+    <div id="pendingSection"></div>
+    <div id="activeSection"></div>
     <div id="historyList"></div>
+    <button class="pf-load-more" id="pfLoadMoreBtn" style="display:none" onclick="loadMoreOrders()">Load more</button>
   </div>
 </div>
 
@@ -433,6 +473,9 @@ async function registerClient(){
 }
 
 // ── PROFILE ───────────────────────────────────────────────────
+var AV_COLORS=["#86c0ff","#ecbaec","#bcffe9","#ffd9a0","#c5b5ff"];
+function avColor(seed){var h=0;for(var i=0;i<(seed||"").length;i++)h+=seed.charCodeAt(i);return AV_COLORS[h%AV_COLORS.length];}
+
 async function loadProfile(){
   try {
     var c=S.client;
@@ -444,33 +487,98 @@ async function loadProfile(){
     var hmMap={};
     await Promise.all(Object.keys(hmIds).map(async function(id){var h=await fsGet("handymen",id);if(h)hmMap[id]=h;}));
     S.hmMap=hmMap;
-    var realOrds=orders.filter(function(o){return!o.isOnboarding;});
+
     document.getElementById("profAv").textContent=ini(c.name);
-    document.getElementById("profName").textContent=c.name;
-    document.getElementById("profPhone").textContent=c.phone;
-    document.getElementById("profOrdCount").textContent=realOrds.length;
-    document.getElementById("profHMCount").textContent=Object.keys(hmIds).length;
-    var rat=c.ratingAvg||0,cnt=c.reviewCount||0,full=Math.round(rat);
-    document.getElementById("profStars").textContent="★".repeat(full)+"☆".repeat(5-full);
-    document.getElementById("profRatingN").textContent=cnt>0?rat.toFixed(1):"";
-    document.getElementById("profRatingC").textContent=cnt>0?"("+cnt+" reviews)":"No ratings yet";
-    document.getElementById("profRatingStat").textContent=cnt>0?rat.toFixed(1):"—";
-    var pending=orders.filter(function(o){return o.status==="completed"&&!o.clientRating&&!o.isOnboarding;});
-    var ps=document.getElementById("pendingSection");
-    if(pending.length){var o=pending[0];var hm=hmMap[o.handymanId]||{};ps.innerHTML='<div class="order-card pending-r" style="margin:10px 12px 0" onclick="showRate(\''+o.id+'\')"><div class="oc-head"><span class="oc-badge b-review">&#x2B50; Rate this job</span><span class="oc-date">'+fd(o.completedAt)+'</span></div><div class="oc-cat">'+o.category+'</div>'+(hm.name?'<div class="oc-hm-row"><div class="oc-hm"><div class="av-xs">'+ini(hm.name)+'</div><span class="oc-hm-name">'+hm.name+'</span></div><span style="font-size:12px;color:#185FA5;font-weight:500">Leave review &#x2192;</span></div>':"")+' </div>';}else ps.innerHTML="";
-    var active=orders.filter(function(o){return o.status==="new"||o.status==="in_progress";});
-    var as=document.getElementById("activeSection");
-    if(active.length){as.innerHTML='<div style="padding:10px 12px 4px;font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em">Active</div>'+active.map(function(o){var hm=hmMap[o.handymanId]||{};return'<div class="order-card active-o" style="margin:0 12px 8px" onclick="showOrderDetail(\''+o.id+'\')"><div class="oc-head"><span class="oc-badge '+(o.status==="new"?"b-new":"b-progress")+'">'+(o.status==="new"?"New":"In Progress")+'</span><span class="oc-date">'+fd(o.createdAt)+'</span></div><div class="oc-cat">'+o.category+'</div><div class="oc-hm-row">'+(o.isPublic?'<div style="font-size:12px;color:#8B5CF6;font-weight:500">&#x1F50D; Finding a handyman...</div>':(hm.name?'<div class="oc-hm"><div class="av-xs">'+ini(hm.name)+'</div><span class="oc-hm-name">'+hm.name+'</span></div>':""))+'<span style="font-size:12px;color:#185FA5">View &#x2192;</span></div></div>';}).join("");}else as.innerHTML="";
-    var hist=orders.filter(function(o){return o.status==="completed"&&!o.isOnboarding;});
-    var hl=document.getElementById("historyList");
-    if(!hist.length){hl.innerHTML='<div class="empty-state"><div class="ei">&#x1F4CB;</div><p>No completed orders yet.</p></div>';}
-    else{hl.innerHTML=hist.map(function(o){var hm=hmMap[o.handymanId]||{};return'<div class="order-card" onclick="showOrderDetail(\''+o.id+'\')"><div class="oc-head"><span class="oc-badge b-done">Completed</span><span class="oc-date">'+fd(o.completedAt||o.createdAt)+'</span></div><div class="oc-cat">'+o.category+'</div>'+(o.description?'<div class="oc-desc">'+(o.description).slice(0,80)+(o.description.length>80?"...":"")+'</div>':"")+' <div class="oc-hm-row">'+(hm.name?'<div class="oc-hm"><div class="av-xs">'+ini(hm.name)+'</div><span class="oc-hm-name">'+hm.name+'</span></div>':'<div></div>')+(o.clientRating?'<span class="oc-stars">'+starsHtml(o.clientRating,12)+'</span>':'<span style="font-size:12px;color:#aaa">Not rated</span>')+'</div></div>';}).join("");}
+    document.getElementById("profAv").style.background=avColor(c.name||c.id);
+    document.getElementById("profName").textContent=c.name||"Guest";
+    document.getElementById("profPhone").textContent=c.address||c.phone||"";
+
+    var rat=c.ratingAvg||0,cnt=c.reviewCount||0;
+    document.getElementById("profRatingPillText").textContent=(cnt>0?rat.toFixed(1):"—")+" ("+cnt+")";
+
+    S._pendingOrders=orders.filter(function(o){return o.status==="completed"&&!o.clientRating&&!o.isOnboarding;});
+    S._activeOrders=orders.filter(function(o){return(o.status==="new"||o.status==="in_progress")&&!o.isOnboarding;});
+    S._historyOrders=orders.filter(function(o){return o.status==="completed"&&!o.isOnboarding;});
+    S._allRealOrders=orders.filter(function(o){return!o.isOnboarding;});
+    S._reviewedOrders=orders.filter(function(o){return o.clientRating&&!o.isOnboarding;});
+
+    renderOrderFeed(S._curOrderFilter||"all");
     show("s-profile");
   } catch(e) {
     console.error("loadProfile error:",e);
-    // Still show profile even if something fails
     show("s-profile");
   }
+}
+
+function setOrderFilter(f,btn){
+  S._curOrderFilter=f;
+  document.querySelectorAll("#pfFilterRow .pf-filter").forEach(function(b){b.classList.remove("active");});
+  btn.classList.add("active");
+  renderOrderFeed(f);
+}
+
+function pfOrderCard(o,hmMap){
+  var hm=hmMap[o.handymanId]||{};
+  var hmName=hm.name||(o.isPublic?"Finding a handyman...":"Pending assignment");
+  var seed=hm.name||o.id;
+  var statusMap={new:["#FEF3C7","#92400E","New"],in_progress:["#DBEAFE","#1E40AF","In Progress"],completed:["#D1FAE5","#065F46","Completed"]};
+  var st=statusMap[o.status]||["#f5f5f5","#888",o.status];
+  var desc=o.description||"";
+  var descShort=desc.length>90?desc.slice(0,90)+"..":desc;
+  var photo=(o.photos&&o.photos.length)?o.photos[0]:null;
+  return '<div class="pf-order-card" onclick="'+(o.status==="completed"&&!o.clientRating?'showRate(\''+o.id+'\')':'showOrderDetail(\''+o.id+'\')')+'">'+
+    '<div class="pf-order-top">'+
+      '<div class="pf-order-av" style="background:'+avColor(seed)+'">'+ini(hmName)+'</div>'+
+      '<div style="flex:1;min-width:0"><div class="pf-order-hm-name">'+esc(hmName)+'</div>'+
+      (hm.companyIds?'<div class="pf-order-hm-loc">Montana</div>':'')+'</div>'+
+      '<span class="pf-status-badge" style="background:'+st[0]+';color:'+st[1]+'">'+st[2]+'</span>'+
+    '</div>'+
+    '<div class="pf-order-meta-row">'+
+      (hm.ratingAvg?'<span class="pf-order-rating"><span class="spark">&#10022;</span>'+Number(hm.ratingAvg).toFixed(1)+' ('+(hm.reviewCount||0)+')</span>':'')+
+      '<span class="pf-order-chat">&#128172; '+(o.messageCount||0)+'</span>'+
+      '<span class="pf-order-date">'+fd(o.createdAt)+'</span>'+
+    '</div>'+
+    '<div class="pf-order-desc">'+esc(o.category||"")+(desc?': '+esc(descShort):"")+(desc.length>90?' <span class="more" onclick="event.stopPropagation();showOrderDetail(\''+o.id+'\')">READ MORE</span>':'')+'</div>'+
+    (photo?'<img src="'+photo+'" class="pf-order-photo"/>':'')+
+  '</div>';
+}
+
+function renderOrderFeed(filter){
+  var hmMap=S.hmMap||{};
+  var pendingHtml="";
+  if((S._pendingOrders||[]).length){
+    pendingHtml=pfOrderCard(S._pendingOrders[0],hmMap);
+  }
+  document.getElementById("pendingSection").innerHTML="";
+  document.getElementById("activeSection").innerHTML="";
+
+  var list;
+  if(filter==="active")list=S._activeOrders||[];
+  else if(filter==="reviews")list=S._reviewedOrders||[];
+  else list=(S._allRealOrders||[]).slice();
+
+  document.getElementById("pfLoadMoreBtn").style.display=list.length>10?"block":"none";
+
+  var hl=document.getElementById("historyList");
+  var shown=list.slice(0,10);
+  if(!shown.length&&!pendingHtml){
+    hl.innerHTML='<div class="pf-empty">No orders yet. Tap Send above to create one.</div>';
+    return;
+  }
+  hl.innerHTML=pendingHtml+shown.map(function(o){return pfOrderCard(o,hmMap);}).join("");
+}
+
+function loadMoreOrders(){
+  var filter=S._curOrderFilter||"all";
+  var list;
+  if(filter==="active")list=S._activeOrders||[];
+  else if(filter==="reviews")list=S._reviewedOrders||[];
+  else list=(S._allRealOrders||[]).slice();
+  var hl=document.getElementById("historyList");
+  var currentCount=hl.querySelectorAll(".pf-order-card").length;
+  var nextBatch=list.slice(currentCount,currentCount+10);
+  hl.insertAdjacentHTML("beforeend",nextBatch.map(function(o){return pfOrderCard(o,S.hmMap);}).join(""));
+  if(currentCount+nextBatch.length>=list.length)document.getElementById("pfLoadMoreBtn").style.display="none";
 }
 
 function showProfile(){show("s-profile");}
