@@ -493,24 +493,30 @@
 
     <!-- ORDERS -->
     <div class="page" id="cp-orders">
-      <div class="ph" style="margin-top:8px">
-        <div><h2>Orders</h2><p>All service requests from your clients</p></div>
-        <div class="fl">
-          <button class="fb active" onclick="filterOrders('all',this)">All</button>
-          <button class="fb" onclick="filterOrders('new',this)">New</button>
-          <button class="fb" onclick="filterOrders('in_progress',this)">In Progress</button>
-          <button class="fb" onclick="filterOrders('completed',this)">Completed</button>
-        </div>
+      <div class="pg-header">
+        <div class="pg-title">Orders</div>
+        <div class="pg-sub">All service requests from your clients</div>
       </div>
-      <div class="card">
-        <div class="tw"><table><thead><tr><th>Date</th><th>Client</th><th>Handyman</th><th>Category</th><th>Status</th><th>Rating</th><th></th></tr></thead>
-        <tbody id="ordersBody"></tbody></table></div>
+      <div class="pg-table-wrap">
+        <div class="pg-table-toolbar">
+          <button class="pg-pill active" onclick="filterOrders('all',this)">All</button>
+          <button class="pg-pill" onclick="filterOrders('new',this)">New</button>
+          <button class="pg-pill" onclick="filterOrders('in_progress',this)">In Progress</button>
+          <button class="pg-pill" onclick="filterOrders('completed',this)">Completed</button>
+          <button class="pg-pill" onclick="filterOrders('cancelled',this)">Cancelled</button>
+        </div>
+        <table class="pg-table">
+          <thead><tr><th>Date</th><th>Client</th><th>Handyman</th><th>Category</th><th>Status</th><th>Rating</th><th style="width:80px"></th></tr></thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
       </div>
     </div>
 
     <!-- ORDER DETAIL -->
     <div class="page" id="cp-order-detail">
-      <div class="back" onclick="navApp('orders')">&#x2190; Back to Orders</div>
+      <div style="margin-bottom:12px">
+        <button class="cd-back-btn" onclick="navApp('orders')" title="Back"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></button>
+      </div>
       <div id="orderDetContent"></div>
     </div>
 
@@ -541,16 +547,17 @@
   </div>
 </div>
 
-<!-- REQUEST CARDS MODAL -->
-<div class="overlay" id="mReqCards">
-  <div class="modal">
-    <div class="mt">Request More NFC Cards</div>
-    <div class="ms">We'll prepare your order and get back to you within 2–3 business days.</div>
-    <div class="fg"><label>Number of Cards Needed</label><input id="reqCardsCount" type="number" min="5" max="500" value="10" placeholder="10"/></div>
-    <div class="fg"><label>Notes (optional)</label><input id="reqCardsNotes" placeholder="Any special requirements..."/></div>
-    <div class="ma">
-      <button class="btn bs" onclick="closeModal('mReqCards')">Cancel</button>
-      <button class="btn bp" id="reqCardsBtn" onclick="submitCardRequest()"><span class="ld"></span><span>Send Request</span></button>
+<!-- REQUEST CARDS MODAL — center -->
+<div class="gen-overlay" id="mReqCards" onclick="if(event.target===this)closeModal('mReqCards')">
+  <div class="gen-modal">
+    <button class="gen-close" onclick="closeModal('mReqCards')"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.207 0.707031L10.3105 9.60352L19.207 18.5L18.5 19.207L9.60352 10.3105L0.707031 19.207L0 18.5L8.89648 9.60352L0 0.707031L0.707031 0L9.60352 8.89648L18.5 0L19.207 0.707031Z" fill="black"/></svg></button>
+    <div class="gen-title">Request More NFC Cards</div>
+    <div class="gen-sub">We'll prepare your order and get back to you within 2-3 business days.</div>
+    <div class="dfg" style="margin-bottom:18px"><label>Number of Cards Needed</label><input id="reqCardsCount" type="number" min="5" max="500" value="10" placeholder="10"/></div>
+    <div class="dfg" style="margin-bottom:24px"><label>Notes (optional)</label><input id="reqCardsNotes" placeholder="Any special requirements..."/></div>
+    <div style="display:flex;gap:18px;justify-content:flex-end">
+      <button class="dbtn-cancel" onclick="closeModal('mReqCards')">Cancel</button>
+      <button class="dbtn-save" id="reqCardsBtn" onclick="submitCardRequest()"><span class="ld"></span><span>Send Request</span></button>
     </div>
   </div>
   </main><!-- /sb-main -->
@@ -1089,24 +1096,24 @@ function renderOrders(){
   var hmMap={};S.handymen.forEach(function(h){hmMap[h.id]=h.name;});
   var fil=S.orders.filter(function(o){return S.ordFilter==="all"||o.status===S.ordFilter;});
   var tb=document.getElementById("ordersBody");
-  if(!fil.length){tb.innerHTML='<tr><td colspan="7" class="empty">No orders found</td></tr>';return;}
+  if(!fil.length){tb.innerHTML='<tr><td colspan="7" class="pg-empty">No orders found</td></tr>';return;}
   tb.innerHTML=fil.map(function(o){
     var cl=S.clients[o.clientId]||{};
     return'<tr style="cursor:pointer" onclick="showOrderDetail(\''+o.id+'\')">'+
-      '<td class="muted">'+fd(o.createdAt)+'</td>'+
+      '<td style="color:#858585">'+fd(o.createdAt)+'</td>'+
       '<td>'+(esc(cl.name) || "—")+'</td>'+
       '<td>'+(hmMap[o.handymanId]||"—")+'</td>'+
       '<td>'+(esc(o.category) || "—")+'</td>'+
       '<td>'+bdg(o.status||"new")+'</td>'+
-      '<td>'+(o.clientRating?'<span style="color:#EF9F27">'+('&#x2605;').repeat(o.clientRating)+'</span>':"<span class='muted'>—</span>")+'</td>'+
-      '<td><span style="font-size:12px;color:#185FA5">View &#x2192;</span></td>'+
+      '<td>'+(o.clientRating?'<span style="color:#EF9F27">'+('&#x2605;').repeat(o.clientRating)+'</span>':"<span style='color:#bbb'>—</span>")+'</td>'+
+      '<td style="text-align:right"><button class="cd-action-btn" title="View"><svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.3681 13.4307L15.0556 20.7432C14.9401 20.8508 14.7873 20.9094 14.6295 20.9066C14.4716 20.9039 14.321 20.8399 14.2093 20.7283C14.0977 20.6166 14.0337 20.466 14.0309 20.3081C14.0281 20.1502 14.0867 19.9975 14.1944 19.8819L20.4659 13.6094H4.0625C3.90088 13.6094 3.74589 13.5452 3.63161 13.431C3.51733 13.3167 3.45313 13.1617 3.45312 13.0001C3.45312 12.8384 3.51733 12.6834 3.63161 12.5692C3.74589 12.4549 3.90088 12.3907 4.0625 12.3907H20.4659L14.1944 6.11818C14.0867 6.00267 14.0281 5.84988 14.0309 5.69201C14.0337 5.53414 14.0977 5.38351 14.2093 5.27187C14.321 5.16022 14.4716 5.09626 14.6295 5.09348C14.7873 5.09069 14.9401 5.14929 15.0556 5.25693L22.3681 12.5694C22.4822 12.6837 22.5463 12.8386 22.5463 13.0001C22.5463 13.1615 22.4822 13.3164 22.3681 13.4307Z" fill="#4F00DF"/></svg></button></td>'+
     '</tr>';
   }).join("");
 }
 
 function filterOrders(s,btn){
   S.ordFilter=s;
-  document.querySelectorAll("#cp-orders .fb").forEach(function(b){b.classList.remove("active");});
+  document.querySelectorAll("#cp-orders .pg-pill").forEach(function(b){b.classList.remove("active");});
   btn.classList.add("active");renderOrders();
 }
 
@@ -1121,29 +1128,31 @@ function showOrderDetail(ordId){
   var content=document.getElementById("orderDetContent");
 
   content.innerHTML=
-    '<div class="card" style="margin:0 0 14px"><div style="padding:16px">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
-        bdg(order.status||"new")+'<span class="muted">'+fd(order.createdAt)+'</span></div>'+
-      '<div style="font-size:20px;font-weight:700;color:#111;margin-bottom:6px">'+(esc(order.category) || "—")+'</div>'+
-      (order.description?'<div style="font-size:14px;color:#555;line-height:1.6">'+order.description+'</div>':"")+
-    '</div></div>'+
+    '<div class="pg-header" style="margin-bottom:20px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+          bdg(order.status||"new")+'<span style="color:#858585;font-size:14px">'+fd(order.createdAt)+'</span></div>'+
+        '<div class="cd-title" style="font-size:26px">'+(esc(order.category) || "—")+'</div>'+
+        (order.description?'<div style="font-size:15px;color:#555;line-height:1.6;margin-top:10px">'+order.description+'</div>':"")+
+    '</div>'+
 
-    '<div class="card" style="margin:0 0 14px"><div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px">'+
-      '<div><div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Client</div>'+
-        (cl.name?'<div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(cl.name)+'</div><div><div style="font-size:14px;font-weight:600">'+cl.name+'</div><div class="muted">'+(esc(cl.phone) || "")+'</div></div></div>':'<span class="muted">—</span>')+
+    '<div class="pg-card">'+
+      '<div class="pg-info-grid">'+
+      '<div><div class="pg-info-label" style="margin-bottom:10px">Client</div>'+
+        (cl.name?'<div style="display:flex;align-items:center;gap:10px"><div class="pg-av">'+ini(cl.name)+'</div><div><div style="font-size:14px;font-weight:600;color:#111">'+cl.name+'</div><div style="color:#858585;font-size:13px">'+(esc(cl.phone) || "")+'</div></div></div>':'<span style="color:#bbb">—</span>')+
       '</div>'+
-      '<div><div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Handyman</div>'+
-        (hm.name?'<div style="display:flex;align-items:center;gap:8px"><div class="av">'+ini(hm.name)+'</div><div><div style="font-size:14px;font-weight:600">'+hm.name+'</div><div class="muted">'+(esc(hm.phone) || "")+'</div></div></div>':'<span class="muted">—</span>')+
+      '<div><div class="pg-info-label" style="margin-bottom:10px">Handyman</div>'+
+        (hm.name?'<div style="display:flex;align-items:center;gap:10px"><div class="pg-av">'+ini(hm.name)+'</div><div><div style="font-size:14px;font-weight:600;color:#111">'+hm.name+'</div><div style="color:#858585;font-size:13px">'+(esc(hm.phone) || "")+'</div></div></div>':'<span style="color:#bbb">—</span>')+
       '</div>'+
-    '</div></div>'+
+      '</div>'+
+    '</div>'+
 
-    (photos.length?'<div class="card" style="margin:0 0 14px"><div class="ch"><h3>Photos</h3></div><div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px">'+
-      photos.map(function(url){return'<img src="'+url+'" style="width:80px;height:80px;border-radius:8px;object-fit:cover;cursor:pointer" onclick="window.open(\''+url+'\',\'_blank\')">';}).join("")+'</div></div>':"")+
+    (photos.length?'<div class="pg-card"><div class="pg-section-title">Photos</div><div style="display:flex;gap:10px;flex-wrap:wrap">'+
+      photos.map(function(url){return'<img src="'+url+'" class="pg-photo" onclick="window.open(\''+url+'\',\'_blank\')">';}).join("")+'</div></div>':"")+
 
-    (order.clientRating?'<div class="card" style="margin:0 0 14px"><div class="ch"><h3>Client Review</h3></div><div style="padding:14px 16px">'+
-      '<div style="color:#EF9F27;font-size:20px;margin-bottom:6px">'+('&#x2605;').repeat(order.clientRating)+'<span style="color:#ddd">'+('&#x2605;').repeat(5-order.clientRating)+'</span></div>'+
-      (order.clientReview?'<div style="font-size:14px;color:#555;line-height:1.5">'+order.clientReview+'</div>':'<div class="muted">No written review</div>')+
-    '</div></div>':"");
+    (order.clientRating?'<div class="pg-card"><div class="pg-section-title">Client Review</div>'+
+      '<div style="color:#EF9F27;font-size:20px;margin-bottom:8px">'+('&#x2605;').repeat(order.clientRating)+'<span style="color:#ddd">'+('&#x2605;').repeat(5-order.clientRating)+'</span></div>'+
+      (order.clientReview?'<div style="font-size:14px;color:#555;line-height:1.6">'+order.clientReview+'</div>':'<div style="color:#aaa">No written review</div>')+
+    '</div>':"");
 }
 
 // ── START ─────────────────────────────────────────────────────
