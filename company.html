@@ -99,29 +99,6 @@
     .stat-n{font-size:24px;font-weight:700;color:#111}
     .stat-l{font-size:12px;color:#888;margin-top:3px}
     @media(max-width:600px){.stats-grid{grid-template-columns:1fr 1fr}}
-    @media(max-width:900px){
-      #s-app.active{flex-direction:column!important}
-      .sidebar{width:100%;height:auto;flex-direction:row;padding:12px 16px;overflow-x:auto}
-      .sb-nav-card{padding:12px 16px;border-radius:16px;display:flex;align-items:center;gap:8px;flex:1}
-      .sb-logo{width:36px;height:36px;margin-bottom:0;border-radius:10px;flex-shrink:0}
-      .sb-menu{flex-direction:row;gap:4px}
-      .nb-label{display:none}
-      .nb-icon{width:36px;height:36px}
-      .sb-user-card,.sb-signout-card,.sb-footer{display:none}
-      .sb-main{height:calc(100vh - 72px)}
-    }
-    @media(max-width:900px){
-      #s-app.active{flex-direction:column!important;height:100vh;overflow:hidden}
-      body{overflow:hidden}
-      .sidebar{width:100%;height:auto;flex-direction:row;padding:12px 16px;overflow-x:auto}
-      .sb-nav-card{padding:12px 16px;border-radius:16px;display:flex;align-items:center;gap:8px;flex:1}
-      .sb-logo{width:36px;height:36px;margin-bottom:0;border-radius:10px;flex-shrink:0}
-      .sb-menu{flex-direction:row;gap:4px}
-      .nb-label{display:none}
-      .nb-icon{width:36px;height:36px}
-      .sb-user-card,.sb-signout-card,.sb-footer{display:none}
-      .sb-main{height:calc(100vh - 72px);overflow-y:auto}
-    }
 
     /* MODAL */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
@@ -292,23 +269,29 @@
     .co-search input::placeholder{color:#858585}
 
     /* ═══ ADAPTIVE LAYOUT (company) ══════════════════════════ */
-    .hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;width:44px;height:44px;border-radius:50%;background:#fff;border:none;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:background .15s}
+    .hamburger{display:none;position:fixed;top:12px;right:12px;z-index:300;width:44px;height:44px;border-radius:50%;background:#fff;border:none;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:background .15s}
     .hamburger:hover{background:#f5f5f5}
     .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:199}
     .sidebar-backdrop.open{display:block}
     .sb-main{flex:1;overflow-y:auto;min-height:100vh}
 
     @media(max-width:900px){
-      .sb{width:72px;padding:12px 8px}
-      .sb-logo{display:none}
-      .nb-label{display:none}
-      .nb{justify-content:center;padding:10px 0;border-radius:12px}
-      .nb-icon{margin:0}
+      /* Tablet: collapse sidebar to icons-only */
+      .sidebar:not(.open){width:72px;padding:16px 10px}
+      .sidebar:not(.open) .sb-nav-card{padding:12px 8px}
+      .sidebar:not(.open) .sb-logo{display:none}
+      .sidebar:not(.open) .nb-label{display:none}
+      .sidebar:not(.open) .nb{justify-content:center;padding:12px 0;border-radius:12px}
+      .sidebar:not(.open) .nb-icon{margin:0}
+      .sidebar:not(.open) .sb-user-card,
+      .sidebar:not(.open) .sb-signout-card,
+      .sidebar:not(.open) .sb-footer{display:none}
     }
 
     @media(max-width:600px){
+      /* Mobile: sidebar becomes slide-in drawer */
       .hamburger{display:flex}
-      .sb{
+      .sidebar{
         position:fixed;left:0;top:0;height:100vh;z-index:200;
         width:260px;
         transform:translateX(-100%);
@@ -316,17 +299,23 @@
         box-shadow:4px 0 20px rgba(0,0,0,.14);
         overflow-y:auto;
       }
-      .sb.open{transform:translateX(0)}
-      .sb .nb-label{display:flex}
-      .sb .sb-logo{display:flex}
-      .sb .nb{justify-content:flex-start;padding:12px 14px}
+      .sidebar.open{transform:translateX(0)}
+      .sidebar.open .nb-label{display:flex!important}
+      .sidebar.open .sb-logo{display:flex!important}
+      .sidebar.open .nb{justify-content:flex-start!important;padding:12px 14px!important}
 
-      .sb-main{padding-top:56px}
-      .pg-header{margin-top:4px}
+      .sb-main{padding-top:40px}
+      .pg-header{margin-top:0}
 
       /* Tables */
       .pg-table-wrap{overflow-x:auto}
       .pg-table{min-width:560px}
+
+      /* Header rows: stack action button under the title */
+      .pg-toprow{flex-wrap:wrap}
+      .pg-toprow > *:not(:first-child){width:100%}
+      .pg-toprow .cd-add-cards-btn,
+      .pg-toprow .pg-action-btn{width:100%;justify-content:center;margin-top:8px}
 
       /* Stats */
       .cd-stats-row{flex-wrap:wrap}
@@ -1368,14 +1357,15 @@ init().catch(function(e){console.error(e);showError("Error","Something went wron
 
 // ── MOBILE SIDEBAR ────────────────────────────────────────
 function toggleSidebar() {
-  var sb = document.querySelector('.sb');
+  var sb = document.querySelector('.sidebar');
   var bd = document.getElementById('sidebarBackdrop');
+  if (!sb) return;
   var isOpen = sb.classList.toggle('open');
-  bd.classList.toggle('open', isOpen);
+  if (bd) bd.classList.toggle('open', isOpen);
   document.body.style.overflow = isOpen ? 'hidden' : '';
 }
 function closeSidebar() {
-  var sb = document.querySelector('.sb');
+  var sb = document.querySelector('.sidebar');
   if (sb) sb.classList.remove('open');
   var bd = document.getElementById('sidebarBackdrop');
   if (bd) bd.classList.remove('open');
