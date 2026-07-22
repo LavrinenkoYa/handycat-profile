@@ -332,6 +332,71 @@
     .pg-circle-btn.loading .pg-icon{display:none}
     /* Photo thumbnail grid */
     .pg-photo{width:80px;height:80px;border-radius:10px;object-fit:cover;cursor:pointer}
+
+    /* ═══ ADAPTIVE LAYOUT ═══════════════════════════════════ */
+    /* Hamburger button (visible on mobile) */
+    .hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;width:44px;height:44px;border-radius:50%;background:#fff;border:none;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:background .15s}
+    .hamburger:hover{background:#f5f5f5}
+    /* Mobile overlay backdrop */
+    .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:199}
+    .sidebar-backdrop.open{display:block}
+    /* Desktop: main content scrollable */
+    .main-content{flex:1;overflow-y:auto;min-height:100vh}
+
+    @media(max-width:900px){
+      /* Tablet: collapse sidebar to icons-only */
+      .sidebar{width:72px;padding:16px 10px}
+      .sb-nav-card{padding:12px 8px}
+      .sb-logo{display:none}
+      .nb-label{display:none}
+      .nb{justify-content:center;padding:12px 0;border-radius:12px}
+      .nb-icon{margin:0}
+      .sb-user-card{padding:10px 8px}
+      .sb-user-name,.sb-user-email,.sign-out-btn span{display:none}
+    }
+
+    @media(max-width:600px){
+      /* Mobile: sidebar becomes slide-in drawer */
+      .hamburger{display:flex}
+      .sidebar{
+        position:fixed;left:0;top:0;height:100vh;z-index:200;
+        width:280px;
+        transform:translateX(-100%);
+        transition:transform .28s cubic-bezier(.4,0,.2,1);
+        box-shadow:4px 0 24px rgba(0,0,0,.16);
+        padding:20px 16px;
+        overflow-y:auto;
+      }
+      .sidebar.open{transform:translateX(0)}
+      .sidebar .nb-label{display:flex}
+      .sidebar .sb-logo{display:flex}
+      .sidebar .nb{justify-content:flex-start;padding:12px 14px}
+      .sidebar .nb-icon{margin:0}
+      .sidebar .sb-user-name,.sidebar .sb-user-email,.sidebar .sign-out-btn span{display:block}
+      .sidebar .sb-nav-card{padding:16px}
+
+      .main-content{padding-top:56px}
+      .pg-header{margin-top:4px}
+
+      /* Tables: horizontal scroll */
+      .pg-table-wrap{overflow-x:auto}
+      .pg-table{min-width:600px}
+
+      /* Cards stack vertically */
+      .cd-stats-row{flex-wrap:wrap}
+      .cd-stat{min-width:calc(50% - 10px)}
+
+      /* Info grid: single column */
+      .pg-info-grid{grid-template-columns:1fr}
+
+      /* Drawer: full width on mobile */
+      .drawer{width:100vw;max-width:100vw}
+
+      /* Modals: full width */
+      .gen-modal{width:95vw;padding:28px 20px}
+    }
+    /* ═══════════════════════════════════════════════════════ */
+
   </style>
   <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
@@ -387,6 +452,12 @@
 </div>
 
 <div id="app" style="display:none">
+<!-- Hamburger (mobile only) -->
+<button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Menu">
+  <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M2 5h18M2 11h18M2 17h18" stroke="#343330" stroke-width="2" stroke-linecap="round"/></svg>
+</button>
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
 <div class="app-layout">
 
   <!-- SIDEBAR -->
@@ -476,7 +547,7 @@
   </aside>
 
   <!-- MAIN CONTENT -->
-  <main class="sb-main">
+  <main class="sb-main main-content" id="mainContent">
 
   <!-- COMPANIES -->
   <div class="page active" id="page-companies">
@@ -3448,6 +3519,29 @@ function renderCDStats(cards) {
     return '<div class="cd-stat"><div class="cd-stat-num">'+i.n+'</div><div class="cd-stat-label">'+i.l+'</div></div>';
   }).join("");
 }
+
+
+// ── MOBILE SIDEBAR ────────────────────────────────────────
+function toggleSidebar() {
+  var sb = document.querySelector('.sidebar');
+  var bd = document.getElementById('sidebarBackdrop');
+  var isOpen = sb.classList.toggle('open');
+  bd.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Close sidebar on nav click (mobile)
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.nb').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (window.innerWidth <= 600) closeSidebar();
+    });
+  });
+});
 
 </script>
 
