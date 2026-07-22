@@ -333,7 +333,7 @@
 
       /* NFC cards stat in pg-header → full width */
       .pg-header .pg-toprow{flex-direction:column}
-      .pg-header .pg-toprow > *:not(:first-child):not(.pool-actions-desktop){display:flex;width:100%;gap:10px}
+      .pg-header .pg-toprow > *:not(:first-child):not(.pool-actions-desktop):not(.cd-edit-btn){display:flex;width:100%;gap:10px}
 
       /* Filters → show select, hide pills */
       .pg-table-toolbar .pg-pill{display:none}
@@ -354,7 +354,7 @@
     @media(max-width:600px){
       /* Page header: stack actions under title */
       .pg-toprow{flex-wrap:wrap}
-      .pg-toprow > *:not(:first-child){width:100%}
+      .pg-toprow > *:not(:first-child):not(.cd-edit-btn){width:100%}
 
       /* Stats: 2 columns */
       .cd-stats-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -485,7 +485,8 @@
     }
     /* ═══════════════════════════════════════════════════════ */
 
-  </style>
+  .grecaptcha-badge{visibility:hidden !important}
+    </style>
   <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
 <body>
@@ -3976,5 +3977,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 </div><!-- /app-layout -->
+<div style="position:fixed;bottom:6px;left:8px;z-index:1;font-size:10px;line-height:1.4;color:#bbb;font-family:sans-serif;pointer-events:none;max-width:260px">This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:#bbb;pointer-events:auto">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener" style="color:#bbb;pointer-events:auto">Terms of Service</a> apply.</div>
 </body>
 </html>

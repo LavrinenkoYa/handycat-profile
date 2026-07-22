@@ -179,7 +179,8 @@
     .pf-load-more{background:#32e682;border:none;border-radius:310px;height:52px;width:100%;font-size:17px;color:#111;cursor:pointer;margin-top:8px;transition:background .2s}
     .pf-load-more:hover{background:#164e23;color:#fff}
     .pf-empty{text-align:center;padding:40px 16px;color:#908f98;font-size:14px}
-  </style>
+  .grecaptcha-badge{visibility:hidden !important}
+    </style>
 <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
 <body>
@@ -916,5 +917,6 @@ async function submitReview(){
 
 init().catch(function(e){console.error(e);show("s-error");});
 </script>
+<div style="position:fixed;bottom:6px;left:8px;z-index:1;font-size:10px;line-height:1.4;color:#bbb;font-family:sans-serif;pointer-events:none;max-width:260px">This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:#bbb;pointer-events:auto">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener" style="color:#bbb;pointer-events:auto">Terms of Service</a> apply.</div>
 </body>
 </html>

@@ -180,6 +180,8 @@
     .pg-title{font-size:32px;font-weight:500;color:#1d1f1e;font-family:'Inter',sans-serif;line-height:1}
     .pg-sub{font-size:18px;color:#858585;font-family:'Inter',sans-serif;margin-top:8px}
     .pg-toprow{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+    .cd-edit-btn{width:30px;height:30px;background:#32e682;border:1px solid #1ea95c;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .2s}
+    .cd-edit-btn:hover{background:#164e23}
     .pg-table-wrap{background:#fff;border-radius:30px;overflow:hidden}
     .pg-table-toolbar{padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid #f5f5f5}
     .pg-table{width:100%;border-collapse:collapse}
@@ -329,7 +331,8 @@
     }
     /* ═══════════════════════════════════════════════════════ */
 
-  </style>
+  .grecaptcha-badge{visibility:hidden !important}
+    </style>
 <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
 <body>
@@ -1379,5 +1382,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
+<div style="position:fixed;bottom:6px;left:8px;z-index:1;font-size:10px;line-height:1.4;color:#bbb;font-family:sans-serif;pointer-events:none;max-width:260px">This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:#bbb;pointer-events:auto">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener" style="color:#bbb;pointer-events:auto">Terms of Service</a> apply.</div>
 </body>
 </html>
