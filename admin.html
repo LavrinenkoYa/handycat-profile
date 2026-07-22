@@ -2782,6 +2782,10 @@ async function loadPool() {
   } catch(e) { poolAllBatches = []; }
 
   await ensureLegacyBatch();
+  if (poolBatchesRulesMissing) {
+    poolBatchesRulesMissing = false;
+    toast("⚠️ Add 'nfc_batches' to your Firestore rules to enable Card Orders (same as other collections: allow read, write: if true;)");
+  }
 
   // Stats
   var stockCount    = poolAllCards.filter(function(x){ return !x.companyId || x.companyId === ''; }).length;
@@ -2802,17 +2806,24 @@ async function loadPool() {
 
 // One-time migration: group any pre-existing cards that have no order/batch
 // into a single "Legacy" order so the hierarchy is consistent going forward.
+// Also recovers cards that were tagged batch_legacy in an earlier attempt
+// where the batch document itself failed to write (e.g. missing Firestore rule).
+var poolBatchesRulesMissing = false;
 async function ensureLegacyBatch() {
   var hasLegacy = poolAllBatches.some(function(b){ return b.id === 'batch_legacy'; });
-  var orphans = poolAllCards.filter(function(c){ return !c.batchId || c.batchId === ''; });
-  if (hasLegacy || !orphans.length) return;
+  if (hasLegacy) return;
+
+  var orphans = poolAllCards.filter(function(c){
+    return !c.batchId || c.batchId === '' || c.batchId === 'batch_legacy';
+  });
+  if (!orphans.length) return;
 
   var earliest = null;
   orphans.forEach(function(c) {
     if (c.createdAt && (!earliest || c.createdAt < earliest)) earliest = c.createdAt;
   });
 
-  await fsP('nfc_batches', 'batch_legacy', {
+  var ok = await fsP('nfc_batches', 'batch_legacy', {
     number:    nv(0),
     label:     sv('Legacy'),
     count:     nv(orphans.length),
@@ -2820,9 +2831,17 @@ async function ensureLegacyBatch() {
     createdAt: sv(earliest || new Date().toISOString())
   });
 
+  if (!ok) {
+    // Don't tag cards with a batchId that points at a batch we couldn't create —
+    // that would silently orphan them. Surface this once so it can be fixed.
+    poolBatchesRulesMissing = true;
+    return;
+  }
+
+  var untagged = orphans.filter(function(c){ return !c.batchId || c.batchId === ''; });
   var chunkSize = 5;
-  for (var i = 0; i < orphans.length; i += chunkSize) {
-    var slice = orphans.slice(i, i + chunkSize);
+  for (var i = 0; i < untagged.length; i += chunkSize) {
+    var slice = untagged.slice(i, i + chunkSize);
     await Promise.all(slice.map(function(c) {
       return fsMerge('nfc_cards', c.id, { batchId: sv('batch_legacy') });
     }));
@@ -3003,12 +3022,17 @@ async function doGenerateCards() {
   });
   var newBatchId = 'batch_' + Date.now();
   var now = new Date().toISOString();
-  await fsP('nfc_batches', newBatchId, {
+  var batchOk = await fsP('nfc_batches', newBatchId, {
     number:    nv(nextBatchNum),
     count:     nv(count),
     status:    sv('ordered'),
     createdAt: sv(now)
   });
+  if (!batchOk) {
+    btn.disabled = false; btn.classList.remove('loading');
+    toast("⚠️ Could not create the order. Add 'nfc_batches' to your Firestore rules (allow read, write: if true;) and try again.");
+    return;
+  }
   poolAllBatches.push({ id: newBatchId, number: nextBatchNum, count: count, status: 'ordered', createdAt: now });
 
   // Show progress
