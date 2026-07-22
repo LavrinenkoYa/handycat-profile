@@ -290,10 +290,63 @@
     .co-search{display:flex;align-items:center;gap:14px;border:1.5px solid #eceae6;border-radius:10px;padding:9px 14px;width:100%;box-sizing:border-box}
     .co-search input{border:none;outline:none;font-size:15px;color:#333;font-family:'Inter',sans-serif;background:transparent;flex:1}
     .co-search input::placeholder{color:#858585}
+
+    /* ═══ ADAPTIVE LAYOUT (company) ══════════════════════════ */
+    .hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;width:44px;height:44px;border-radius:50%;background:#fff;border:none;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:background .15s}
+    .hamburger:hover{background:#f5f5f5}
+    .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:199}
+    .sidebar-backdrop.open{display:block}
+    .sb-main{flex:1;overflow-y:auto;min-height:100vh}
+
+    @media(max-width:900px){
+      .sb{width:72px;padding:12px 8px}
+      .sb-logo{display:none}
+      .nb-label{display:none}
+      .nb{justify-content:center;padding:10px 0;border-radius:12px}
+      .nb-icon{margin:0}
+    }
+
+    @media(max-width:600px){
+      .hamburger{display:flex}
+      .sb{
+        position:fixed;left:0;top:0;height:100vh;z-index:200;
+        width:260px;
+        transform:translateX(-100%);
+        transition:transform .28s cubic-bezier(.4,0,.2,1);
+        box-shadow:4px 0 20px rgba(0,0,0,.14);
+        overflow-y:auto;
+      }
+      .sb.open{transform:translateX(0)}
+      .sb .nb-label{display:flex}
+      .sb .sb-logo{display:flex}
+      .sb .nb{justify-content:flex-start;padding:12px 14px}
+
+      .sb-main{padding-top:56px}
+      .pg-header{margin-top:4px}
+
+      /* Tables */
+      .pg-table-wrap{overflow-x:auto}
+      .pg-table{min-width:560px}
+
+      /* Stats */
+      .cd-stats-row{flex-wrap:wrap}
+      .cd-stat{min-width:calc(50% - 10px)}
+
+      /* Info grid */
+      .pg-info-grid{grid-template-columns:1fr}
+
+      /* Drawer full width */
+      .drawer{width:100vw;max-width:100vw}
+      .gen-modal{width:95vw;padding:24px 18px}
+    }
+    /* ═══════════════════════════════════════════════════════ */
+
   </style>
 <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
 <body>
+<button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M2 5h18M2 11h18M2 17h18" stroke="#343330" stroke-width="2" stroke-linecap="round"/></svg></button>
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
 <!-- LOADING -->
 <div class="screen active" id="s-loading">
@@ -1312,6 +1365,30 @@ function showHMDetail(hmId){
 
 // ── START ─────────────────────────────────────────────────────
 init().catch(function(e){console.error(e);showError("Error","Something went wrong. Please try again.");});
+
+// ── MOBILE SIDEBAR ────────────────────────────────────────
+function toggleSidebar() {
+  var sb = document.querySelector('.sb');
+  var bd = document.getElementById('sidebarBackdrop');
+  var isOpen = sb.classList.toggle('open');
+  bd.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+function closeSidebar() {
+  var sb = document.querySelector('.sb');
+  if (sb) sb.classList.remove('open');
+  var bd = document.getElementById('sidebarBackdrop');
+  if (bd) bd.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.nb').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (window.innerWidth <= 600) closeSidebar();
+    });
+  });
+});
+
 </script>
 </body>
 </html>
