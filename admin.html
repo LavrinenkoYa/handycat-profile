@@ -901,28 +901,14 @@
 
     <div class="pg-table-wrap">
       <div class="pg-table-toolbar pool-toolbar">
-        <!-- Filter dropdown (mobile) / pills (desktop) -->
-        <div class="pool-filter-desktop" style="display:flex;gap:10px">
-          <button class="pg-pill active" onclick="filterPool('stock',this)">Stock</button>
-          <button class="pg-pill" onclick="filterPool('assigned',this)">Assigned</button>
-          <button class="pg-pill" onclick="filterPool('all',this)">All</button>
-        </div>
-        <select class="pool-filter-mobile" onchange="filterPoolMobile(this)" style="display:none;padding:8px 14px;border-radius:10px;border:1.5px solid #eceae6;font-family:'Inter',sans-serif;font-size:14px;background:#fff;cursor:pointer">
-          <option value="stock">Stock</option>
-          <option value="assigned">Assigned</option>
-          <option value="all">All</option>
-        </select>
-        <div class="co-search" style="width:260px">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#858585" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#858585" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <input id="poolSearchInput" placeholder="Search by token or print ID..." oninput="renderPool()"/>
-        </div>
+        <div class="pg-section-title" style="margin:0">Card orders</div>
       </div>
       <div style="overflow-x:auto">
-        <table class="pg-table" style="min-width:580px">
+        <table class="pg-table" style="min-width:520px">
           <thead><tr>
-            <th>Token</th><th>Print ID</th><th>URL</th><th>Status</th><th>Company</th><th>Created</th>
+            <th>Order</th><th>Date</th><th>Cards</th><th>Status</th><th style="width:44px"></th>
           </tr></thead>
-          <tbody id="poolBody"></tbody>
+          <tbody id="poolBatchBody"></tbody>
         </table>
       </div>
     </div>
@@ -931,6 +917,64 @@
     <div class="pool-actions-mobile">
       <button class="mob-action-btn mob-action-secondary" onclick="exportPoolCSV()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="#164e23" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Export CSV</button>
       <button class="mob-action-btn mob-action-primary" onclick="openGenerateModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Generate Cards</button>
+    </div>
+  </div>
+
+  <!-- NFC POOL — ORDER DETAIL -->
+  <div class="page" id="page-pool-batch-detail">
+    <!-- Back button row -->
+    <div style="margin-bottom:12px">
+      <button class="cd-back-btn" onclick="nav('nfc-pool')" title="Back"><svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></button>
+    </div>
+
+    <!-- Header card -->
+    <div class="cd-header" style="margin-bottom:20px">
+      <div class="cd-header-row" style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+        <div style="flex:1;min-width:0">
+          <div class="cd-title-row">
+            <div class="cd-title" id="pbdTitle">—</div>
+          </div>
+          <div class="cd-meta" id="pbdMeta">—</div>
+        </div>
+        <select id="pbdStatusSelect" onchange="updateBatchStatus(pbdBatchId, this.value)" class="dfg-select" style="width:200px;flex-shrink:0;padding:11px 40px 11px 16px;font-size:14px">
+          <option value="ordered">Заказано</option>
+          <option value="manufactured">Изготовлено</option>
+          <option value="delivered">Доставлено</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="cd-stats-row" id="pbdStats"></div>
+
+    <div class="pg-table-wrap">
+      <div class="pg-table-toolbar pool-toolbar">
+        <div class="pool-filter-desktop" style="display:flex;gap:10px">
+          <button class="pg-pill active" onclick="filterPoolDetail('all',this)">All</button>
+          <button class="pg-pill" onclick="filterPoolDetail('stock',this)">Stock</button>
+          <button class="pg-pill" onclick="filterPoolDetail('assigned',this)">Assigned</button>
+        </div>
+        <select class="pool-filter-mobile" onchange="filterPoolDetailMobile(this)" style="display:none;padding:8px 14px;border-radius:10px;border:1.5px solid #eceae6;font-family:'Inter',sans-serif;font-size:14px;background:#fff;cursor:pointer">
+          <option value="all">All</option>
+          <option value="stock">Stock</option>
+          <option value="assigned">Assigned</option>
+        </select>
+        <button class="cd-add-cards-btn" onclick="exportBatchCSV()" style="background:#fff;border:1.5px solid #eceae6;color:#111;gap:8px;margin-left:auto">
+          <span style="display:flex;align-items:center;gap:6px;color:#164e23"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="#164e23" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Export CSV</span>
+        </button>
+        <div class="co-search" style="width:260px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#858585" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#858585" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input id="pbdSearchInput" placeholder="Search by token or print ID..." oninput="renderPoolDetail()"/>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="pg-table" style="min-width:580px">
+          <thead><tr>
+            <th>Token</th><th>Print ID</th><th>URL</th><th>Status</th><th>Company</th><th>Created</th>
+          </tr></thead>
+          <tbody id="pbdBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -1449,6 +1493,7 @@ function nav(n) {
   if (n === "co-detail") { /* already loaded */ }
   if (n === "card-detail") { /* loaded by showCardDetail */ }
   if (n === "order-detail") { /* loaded by showOrderDetail */ }
+  if (n === "pool-batch-detail") { /* loaded by openBatchDetail */ }
 }
 function sp(n) {
   document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
@@ -2720,16 +2765,23 @@ function renderCardReqs() {
 // ═══════════════════════════════════════════════════════════
 
 var poolAllCards = [];
-var poolFilter = 'stock';
+var poolAllBatches = [];
+var pbdBatchId = null;
+var pbdFilter = 'all';
 
 async function loadPool() {
   nav('nfc-pool');
-  document.getElementById('poolBody').innerHTML =
-    '<tr><td colspan="6" class="pg-empty">Loading...</td></tr>';
+  document.getElementById('poolBatchBody').innerHTML =
+    '<tr><td colspan="5" class="pg-empty">Loading...</td></tr>';
 
   try {
     poolAllCards = await fsL('nfc_cards', 5000);
   } catch(e) { poolAllCards = []; }
+  try {
+    poolAllBatches = await fsL('nfc_batches', 500);
+  } catch(e) { poolAllBatches = []; }
+
+  await ensureLegacyBatch();
 
   // Stats
   var stockCount    = poolAllCards.filter(function(x){ return !x.companyId || x.companyId === ''; }).length;
@@ -2745,35 +2797,136 @@ async function loadPool() {
   var exportBtn = document.getElementById('poolExportBtn');
   if (exportBtn) exportBtn.disabled = stockCount === 0;
 
-  renderPool();
+  renderPoolBatches();
 }
 
-function filterPool(f, btn) {
-  poolFilter = f;
-  document.querySelectorAll('#page-nfc-pool .pg-pill').forEach(function(b){ b.classList.remove('active'); });
-  if (btn) btn.classList.add('active');
-  renderPool();
-}
+// One-time migration: group any pre-existing cards that have no order/batch
+// into a single "Legacy" order so the hierarchy is consistent going forward.
+async function ensureLegacyBatch() {
+  var hasLegacy = poolAllBatches.some(function(b){ return b.id === 'batch_legacy'; });
+  var orphans = poolAllCards.filter(function(c){ return !c.batchId || c.batchId === ''; });
+  if (hasLegacy || !orphans.length) return;
 
-function filterPoolMobile(sel) {
-  poolFilter = sel.value;
-  renderPool();
-}
-
-function renderPool() {
-  var q = (document.getElementById('poolSearchInput')||{value:''}).value.trim().toLowerCase();
-  var fil = poolAllCards.filter(function(card) {
-    if (poolFilter === 'stock')    return !card.companyId || card.companyId === '';
-    if (poolFilter === 'assigned') return !!(card.companyId && card.companyId !== '');
-    return true;
+  var earliest = null;
+  orphans.forEach(function(c) {
+    if (c.createdAt && (!earliest || c.createdAt < earliest)) earliest = c.createdAt;
   });
+
+  await fsP('nfc_batches', 'batch_legacy', {
+    number:    nv(0),
+    label:     sv('Legacy'),
+    count:     nv(orphans.length),
+    status:    sv('delivered'),
+    createdAt: sv(earliest || new Date().toISOString())
+  });
+
+  var chunkSize = 5;
+  for (var i = 0; i < orphans.length; i += chunkSize) {
+    var slice = orphans.slice(i, i + chunkSize);
+    await Promise.all(slice.map(function(c) {
+      return fsMerge('nfc_cards', c.id, { batchId: sv('batch_legacy') });
+    }));
+  }
+
+  orphans.forEach(function(c){ c.batchId = 'batch_legacy'; });
+  poolAllBatches.push({
+    id: 'batch_legacy', number: 0, label: 'Legacy',
+    count: orphans.length, status: 'delivered',
+    createdAt: earliest || new Date().toISOString()
+  });
+}
+
+var POOL_STATUS_LABELS = { ordered: 'Заказано', manufactured: 'Изготовлено', delivered: 'Доставлено' };
+
+function poolStatusSelectHTML(batchId, current, extraStyle) {
+  return '<select class="dfg-select" style="' + (extraStyle||'') + '" onchange="updateBatchStatus(\'' + batchId + '\', this.value)">' +
+    Object.keys(POOL_STATUS_LABELS).map(function(k) {
+      return '<option value="' + k + '"' + (k === current ? ' selected' : '') + '>' + POOL_STATUS_LABELS[k] + '</option>';
+    }).join('') +
+  '</select>';
+}
+
+function renderPoolBatches() {
+  var tb = document.getElementById('poolBatchBody');
+  if (!poolAllBatches.length) {
+    tb.innerHTML = '<tr><td colspan="5" class="pg-empty">No orders yet. Click Generate Cards to create the first one.</td></tr>';
+    return;
+  }
+  var sorted = poolAllBatches.slice().sort(function(a,b){ return (b.number||0) - (a.number||0); });
+  tb.innerHTML = sorted.map(function(b) {
+    var title = b.label ? esc(b.label) : ('Order #' + (b.number||'—'));
+    var st = b.status || 'ordered';
+    return '<tr style="cursor:pointer" onclick="openBatchDetail(\'' + b.id + '\')">' +
+      '<td style="font-weight:600;color:#4f00df">' + title + '</td>' +
+      '<td style="color:#858585">' + fd(b.createdAt) + '</td>' +
+      '<td>' + (b.count||0) + '</td>' +
+      '<td onclick="event.stopPropagation()">' + poolStatusSelectHTML(b.id, st, 'padding:6px 30px 6px 10px;font-size:12px') + '</td>' +
+      '<td style="text-align:right"><button class="cd-action-btn" onclick="event.stopPropagation();openBatchDetail(\'' + b.id + '\')" title="View"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#858585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+async function updateBatchStatus(batchId, status) {
+  var ok = await fsMerge('nfc_batches', batchId, { status: sv(status) });
+  if (!ok) { toast('Could not update status'); return; }
+  var b = poolAllBatches.find(function(x){ return x.id === batchId; });
+  if (b) b.status = status;
+  toast('Status updated');
+  if (document.getElementById('page-nfc-pool').classList.contains('active')) renderPoolBatches();
+}
+
+async function openBatchDetail(batchId) {
+  pbdBatchId = batchId;
+  pbdFilter = 'all';
+  var b = poolAllBatches.find(function(x){ return x.id === batchId; });
+  if (!b) { toast('Order not found'); return; }
+
+  document.getElementById('pbdTitle').textContent = b.label ? b.label : ('Order #' + (b.number||'—'));
+  document.getElementById('pbdMeta').textContent = 'Created ' + fd(b.createdAt) + ' · ' + (b.count||0) + ' cards';
+  document.getElementById('pbdStatusSelect').value = b.status || 'ordered';
+
+  document.querySelectorAll('#page-pool-batch-detail .pg-pill').forEach(function(x){ x.classList.remove('active'); });
+  var firstPill = document.querySelector('#page-pool-batch-detail .pg-pill');
+  if (firstPill) firstPill.classList.add('active');
+  var searchInput = document.getElementById('pbdSearchInput');
+  if (searchInput) searchInput.value = '';
+
+  var batchCards = poolAllCards.filter(function(c){ return c.batchId === batchId; });
+  var stock = batchCards.filter(function(c){ return !c.companyId || c.companyId===''; }).length;
+  var assigned = batchCards.length - stock;
+  document.getElementById('pbdStats').innerHTML =
+    '<div class="cd-stat"><div class="cd-stat-num">'+batchCards.length+'</div><div class="cd-stat-label">Total cards</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num" style="color:#164e23">'+stock+'</div><div class="cd-stat-label">In stock</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num" style="color:#4f00df">'+assigned+'</div><div class="cd-stat-label">Assigned</div></div>';
+
+  nav('pool-batch-detail');
+  renderPoolDetail();
+}
+
+function filterPoolDetail(f, btn) {
+  pbdFilter = f;
+  document.querySelectorAll('#page-pool-batch-detail .pg-pill').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  renderPoolDetail();
+}
+
+function filterPoolDetailMobile(sel) {
+  pbdFilter = sel.value;
+  renderPoolDetail();
+}
+
+function renderPoolDetail() {
+  var q = (document.getElementById('pbdSearchInput')||{value:''}).value.trim().toLowerCase();
+  var fil = poolAllCards.filter(function(card) { return card.batchId === pbdBatchId; });
+  if (pbdFilter === 'stock')    fil = fil.filter(function(c){ return !c.companyId || c.companyId===''; });
+  if (pbdFilter === 'assigned') fil = fil.filter(function(c){ return !!(c.companyId && c.companyId!==''); });
   if (q) {
     fil = fil.filter(function(card){
       return (card.id||'').toLowerCase().includes(q) ||
              (card.printId||'').toLowerCase().includes(q);
     });
   }
-  var tb = document.getElementById('poolBody');
+  var tb = document.getElementById('pbdBody');
   if (!fil.length) { tb.innerHTML = '<tr><td colspan="6" class="pg-empty">No cards found</td></tr>'; return; }
 
   var BASE_URL = 'https://app.handycat.us/c/';
@@ -2792,6 +2945,34 @@ function renderPool() {
       '<td style="color:#858585">' + fd(card.createdAt) + '</td>' +
     '</tr>';
   }).join('');
+}
+
+function exportBatchCSV() {
+  var toExport = poolAllCards.filter(function(c){ return c.batchId === pbdBatchId; });
+  if (!toExport.length) { toast('No cards in this order.'); return; }
+
+  var BASE_URL = 'https://app.handycat.us/c/';
+  var header = 'Print ID,Token,URL,Status,Created';
+  var rows = toExport.map(function(card) {
+    return [
+      card.printId || '',
+      card.id,
+      BASE_URL + card.id,
+      (!card.companyId || card.companyId === '') ? 'stock' : 'assigned',
+      card.createdAt ? new Date(card.createdAt).toISOString().split('T')[0] : ''
+    ].join(',');
+  });
+
+  var csv = [header].concat(rows).join('\n');
+  var blob = new Blob([csv], { type: 'text/csv' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  var b = poolAllBatches.find(function(x){ return x.id === pbdBatchId; });
+  var label = b ? (b.label ? b.label.toLowerCase() : 'order-' + b.number) : pbdBatchId;
+  a.download = 'handycat-nfc-' + label + '-' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ── GENERATE CARDS ─────────────────────────────────────────
@@ -2815,6 +2996,21 @@ async function doGenerateCards() {
     if (c.printId) { var n = parseInt(c.printId, 10); if (!isNaN(n) && n > lastNum) lastNum = n; }
   });
 
+  // Every "Generate Cards" click is a brand new order — never merged into a prior one
+  var nextBatchNum = 1;
+  poolAllBatches.forEach(function(b) {
+    if (typeof b.number === 'number' && b.number >= nextBatchNum) nextBatchNum = b.number + 1;
+  });
+  var newBatchId = 'batch_' + Date.now();
+  var now = new Date().toISOString();
+  await fsP('nfc_batches', newBatchId, {
+    number:    nv(nextBatchNum),
+    count:     nv(count),
+    status:    sv('ordered'),
+    createdAt: sv(now)
+  });
+  poolAllBatches.push({ id: newBatchId, number: nextBatchNum, count: count, status: 'ordered', createdAt: now });
+
   // Show progress
   var progEl  = document.getElementById('poolGenProgress');
   var barEl   = document.getElementById('poolGenBar');
@@ -2823,7 +3019,6 @@ async function doGenerateCards() {
   progEl.style.display = 'block';
 
   var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  var now = new Date().toISOString();
   var toCreate = [];
 
   for (var i = 0; i < count; i++) {
@@ -2836,21 +3031,22 @@ async function doGenerateCards() {
   closeModal('mGenerateCards');
 
   var done = 0;
-  var batchSize = 5;
+  var chunkSize = 5;
 
-  for (var i = 0; i < toCreate.length; i += batchSize) {
-    var batch = toCreate.slice(i, i + batchSize);
-    await Promise.all(batch.map(function(item) {
+  for (var i = 0; i < toCreate.length; i += chunkSize) {
+    var slice = toCreate.slice(i, i + chunkSize);
+    await Promise.all(slice.map(function(item) {
       return fsP('nfc_cards', item.token, {
         printId:    sv(item.printId),
         status:     sv('stock'),
         companyId:  sv(''),
         handymanId: sv(''),
         clientId:   sv(''),
+        batchId:    sv(newBatchId),
         createdAt:  sv(now)
       });
     }));
-    done += batch.length;
+    done += slice.length;
     var pct = Math.round((done / toCreate.length) * 100);
     barEl.style.width  = pct + '%';
     cntEl.textContent  = done + ' / ' + toCreate.length;
@@ -2859,16 +3055,14 @@ async function doGenerateCards() {
 
   labelEl.textContent = '✓ Done!';
   setTimeout(function(){ progEl.style.display = 'none'; }, 2000);
-  toast('✓ ' + done + ' cards generated! Export CSV to send to manufacturer.');
+  toast('✓ Order #' + nextBatchNum + ': ' + done + ' cards generated! Export CSV to send to manufacturer.');
   await loadPool();
 }
 
 // ── EXPORT CSV ─────────────────────────────────────────────
 function exportPoolCSV() {
-  // Export only stock cards (not yet assigned)
-  var toExport = poolFilter === 'assigned'
-    ? poolAllCards.filter(function(c){ return !!(c.companyId && c.companyId !== ''); })
-    : poolAllCards.filter(function(c){ return !c.companyId || c.companyId === ''; });
+  // Export all stock cards (not yet assigned) across every order
+  var toExport = poolAllCards.filter(function(c){ return !c.companyId || c.companyId === ''; });
 
   if (!toExport.length) {
     toast('No stock cards to export. Generate cards first.');
