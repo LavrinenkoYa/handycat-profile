@@ -430,6 +430,10 @@
             <span class="nb-label">Orders</span>
           </button>
 
+          <button class="nb" onclick="loadPool()">
+            <span class="nb-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="nb-label">NFC Pool</span>
+          </button>
           <button class="nb" onclick="nav('all-cards')">
             <span class="nb-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.25 14.25C6.49264 14.25 7.5 13.2426 7.5 12C7.5 10.7574 6.49264 9.75 5.25 9.75C4.00736 9.75 3 10.7574 3 12C3 13.2426 4.00736 14.25 5.25 14.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.25 14.25C15.4926 14.25 16.5 13.2426 16.5 12C16.5 10.7574 15.4926 9.75 14.25 9.75C13.0074 9.75 12 10.7574 12 12C12 13.2426 13.0074 14.25 14.25 14.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.5 20.25C18.9853 20.25 21 16.5563 21 12C21 7.44365 18.9853 3.75 16.5 3.75C14.0147 3.75 12 7.44365 12 12C12 16.5563 14.0147 20.25 16.5 20.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 20.25C9.98528 20.25 12 16.5563 12 12C12 7.44365 9.98528 3.75 7.5 3.75C5.01472 3.75 3 7.44365 3 12C3 16.5563 5.01472 20.25 7.5 20.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -698,6 +702,55 @@
       <table class="pg-table">
         <thead><tr><th>Date</th><th>Category</th><th>Handyman</th><th>Status</th><th>Price</th></tr></thead>
         <tbody id="clOBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- NFC POOL -->
+  <div class="page" id="page-nfc-pool">
+    <div class="pg-header">
+      <div class="pg-toprow" style="margin-bottom:24px">
+        <div>
+          <div class="pg-title">NFC Pool</div>
+          <div class="pg-sub">Global stock of unassigned NFC cards from factory</div>
+        </div>
+        <label class="cd-add-cards-btn" style="cursor:pointer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Import CSV
+          <input type="file" accept=".csv,.txt" onchange="importPoolCSV(this)" style="display:none"/>
+        </label>
+      </div>
+      <div id="poolStatsRow" class="cd-stats-row"></div>
+    </div>
+
+    <!-- Import progress bar (hidden by default) -->
+    <div id="poolImportProgress" style="display:none;background:#fff;border-radius:20px;padding:20px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:14px;font-weight:600;color:#111;font-family:'Inter',sans-serif" id="poolImportLabel">Importing...</span>
+        <span style="font-size:14px;color:#858585;font-family:'Inter',sans-serif" id="poolImportCount">0 / 0</span>
+      </div>
+      <div style="background:#f5f5f5;border-radius:100px;height:8px;overflow:hidden">
+        <div id="poolImportBar" style="background:#32e682;height:100%;border-radius:100px;width:0%;transition:width .3s"></div>
+      </div>
+    </div>
+
+    <div class="pg-table-wrap">
+      <div class="pg-table-toolbar" style="justify-content:space-between">
+        <div style="display:flex;gap:10px">
+          <button class="pg-pill active" onclick="filterPool('stock',this)">Stock</button>
+          <button class="pg-pill" onclick="filterPool('assigned',this)">Assigned</button>
+          <button class="pg-pill" onclick="filterPool('all',this)">All</button>
+        </div>
+        <div class="co-search" style="width:260px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#858585" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#858585" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input id="poolSearchInput" placeholder="Search by token or print ID..." oninput="renderPool()"/>
+        </div>
+      </div>
+      <table class="pg-table">
+        <thead><tr>
+          <th>Token</th><th>Print ID</th><th>Status</th><th>Company</th><th>Imported</th>
+        </tr></thead>
+        <tbody id="poolBody"></tbody>
       </table>
     </div>
   </div>
@@ -1186,7 +1239,7 @@ function nav(n) {
   document.querySelectorAll(".nb").forEach(function(b) { b.classList.remove("active"); });
   document.getElementById("page-" + n).classList.add("active");
   // activate sidebar nav item matching this route
-  var mainRoutes = ["companies","handymen","clients","orders","all-cards","applications","archive"];
+  var mainRoutes = ["companies","handymen","clients","orders","nfc-pool","all-cards","applications","archive"];
   if (mainRoutes.indexOf(n) !== -1) {
     document.querySelectorAll(".nb").forEach(function(b) {
       var oc = b.getAttribute("onclick") || "";
@@ -2443,8 +2496,8 @@ function renderCardReqs() {
     var btns = "";
     if (isPending) {
       btns = '<div style="display:flex;gap:8px;align-items:center">' +
-        '<button class="pg-circle-btn pg-circle-approve" title="Approve & Generate" onclick="approveCardReq(this,\'' + req.id + '\',' + total + ',\'' + (req.companyId || "") + '\')"><span class="pg-spin"></span><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.0483 5.3606L7.04834 14.3606C6.96924 14.4396 6.86202 14.484 6.75022 14.484C6.63842 14.484 6.5312 14.4396 6.45209 14.3606L2.51459 10.4231C2.44007 10.3431 2.3995 10.2374 2.40143 10.1281C2.40336 10.0188 2.44764 9.91448 2.52493 9.83719C2.60223 9.75989 2.70651 9.71562 2.8158 9.71369C2.92509 9.71176 3.03087 9.75233 3.11084 9.82685L6.75022 13.4655L15.4521 4.76435C15.5321 4.68983 15.6378 4.64926 15.7471 4.65119C15.8564 4.65312 15.9607 4.69739 16.038 4.77469C16.1153 4.85198 16.1596 4.95626 16.1615 5.06556C16.1634 5.17485 16.1229 5.28063 16.0483 5.3606Z" fill="#111" class="pg-icon"/></svg></button>' +
-        '<button class="pg-circle-btn pg-circle-reject" title="Reject" onclick="rejectCardReq(\'' + req.id + '\')"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" class="pg-icon" xmlns="http://www.w3.org/2000/svg"><path d="M19.207 0.707031L10.3105 9.60352L19.207 18.5L18.5 19.207L9.60352 10.3105L0.707031 19.207L0 18.5L8.89648 9.60352L0 0.707031L0.707031 0L9.60352 8.89648L18.5 0L19.207 0.707031Z" fill="#D93025"/></svg></button>' +
+        '<button class="pg-circle-btn pg-circle-approve" title="Assign from pool" onclick="openAssignModal(this,\'' + req.id + '\',\'' + (req.companyId || '') + '\',' + total + ')"><span class="pg-spin"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="pg-icon"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" stroke="#111" stroke-width="1.6" stroke-linecap="round"/></svg></button>' +
+        '<button class="pg-circle-btn pg-circle-reject" title="Reject" onclick="rejectCardReq(\'' + req.id + '\')"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" class="pg-icon"><path d="M19.207 0.707031L10.3105 9.60352L19.207 18.5L18.5 19.207L9.60352 10.3105L0.707031 19.207L0 18.5L8.89648 9.60352L0 0.707031L0.707031 0L9.60352 8.89648L18.5 0L19.207 0.707031Z" fill="#D93025"/></svg></button>' +
       '</div>';
     } else if (isInProgress) {
       btns = '<div style="display:flex;align-items:center;gap:10px">' +
@@ -2466,6 +2519,249 @@ function renderCardReqs() {
       '<td>' + btns + '</td>' +
     '</tr>';
   }).join("");
+}
+
+// ═══════════════════════════════════════════════════════════
+// NFC POOL — новая логика (импорт CSV + назначение компаниям)
+// ═══════════════════════════════════════════════════════════
+
+var poolAllCards = [];
+var poolFilter = 'stock';
+
+async function loadPool() {
+  nav('nfc-pool');
+  document.getElementById('poolBody').innerHTML =
+    '<tr><td colspan="5" class="pg-empty">Loading...</td></tr>';
+
+  try {
+    poolAllCards = await fsL('nfc_cards', 5000);
+  } catch(e) { poolAllCards = []; }
+
+  // Stats
+  var stockCount  = poolAllCards.filter(function(c){ return !c.companyId || c.companyId === ''; }).length;
+  var totalCount  = poolAllCards.length;
+  var assignedCount = totalCount - stockCount;
+
+  document.getElementById('poolStatsRow').innerHTML =
+    '<div class="cd-stat"><div class="cd-stat-num">'+totalCount+'</div><div class="cd-stat-label">Total imported</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num" style="color:#164e23">'+stockCount+'</div><div class="cd-stat-label">In stock</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num" style="color:#4f00df">'+assignedCount+'</div><div class="cd-stat-label">Assigned</div></div>';
+
+  renderPool();
+}
+
+function filterPool(f, btn) {
+  poolFilter = f;
+  document.querySelectorAll('#page-nfc-pool .pg-pill').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderPool();
+}
+
+function renderPool() {
+  var q = (document.getElementById('poolSearchInput')||{value:''}).value.trim().toLowerCase();
+  var fil = poolAllCards.filter(function(card) {
+    if (poolFilter === 'stock')    return !card.companyId || card.companyId === '';
+    if (poolFilter === 'assigned') return !!(card.companyId && card.companyId !== '');
+    return true;
+  });
+  if (q) {
+    fil = fil.filter(function(card){
+      return (card.id||'').toLowerCase().includes(q) ||
+             (card.printId||'').toLowerCase().includes(q);
+    });
+  }
+  var tb = document.getElementById('poolBody');
+  if (!fil.length) { tb.innerHTML = '<tr><td colspan="5" class="pg-empty">No cards found</td></tr>'; return; }
+
+  tb.innerHTML = fil.map(function(card) {
+    var coName = '';
+    if (card.companyId && CC.cos[card.companyId]) coName = CC.cos[card.companyId].name;
+    var statusBadge = (!card.companyId || card.companyId === '')
+      ? '<span class="pg-badge pg-badge-yellow">Stock</span>'
+      : '<span class="pg-badge pg-badge-green">Assigned</span>';
+    return '<tr>' +
+      '<td class="cd-token">' + esc(card.id) + '</td>' +
+      '<td style="font-weight:600;color:#4f00df">' + esc(card.printId || '—') + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      '<td style="color:#858585">' + esc(coName || '—') + '</td>' +
+      '<td style="color:#858585">' + fd(card.createdAt) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ── CSV IMPORT ──────────────────────────────────────────────
+async function importPoolCSV(input) {
+  var file = input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  var text = await new Promise(function(res, rej) {
+    var r = new FileReader();
+    r.onload = function(e){ res(e.target.result); };
+    r.onerror = rej;
+    r.readAsText(file);
+  });
+
+  // Parse CSV — ищем колонку с токеном (любая строка содержащая "hc-")
+  var lines = text.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
+
+  // Пропускаем заголовок если есть
+  var dataLines = lines.filter(function(l){ return l.toLowerCase().includes('hc-') || /^[a-z0-9]{6,}/.test(l); });
+  if (!dataLines.length) { toast('No valid tokens found in CSV'); return; }
+
+  // Получаем уже существующие токены чтобы не дублировать
+  var existingIds = {};
+  poolAllCards.forEach(function(c){ existingIds[c.id] = true; });
+
+  var toImport = [];
+  var printCounter = poolAllCards.length;
+
+  dataLines.forEach(function(line) {
+    // CSV может быть: "token" или "printId,token" или "token,url" — берём первую колонку похожую на токен
+    var cols = line.split(/[,;\t]/);
+    var token = null;
+    cols.forEach(function(col) {
+      col = col.trim().replace(/^["']|["']$/g, '');
+      if (col.startsWith('hc-') && col.length > 4) token = col;
+      else if (/^[a-z0-9]{8,20}$/.test(col) && !token) token = 'hc-' + col;
+    });
+    if (token && !existingIds[token]) {
+      existingIds[token] = true;
+      printCounter++;
+      toImport.push({ token: token, printId: String(printCounter).padStart(6, '0') });
+    }
+  });
+
+  if (!toImport.length) { toast('All tokens already imported or none found'); return; }
+
+  // Показываем прогресс
+  var progEl  = document.getElementById('poolImportProgress');
+  var barEl   = document.getElementById('poolImportBar');
+  var labelEl = document.getElementById('poolImportLabel');
+  var cntEl   = document.getElementById('poolImportCount');
+  progEl.style.display = 'block';
+
+  var done = 0;
+  var now = new Date().toISOString();
+  var batchSize = 5;
+
+  for (var i = 0; i < toImport.length; i += batchSize) {
+    var batch = toImport.slice(i, i + batchSize);
+    await Promise.all(batch.map(function(item) {
+      return fsP('nfc_cards', item.token, {
+        printId:    sv(item.printId),
+        status:     sv('unassigned'),
+        companyId:  sv(''),
+        handymanId: sv(''),
+        clientId:   sv(''),
+        importedAt: sv(now)
+      });
+    }));
+    done += batch.length;
+    var pct = Math.round((done / toImport.length) * 100);
+    barEl.style.width  = pct + '%';
+    cntEl.textContent  = done + ' / ' + toImport.length;
+    labelEl.textContent = 'Importing...';
+  }
+
+  labelEl.textContent = '✓ Import complete!';
+  setTimeout(function(){ progEl.style.display = 'none'; }, 2000);
+  toast('✓ Imported ' + done + ' cards to pool');
+  await loadPool();
+}
+
+// ── ASSIGN CARDS TO COMPANY ────────────────────────────────
+async function openAssignModal(btn, reqId, companyId, requested) {
+  if (btn) btn.classList.add('loading');
+
+  // Подсчитываем реальный сток прямо сейчас
+  var allStock = await fsQ('nfc_cards', [{field:'companyId', value:''}]);
+  var stockCount = allStock.length;
+
+  if (btn) btn.classList.remove('loading');
+
+  document.getElementById('assignReqId').value      = reqId;
+  document.getElementById('assignCompanyId').value   = companyId;
+  document.getElementById('assignStockCount').textContent    = stockCount;
+  document.getElementById('assignRequestedCount').textContent = requested;
+  document.getElementById('assignCount').value       = Math.min(requested, stockCount);
+  document.getElementById('assignWarning').style.display = 'none';
+
+  var co = CC.cos[companyId] || {};
+  document.getElementById('assignModalSub').textContent =
+    'Assigning to: ' + (co.name || companyId);
+
+  var assignBtn = document.getElementById('assignBtn');
+  if (stockCount === 0) {
+    document.getElementById('assignWarning').textContent = '⚠️ No cards in stock. Import a CSV first.';
+    document.getElementById('assignWarning').style.display = 'block';
+    assignBtn.disabled = true;
+  } else {
+    assignBtn.disabled = false;
+  }
+
+  openModal('mAssignCards');
+}
+
+async function doAssignCards() {
+  var reqId     = document.getElementById('assignReqId').value;
+  var companyId = document.getElementById('assignCompanyId').value;
+  var count     = parseInt(document.getElementById('assignCount').value, 10);
+  var warnEl    = document.getElementById('assignWarning');
+  warnEl.style.display = 'none';
+
+  if (!count || count < 1) { warnEl.textContent = 'Enter a valid number'; warnEl.style.display = 'block'; return; }
+
+  var btn = document.getElementById('assignBtn');
+  btn.disabled = true; btn.classList.add('loading');
+
+  // Берём N карточек из пула (companyId == "")
+  try {
+    var stockCards = await fsQ('nfc_cards', [{field:'companyId', value:''}]);
+    if (stockCards.length < count) {
+      warnEl.textContent = 'Only ' + stockCards.length + ' cards in stock. Adjust count.';
+      warnEl.style.display = 'block';
+      btn.disabled = false; btn.classList.remove('loading');
+      return;
+    }
+
+    // Assign first N cards from stock to this company
+    var toAssign = stockCards.slice(0, count);
+    var now = new Date().toISOString();
+
+    var batchSize = 5;
+    for (var i = 0; i < toAssign.length; i += batchSize) {
+      var batch = toAssign.slice(i, i + batchSize);
+      await Promise.all(batch.map(function(card) {
+        return fsMerge('nfc_cards', card.id, {
+          companyId:  sv(companyId),
+          status:     sv('unassigned'),
+          assignedAt: sv(now)
+        });
+      }));
+    }
+
+    // Mark request as fulfilled
+    await fsMerge('card_requests', reqId, {
+      status:      sv('approved'),
+      approvedAt:  sv(now),
+      fulfilledCount: { integerValue: String(count) }
+    });
+
+    // Update local state
+    var idx = allCardReqs.findIndex(function(r){ return r.id === reqId; });
+    if (idx >= 0) { allCardReqs[idx].status = 'approved'; }
+
+    closeModal('mAssignCards');
+    renderCardReqs();
+    toast('✓ ' + count + ' cards assigned to company!');
+
+  } catch(e) {
+    console.error(e);
+    warnEl.textContent = 'Error: ' + e.message;
+    warnEl.style.display = 'block';
+    btn.disabled = false; btn.classList.remove('loading');
+  }
 }
 
 async function approveCardReq(btn, reqId, count, companyId) {
@@ -3154,6 +3450,39 @@ function renderCDStats(cards) {
 }
 
 </script>
+
+<!-- ASSIGN CARDS MODAL -->
+<div class="gen-overlay" id="mAssignCards" onclick="if(event.target===this)closeModal('mAssignCards')">
+  <div class="gen-modal">
+    <button class="gen-close" onclick="closeModal('mAssignCards')"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M19.207 0.707031L10.3105 9.60352L19.207 18.5L18.5 19.207L9.60352 10.3105L0.707031 19.207L0 18.5L8.89648 9.60352L0 0.707031L0.707031 0L9.60352 8.89648L18.5 0L19.207 0.707031Z" fill="black"/></svg></button>
+    <div class="gen-title">Assign Cards to Company</div>
+    <div class="gen-sub" id="assignModalSub">Select how many cards to assign from the pool</div>
+    <input type="hidden" id="assignReqId"/>
+    <input type="hidden" id="assignCompanyId"/>
+    <div style="background:#f9f9f9;border-radius:14px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <span style="font-size:14px;color:#858585;font-family:'Inter',sans-serif">Available in stock</span>
+        <span style="font-size:20px;font-weight:700;color:#164e23;font-family:'Inter',sans-serif" id="assignStockCount">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:14px;color:#858585;font-family:'Inter',sans-serif">Requested by company</span>
+        <span style="font-size:20px;font-weight:700;color:#4f00df;font-family:'Inter',sans-serif" id="assignRequestedCount">—</span>
+      </div>
+    </div>
+    <div class="dfg" style="margin-bottom:8px">
+      <label>Cards to assign</label>
+      <input type="number" id="assignCount" min="1" placeholder="10"/>
+    </div>
+    <div id="assignWarning" style="display:none;color:#D93025;font-size:13px;font-family:'Inter',sans-serif;margin-bottom:12px"></div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
+      <button class="dbtn-cancel" onclick="closeModal('mAssignCards')">Cancel</button>
+      <button class="dbtn-save" id="assignBtn" onclick="doAssignCards()">
+        <span class="ld"></span><span>Assign Cards</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 </div><!-- /app-layout -->
 </body>
 </html>
