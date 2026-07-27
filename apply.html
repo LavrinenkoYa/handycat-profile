@@ -67,6 +67,15 @@
     .cb{width:44px;height:44px;border-radius:50%;border:1px solid #e9e9e9;background:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0d0c19;transition:all .15s}
     .cb:hover{border-color:#4f00df;color:#4f00df}
     .cv{font-size:28px;font-weight:700;color:#0d0c19;min-width:48px;text-align:center;font-family:'Albert Sans',sans-serif}
+    .pkg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0 20px}
+    @media(max-width:600px){.pkg-grid{grid-template-columns:repeat(2,1fr)}}
+    .pkg-card{border:1px solid #e9e9e9;border-radius:17px;padding:16px 8px;text-align:center;cursor:pointer;transition:all .15s;user-select:none}
+    .pkg-card:hover{border-color:#4f00df}
+    .pkg-card.sel{border-color:#4f00df;background:#f8f5ff;box-shadow:0 0 0 3px rgba(79,0,223,.08)}
+    .pkg-qty{font-size:22px;font-weight:700;color:#0d0c19;font-family:'Albert Sans',sans-serif}
+    .pkg-label{font-size:12px;color:#9b9d9d;margin-bottom:8px}
+    .pkg-price{font-size:16px;font-weight:700;color:#4f00df;font-family:'Albert Sans',sans-serif}
+    .pkg-rate{font-size:11px;color:#aaa;margin-top:2px}
     .actions{display:flex;align-items:center;gap:14px;margin-top:auto;padding-top:24px}
     .btn-back{background:transparent;border:none;color:#9b9d9d;font-size:16px;cursor:pointer;padding:13px 18px;font-family:'Work Sans',sans-serif}
     .btn-next{background:#32e682;color:#0d0c19;border:none;border-radius:310px;padding:13px 40px;font-size:17px;font-weight:400;cursor:pointer;transition:background .2s,color .2s;display:flex;align-items:center;gap:8px;margin-left:auto;font-family:'Work Sans',sans-serif}
@@ -199,13 +208,10 @@
       <div class="step-icon" style="background:#fde2e2">&#x1F4B3;</div>
       <div class="step-title">How many NFC cards do you need?</div>
       <div class="step-sub">Each card is assigned to one handyman. We'll prepare your order after approval.</div>
-      <div style="margin-bottom:24px">
-        <div class="card-counter">
-          <button class="cb" onclick="changeCards(-5)">&#x2212;</button>
-          <div class="cv" id="cardCount">10</div>
-          <button class="cb" onclick="changeCards(5)">+</button>
-        </div>
-        <div style="font-size:13px;color:#888">Minimum 5 cards &middot; Maximum 500 per order</div>
+      <div class="pkg-grid" id="pkgGrid"></div>
+      <div id="customQtyWrap" style="display:none;margin-bottom:16px">
+        <label style="display:block;font-size:13px;color:#0d0c19;margin-bottom:6px">Number of cards</label>
+        <input id="customQtyInput" type="number" min="5" placeholder="e.g. 750" oninput="updateCustomQty()"/>
       </div>
       <div style="background:#f8f8f8;border-radius:12px;padding:16px;margin-bottom:16px">
         <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">What's included with each card:</div>
@@ -265,6 +271,56 @@
 <script>
 var STEP_LABELS=["Contact Info","Business Details","NFC Cards","License & Insurance"];
 var currentStep=1,totalSteps=4,cardCount=10;
+
+// Tiered per-card pricing (base $5/card, discount unlocks at higher volumes).
+// Custom quantities are always billed at the base rate (no volume discount) -
+// picking one of the fixed packages is what gets you the discount.
+var CARD_PRICE_TIERS=[{min:0,rate:5.0},{min:100,rate:4.7},{min:250,rate:4.5},{min:500,rate:4.2}];
+var CARD_PACKAGES=[10,50,100];
+var CUSTOM_RATE=CARD_PRICE_TIERS[0].rate;
+var selectedPackage=10,customQty=0;
+
+function tieredRate(qty){
+  var rate=CARD_PRICE_TIERS[0].rate;
+  for(var i=0;i<CARD_PRICE_TIERS.length;i++){ if(qty>=CARD_PRICE_TIERS[i].min) rate=CARD_PRICE_TIERS[i].rate; }
+  return rate;
+}
+function fmtMoney(n){ return "$"+(Math.round(n*100)/100).toFixed(2).replace(/\.00$/,""); }
+
+function buildPackages(){
+  var html=CARD_PACKAGES.map(function(qty){
+    var rate=tieredRate(qty),total=qty*rate;
+    return '<div class="pkg-card" data-qty="'+qty+'" onclick="selectPackage('+qty+')">'+
+      '<div class="pkg-qty">'+qty+'</div><div class="pkg-label">cards</div>'+
+      '<div class="pkg-price">'+fmtMoney(total)+'</div><div class="pkg-rate">'+fmtMoney(rate)+'/card</div></div>';
+  }).join("");
+  html+='<div class="pkg-card" data-qty="custom" onclick="selectPackage(\'custom\')">'+
+    '<div class="pkg-qty">Custom</div><div class="pkg-label">any amount</div>'+
+    '<div class="pkg-price" id="pkgCustomPrice">&mdash;</div><div class="pkg-rate">'+fmtMoney(CUSTOM_RATE)+'/card</div></div>';
+  document.getElementById("pkgGrid").innerHTML=html;
+  selectPackage(selectedPackage);
+}
+
+function selectPackage(qty){
+  selectedPackage=qty;
+  document.querySelectorAll(".pkg-card").forEach(function(c){c.classList.toggle("sel",String(c.dataset.qty)===String(qty));});
+  var customWrap=document.getElementById("customQtyWrap");
+  if(qty==="custom"){
+    customWrap.style.display="block";
+    updateCustomQty();
+  }else{
+    customWrap.style.display="none";
+    cardCount=qty;
+  }
+}
+
+function updateCustomQty(){
+  var v=parseInt(document.getElementById("customQtyInput").value,10);
+  if(!v||v<5)v=0;
+  customQty=v;
+  cardCount=v;
+  document.getElementById("pkgCustomPrice").textContent=v?fmtMoney(v*CUSTOM_RATE):"\u2014";
+}
 var PID="handycat-98416",AKEY="AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
 var APP_ID="1:299592863157:web:1762bf7633443ae2c89dfc";
 var RECAPTCHA_KEY="6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD";
@@ -310,6 +366,7 @@ async function fsWithCheck(url,options){
 function toast(m){var e=document.getElementById("toast");e.textContent=m;e.classList.add("show");setTimeout(function(){e.classList.remove("show");},3000);}
 function sv(v){return{stringValue:String(v||"")};}
 function nv(v){return{integerValue:String(Number(v||0))};}
+function dv(v){return{doubleValue:Number(v||0)};}
 
 function sendEmail(to,subject,html){
   var mailId="mail-"+Date.now().toString(36);
@@ -357,8 +414,6 @@ function addCustomService(){
   inp.value="";
   inp.focus();
 }
-function changeCards(d){cardCount=Math.max(5,Math.min(500,cardCount+d));document.getElementById("cardCount").textContent=cardCount;}
-
 function validate(step,skip){
   if(step===1){
     if(!document.getElementById("f-company").value.trim()){toast("Please enter your company name");return false;}
@@ -373,6 +428,13 @@ function validate(step,skip){
     if(!document.getElementById("f-biztype").value){toast("Please select your business type");return false;}
     if(!document.getElementById("f-teamsize").value){toast("Please select your team size");return false;}
     if(!document.querySelectorAll("#serviceChips .chip.sel").length){toast("Please select at least one service");return false;}
+  }
+  if(step===3){
+    if(selectedPackage==="custom"){
+      if(!customQty||customQty<5){toast("Please enter a valid custom quantity (min 5 cards)");return false;}
+    }else if(!cardCount||cardCount<1){
+      toast("Please select a card package");return false;
+    }
   }
   if(step===4 && !skip){
     if(!document.getElementById("f-license").value.trim()){toast("Please enter your license number");return false;}
@@ -407,6 +469,8 @@ async function submitApplication(skip){
   var email=document.getElementById("f-email").value.trim();
   var company=document.getElementById("f-company").value.trim();
   var contact=document.getElementById("f-contact").value.trim();
+  var pricePerCard=selectedPackage==="custom"?CUSTOM_RATE:tieredRate(cardCount);
+  var totalPrice=cardCount*pricePerCard;
 
   try{
     // Save application to Firestore with App Check
@@ -428,6 +492,9 @@ async function submitApplication(skip){
         notes:sv(document.getElementById("f-notes").value.trim()),
         licensingSkipped:sv(skip?"true":"false"),
         requestedCards:nv(cardCount),
+        cardPackage:sv(String(selectedPackage)),
+        pricePerCard:dv(pricePerCard),
+        totalPrice:dv(totalPrice),
         status:sv("pending"),
         createdAt:sv(now)
       }})
@@ -444,7 +511,7 @@ async function submitApplication(skip){
       "<p>We've received your application for <strong>"+company+"</strong> and our team will review it within 1–2 business days.</p>"+
       "<div style='background:#f5f5f7;border-radius:12px;padding:16px;margin:20px 0'>"+
       "<p style='margin:4px 0'><strong>Application ID:</strong> "+appId+"</p>"+
-      "<p style='margin:4px 0'><strong>Cards requested:</strong> "+cardCount+"</p>"+
+      "<p style='margin:4px 0'><strong>Cards requested:</strong> "+cardCount+" ("+fmtMoney(pricePerCard)+"/card, "+fmtMoney(totalPrice)+" total)</p>"+
       "<p style='margin:4px 0'><strong>Submitted:</strong> "+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+"</p>"+
       "</div>"+
       "<p>You'll receive an email once a decision has been made.</p>"+
@@ -470,6 +537,7 @@ function copyAppId(){
   toast("Application ID copied!");
 }
 
+buildPackages();
 updateProgress();
 </script>
 <div style="position:fixed;bottom:6px;left:8px;z-index:1;font-size:10px;line-height:1.4;color:#bbb;font-family:sans-serif;pointer-events:none;max-width:260px">This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:#bbb;pointer-events:auto">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener" style="color:#bbb;pointer-events:auto">Terms of Service</a> apply.</div>
