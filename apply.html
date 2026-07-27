@@ -63,6 +63,10 @@
     .chip-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
     .chip{padding:9px 16px;border-radius:20px;border:1px solid #e9e9e9;background:#fff;font-size:13px;color:#0d0c19;cursor:pointer;transition:all .15s;user-select:none;font-family:'Work Sans',sans-serif}
     .chip.sel{background:#164e23;color:#fff;border-color:#164e23}
+    .chip-custom{display:inline-flex;align-items:center;gap:7px}
+    .chip-remove{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;font-size:13px;line-height:1;opacity:.6;transition:opacity .15s,background .15s}
+    .chip-remove:hover{opacity:1;background:rgba(0,0,0,.08)}
+    .chip.sel .chip-remove:hover{background:rgba(255,255,255,.2)}
     .card-counter{display:flex;align-items:center;gap:16px;margin:8px 0}
     .cb{width:44px;height:44px;border-radius:50%;border:1px solid #e9e9e9;background:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0d0c19;transition:all .15s}
     .cb:hover{border-color:#4f00df;color:#4f00df}
@@ -99,13 +103,13 @@
     <div class="logo-sub">Company registration</div>
     <div class="hm-card">
       <div class="hm-top">
-        <div class="hm-av">JL<div class="hm-dot"></div></div>
-        <div><div class="hm-name">Your Handyman</div><div class="hm-title">Service professional</div></div>
+        <div class="hm-av"><span id="prevAvatarText">JL</span><div class="hm-dot"></div></div>
+        <div><div class="hm-name" id="prevName">Your Handyman</div><div class="hm-title" id="prevTitle">Service professional</div></div>
       </div>
-      <div class="cats">
+      <div class="cats" id="prevCats">
         <span class="cat">Plumbing</span><span class="cat">Electrical</span><span class="cat">HVAC</span><span class="cat">+ more</span>
       </div>
-      <div class="hm-loc">&#x1F3E0; Your service area</div>
+      <div class="hm-loc" id="prevLoc">&#x1F3E0; Your service area</div>
       <div class="hm-rat"><span class="n">4.9</span><span class="d">/ 5.0</span></div>
     </div>
     <div class="prog-sec">
@@ -127,15 +131,15 @@
       <div class="step-title">Let's start with your details</div>
       <div class="step-sub">Tell us about your company and how we can reach you.</div>
       <div class="fgr">
-        <div class="fg"><label>Company Name *</label><input id="f-company" placeholder="FixPro Services"/></div>
-        <div class="fg"><label>Contact Person *</label><input id="f-contact" placeholder="John Smith"/></div>
+        <div class="fg"><label>Company Name *</label><input id="f-company" placeholder="FixPro Services" oninput="updatePreviewCard()"/></div>
+        <div class="fg"><label>Contact Person *</label><input id="f-contact" placeholder="John Smith" oninput="updatePreviewCard()"/></div>
       </div>
       <div class="fgr">
         <div class="fg"><label>Email Address *</label><input id="f-email" type="email" placeholder="john@fixpro.com"/></div>
         <div class="fg"><label>Phone Number *</label><input id="f-phone" type="tel" placeholder="+1 (555) 000-0000"/></div>
       </div>
-      <div class="fg"><label>Business Address *</label><input id="f-address" placeholder="123 Main St, New York, NY"/></div>
-      <div class="fg"><label>Service Region *</label><input id="f-region" placeholder="New York metropolitan area"/></div>
+      <div class="fg"><label>Business Address *</label><input id="f-address" placeholder="123 Main St, New York, NY" oninput="updatePreviewCard()"/></div>
+      <div class="fg"><label>Service Region *</label><input id="f-region" placeholder="New York metropolitan area" oninput="updatePreviewCard()"/></div>
       <div class="actions">
         <button class="btn-back" disabled style="visibility:hidden">Back</button>
         <button class="btn-next" onclick="nextStep()"><span>Next</span> &#x2192;</button>
@@ -398,21 +402,65 @@ function updateProgress(){
   buildSteps();
 }
 
-function togChip(el){el.classList.toggle("sel");}
+function esc(s){
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");
+}
+
+function initialsOf(name){
+  var parts=String(name||"").trim().split(/\s+/).filter(Boolean);
+  if(!parts.length)return "";
+  if(parts.length===1)return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0]+parts[1][0]).toUpperCase();
+}
+
+function updatePreviewCard(){
+  var contact=document.getElementById("f-contact").value.trim();
+  var company=document.getElementById("f-company").value.trim();
+  var region=document.getElementById("f-region").value.trim();
+  var address=document.getElementById("f-address").value.trim();
+
+  document.getElementById("prevName").textContent = contact || "Your Handyman";
+  document.getElementById("prevTitle").textContent = company || "Service professional";
+  document.getElementById("prevAvatarText").textContent = contact ? initialsOf(contact) : "JL";
+  document.getElementById("prevLoc").innerHTML = "&#x1F3E0; " + esc(region || address || "Your service area");
+
+  var selChips = Array.from(document.querySelectorAll("#serviceChips .chip.sel")).map(function(c){return c.dataset.label||c.textContent.trim();});
+  var catsEl = document.getElementById("prevCats");
+  if(!selChips.length){
+    catsEl.innerHTML = '<span class="cat">Plumbing</span><span class="cat">Electrical</span><span class="cat">HVAC</span><span class="cat">+ more</span>';
+  } else {
+    var shown = selChips.slice(0,3);
+    var html = shown.map(function(s){return '<span class="cat">'+esc(s)+'</span>';}).join("");
+    if (selChips.length > 3) html += '<span class="cat">+ ' + (selChips.length - 3) + ' more</span>';
+    catsEl.innerHTML = html;
+  }
+}
+
+function togChip(el){el.classList.toggle("sel");updatePreviewCard();}
 
 function addCustomService(){
   var inp=document.getElementById("customServiceInput");
   var val=inp.value.trim();
   if(!val)return;
-  var exists=Array.from(document.querySelectorAll("#serviceChips .chip")).some(function(c){return c.textContent.trim().toLowerCase()===val.toLowerCase();});
+  var exists=Array.from(document.querySelectorAll("#serviceChips .chip")).some(function(c){return (c.dataset.label||c.textContent).trim().toLowerCase()===val.toLowerCase();});
   if(exists){toast("Already added");inp.value="";return;}
   var chip=document.createElement("span");
-  chip.className="chip sel";
-  chip.textContent=val;
-  chip.onclick=function(){togChip(chip);};
+  chip.className="chip sel chip-custom";
+  chip.dataset.label=val;
+  var labelSpan=document.createElement("span");
+  labelSpan.textContent=val;
+  var removeBtn=document.createElement("span");
+  removeBtn.className="chip-remove";
+  removeBtn.textContent="\u00d7";
+  removeBtn.title="Remove";
+  removeBtn.onclick=function(e){ e.stopPropagation(); chip.remove(); updatePreviewCard(); };
+  chip.appendChild(labelSpan);
+  chip.appendChild(removeBtn);
+  chip.onclick=function(){ togChip(chip); };
   document.getElementById("serviceChips").appendChild(chip);
   inp.value="";
   inp.focus();
+  updatePreviewCard();
 }
 function validate(step,skip){
   if(step===1){
@@ -463,7 +511,7 @@ async function submitApplication(skip){
   if(!validate(4,skip))return;
   var btn=document.getElementById("submitBtn");
   btn.disabled=true;btn.classList.add("loading");
-  var services=Array.from(document.querySelectorAll("#serviceChips .chip.sel")).map(function(c){return c.textContent;});
+  var services=Array.from(document.querySelectorAll("#serviceChips .chip.sel")).map(function(c){return c.dataset.label||c.textContent.trim();});
   var appId="APP-"+Date.now().toString(36).toUpperCase();
   var now=new Date().toISOString();
   var email=document.getElementById("f-email").value.trim();
@@ -539,7 +587,8 @@ function copyAppId(){
 
 buildPackages();
 updateProgress();
+updatePreviewCard();
 </script>
-<div style="position:fixed;bottom:6px;left:8px;z-index:1;font-size:10px;line-height:1.4;color:#bbb;font-family:sans-serif;pointer-events:none;max-width:260px">This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:#bbb;pointer-events:auto">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener" style="color:#bbb;pointer-events:auto">Terms of Service</a> apply.</div>
+<div style="position:fixed;bottom:4px;left:6px;z-index:1;font-size:8px;line-height:1.3;color:#ccc;opacity:.7;font-family:sans-serif;pointer-events:none;max-width:200px">This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:#ccc;pointer-events:auto">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener" style="color:#ccc;pointer-events:auto">Terms of Service</a> apply.</div>
 </body>
 </html>
