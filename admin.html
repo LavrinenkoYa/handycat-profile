@@ -120,6 +120,23 @@
     .co-divider{height:2px;background:#f5f5f5;margin:16px 0}
     .cst{display:flex;gap:0;align-items:flex-start}
     .cst-item{display:flex;flex-direction:column;gap:8px;flex:1}
+    .co-view-btn{width:34px;height:34px;border:none;background:transparent;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#858585;transition:all .15s;flex-shrink:0}
+    .co-view-btn.active{background:#164e23;color:#fff}
+    .co-view-btn:hover:not(.active){background:#f5f5f5}
+    .co-badge-new{background:#eafff1;color:#164e23;font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+    .co-badge-blocked{background:#fdeaea;color:#b42318;font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+    .co-pending-card{background:#fffaf0;border:1.5px solid #f5c06a;border-radius:20px;padding:20px 24px;margin-bottom:14px}
+    .coc-block-btn{width:30px;height:30px;border-radius:50%;border:1px solid #eceae6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .15s;color:#858585}
+    .coc-block-btn:hover{background:#fdeaea;color:#b42318;border-color:#f3c6c6}
+    .co-list-row{display:flex;align-items:center;gap:16px;background:#fff;border-radius:16px;padding:14px 20px;margin-bottom:10px;cursor:pointer;transition:box-shadow .15s;border:2px solid transparent}
+    .co-list-row:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+    .co-list-row.off{opacity:.55}
+    .co-list-name{font-size:15px;font-weight:600;color:#111;font-family:'Inter',sans-serif;flex:1;min-width:0}
+    .co-list-meta{font-size:13px;color:#858585;font-family:'Inter',sans-serif;width:220px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .co-list-stats{display:flex;gap:20px;flex-shrink:0}
+    .co-list-stat{text-align:center;min-width:50px}
+    .co-list-stat .sn{font-size:15px;font-weight:700;color:#111}
+    .co-list-stat .sl{font-size:11px;color:#858585}
     .cst .sn{font-size:18px;font-weight:700;color:#111;font-family:'Inter',sans-serif;line-height:1}
     .cst .sl{font-size:14px;color:#858585;font-family:'Inter',sans-serif}
     .fl{display:flex;gap:6px;flex-wrap:wrap}
@@ -647,13 +664,28 @@
           Add company
         </button>
       </div>
-      <!-- Search -->
-      <div class="co-search">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#858585" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#858585" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <input placeholder="Search" oninput="searchCos(this.value)" id="coSearchInput" />
+      <!-- Search + filters -->
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <div class="co-search" style="flex:1;min-width:200px;margin:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#858585" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#858585" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input placeholder="Search" oninput="renderCos()" id="coSearchInput" />
+        </div>
+        <select id="coLocationFilter" class="dfg-select" style="width:200px;flex-shrink:0;margin:0" onchange="renderCos()">
+          <option value="">All cities</option>
+        </select>
+        <div style="display:flex;gap:4px;border:1.5px solid #eceae6;border-radius:10px;padding:4px;flex-shrink:0">
+          <button class="co-view-btn active" id="coViewGridBtn" onclick="switchCoView('grid')" title="Grid view">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button>
+          <button class="co-view-btn" id="coViewListBtn" onclick="switchCoView('list')" title="List view">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4.5" width="18" height="3" rx="1" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="10.5" width="18" height="3" rx="1" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="16.5" width="18" height="3" rx="1" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button>
+        </div>
       </div>
     </div>
+    <div id="coPending"></div>
     <div class="cgrid" id="coGrid"><div class="muted" style="padding:16px">Loading...</div></div>
+    <div id="coListWrap" style="display:none"></div>
   </div>
 
   <!-- COMPANY DETAIL -->
@@ -1566,11 +1598,23 @@ function ini(n) { return (n || "?").split(" ").map(function(w) { return w[0]; })
 function cp(t) { navigator.clipboard.writeText(t); toast("Copied!"); }
 
 // ── COMPANIES ─────────────────────────────────────────────────
+var coViewMode = "grid";
+var coPendingApps = [];
+
+function switchCoView(mode) {
+  coViewMode = mode;
+  var gridBtn = document.getElementById("coViewGridBtn"), listBtn = document.getElementById("coViewListBtn");
+  if (gridBtn) gridBtn.classList.toggle("active", mode === "grid");
+  if (listBtn) listBtn.classList.toggle("active", mode === "list");
+  document.getElementById("coGrid").style.display = mode === "grid" ? "" : "none";
+  document.getElementById("coListWrap").style.display = mode === "list" ? "" : "none";
+}
+
 async function loadCos() {
   var g = document.getElementById("coGrid");
   g.innerHTML = '<div class="muted" style="padding:16px">Loading...</div>';
-  var results = await Promise.all([fsL("companies"), fsL("nfc_cards")]);
-  var cos = results[0], cards = results[1];
+  var results = await Promise.all([fsL("companies"), fsL("nfc_cards"), fsL("company_applications")]);
+  var cos = results[0], cards = results[1], apps = results[2];
   CC.cos = {};
   cos.forEach(function(c) { CC.cos[c.id] = c; });
   var cs = {};
@@ -1581,23 +1625,127 @@ async function loadCos() {
     if (c.status === "unassigned") cs[c.companyId].u++;
   });
   CC._coStats = cs;
+
+  // Flag + sort: recently-created companies pinned to top with a "New" badge
+  var weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  cos.forEach(function(c) { c._isNew = !!(c.createdAt && new Date(c.createdAt).getTime() > weekAgo); });
+  cos.sort(function(a, b) {
+    if (a._isNew !== b._isNew) return a._isNew ? -1 : 1;
+    return (b.createdAt || "").localeCompare(a.createdAt || "");
+  });
   CC._allCos = cos;
-  renderCos(cos);
+
+  // Pending company applications surfaced at the top, actionable inline
+  coPendingApps = (apps || []).filter(function(a) { return a.status === "pending"; });
+  coPendingApps.sort(function(a, b) { return (b.createdAt || "").localeCompare(a.createdAt || ""); });
+  renderCoPending();
+
+  // City/location filter options
+  var locSel = document.getElementById("coLocationFilter");
+  if (locSel) {
+    var curVal = locSel.value;
+    var locs = Array.from(new Set(cos.map(function(c) { return (c.location || "").trim(); }).filter(Boolean))).sort();
+    locSel.innerHTML = '<option value="">All cities</option>' + locs.map(function(l) {
+      return '<option value="' + esc(l) + '">' + esc(l) + '</option>';
+    }).join("");
+    if (locs.indexOf(curVal) !== -1) locSel.value = curVal;
+  }
+
+  renderCos();
 }
 
-function renderCos(cos) {
-  var g = document.getElementById("coGrid");
-  if (!cos.length) { g.innerHTML = '<div class="empty">No companies yet. Add your first one!</div>'; return; }
+function renderCoPending() {
+  var el = document.getElementById("coPending");
+  if (!el) return;
+  if (!coPendingApps.length) { el.innerHTML = ""; return; }
+  el.innerHTML = coPendingApps.map(function(a) {
+    return '<div class="co-pending-card">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">' +
+        '<div>' +
+          '<span class="pg-badge pg-badge-yellow" style="margin-right:8px">Pending</span>' +
+          '<strong style="font-size:16px;font-family:\'Inter\',sans-serif">' + esc(a.companyName || "—") + '</strong>' +
+          '<div style="color:#858585;font-size:13px;margin-top:4px">' + esc(a.contactPerson || "") +
+            (a.requestedCards ? (" · " + a.requestedCards + " cards requested") : "") +
+            (a.region ? (" · " + esc(a.region)) : "") + '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;flex-shrink:0">' +
+          '<button class="pg-decision-btn pg-decision-approve" onclick="coApproveApp(\'' + a.id + '\')">Approve</button>' +
+          '<button class="pg-decision-btn pg-decision-reject" onclick="coRejectApp(\'' + a.id + '\')">Reject</button>' +
+          '<button class="cd-action-btn" onclick="nav(\'app-detail\');showAppDetail(\'' + a.id + '\')" title="View details" style="width:36px;height:36px;border:1px solid #eceae6;border-radius:50%">' +
+            '<svg width="16" height="16" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.3681 13.4307L15.0556 20.7432C14.9401 20.8508 14.7873 20.9094 14.6295 20.9066C14.4716 20.9039 14.321 20.8399 14.2093 20.7283C14.0977 20.6166 14.0337 20.466 14.0309 20.3081C14.0281 20.1502 14.0867 19.9975 14.1944 19.8819L20.4659 13.6094H4.0625C3.90088 13.6094 3.74589 13.5452 3.63161 13.431C3.51733 13.3167 3.45313 13.1617 3.45312 13.0001C3.45312 12.8384 3.51733 12.6834 3.63161 12.5692C3.74589 12.4549 3.90088 12.3907 4.0625 12.3907H20.4659L14.1944 6.11818C14.0867 6.00267 14.0281 5.84988 14.0309 5.69201C14.0337 5.53414 14.0977 5.38351 14.2093 5.27187C14.321 5.16022 14.4716 5.09626 14.6295 5.09348C14.7873 5.09069 14.9401 5.14929 15.0556 5.25693L22.3681 12.5694C22.4822 12.6837 22.5463 12.8386 22.5463 13.0001C22.5463 13.1615 22.4822 13.3164 22.3681 13.4307Z" fill="#4F00DF"/></svg>' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+async function coApproveApp(id) {
+  await updateAppStatus(id, "approved");
+  loadCos();
+}
+async function coRejectApp(id) {
+  if (!confirm("Reject this application?")) return;
+  await updateAppStatus(id, "rejected");
+  loadCos();
+}
+
+async function coToggleActive(id, currentStatus, evt) {
+  if (evt) evt.stopPropagation();
+  var ns = currentStatus === "inactive" ? "active" : "inactive";
+  if (ns === "inactive" && !confirm("Block this company? They will lose access to their dashboard until unblocked.")) return;
+  var ok = await fsPatchFields("companies", id, { status: sv(ns) });
+  if (ok) {
+    if (CC.cos[id]) CC.cos[id].status = ns;
+    var rec = (CC._allCos || []).find(function(c) { return c.id === id; });
+    if (rec) rec.status = ns;
+    toast(ns === "active" ? "✓ Company unblocked" : "✓ Company blocked");
+    renderCos();
+  }
+}
+
+function getFilteredCos() {
+  var all = CC._allCos || [];
+  var q = ((document.getElementById("coSearchInput") || {}).value || "").trim().toLowerCase();
+  var loc = (document.getElementById("coLocationFilter") || {}).value || "";
+  return all.filter(function(c) {
+    if (loc && (c.location || "") !== loc) return false;
+    if (q) {
+      var hit = (c.name || "").toLowerCase().includes(q) ||
+                (c.location || "").toLowerCase().includes(q) ||
+                (c.email || "").toLowerCase().includes(q);
+      if (!hit) return false;
+    }
+    return true;
+  });
+}
+
+function renderCos() {
+  var cos = getFilteredCos();
   var cs = CC._coStats || {};
+  var g = document.getElementById("coGrid");
+  var lw = document.getElementById("coListWrap");
+
+  if (!cos.length) {
+    var emptyHtml = '<div class="empty">No companies match your filters.</div>';
+    g.innerHTML = emptyHtml; lw.innerHTML = emptyHtml;
+    return;
+  }
+
   g.innerHTML = cos.map(function(c) {
     var s = cs[c.id] || { t: 0, a: 0, u: 0 };
     var ok = c.status !== "inactive";
     var nm = esc(c.name || c.id || "Unnamed");
     var initials = nm.split(" ").map(function(w){return w[0]||"";}).join("").slice(0,2).toUpperCase();
     return '<div class="coc' + (ok ? "" : " off") + '" onclick="openCo(\'' + c.id + '\')">' +
-      '<div class="coc-name-row">' +
-        '<div class="coc-avatar' + (ok ? "" : " off") + '">' + initials + '</div>' +
-        '<div class="cn">' + nm + '</div>' +
+      '<div class="coc-name-row" style="justify-content:space-between">' +
+        '<div style="display:flex;align-items:center;gap:12px;min-width:0">' +
+          '<div class="coc-avatar' + (ok ? "" : " off") + '">' + initials + '</div>' +
+          '<div class="cn">' + nm + (c._isNew ? '<span class="co-badge-new">New</span>' : '') + (!ok ? '<span class="co-badge-blocked">Blocked</span>' : '') + '</div>' +
+        '</div>' +
+        '<button class="coc-block-btn" onclick="coToggleActive(\'' + c.id + '\',\'' + (c.status||'active') + '\',event)" title="' + (ok ? 'Block company' : 'Unblock company') + '">' +
+          (ok ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 5.5l13 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>' : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>') +
+        '</button>' +
       '</div>' +
       '<div class="cm">' +
         (c.location ? '<span>' + esc(c.location) + '</span>' : '') +
@@ -1611,17 +1759,27 @@ function renderCos(cos) {
       '</div>' +
     '</div>';
   }).join("");
-}
 
-function searchCos(q) {
-  var all = CC._allCos || [];
-  if (!q) { renderCos(all); return; }
-  q = q.toLowerCase();
-  renderCos(all.filter(function(c) {
-    return (c.name||"").toLowerCase().includes(q) ||
-           (c.location||"").toLowerCase().includes(q) ||
-           (c.email||"").toLowerCase().includes(q);
-  }));
+  lw.innerHTML = cos.map(function(c) {
+    var s = cs[c.id] || { t: 0, a: 0, u: 0 };
+    var ok = c.status !== "inactive";
+    var nm = esc(c.name || c.id || "Unnamed");
+    var initials = nm.split(" ").map(function(w){return w[0]||"";}).join("").slice(0,2).toUpperCase();
+    return '<div class="co-list-row' + (ok ? "" : " off") + '" onclick="openCo(\'' + c.id + '\')">' +
+      '<div class="coc-avatar' + (ok ? "" : " off") + '" style="width:36px;height:36px;font-size:13px">' + initials + '</div>' +
+      '<div class="co-list-name">' + nm + (c._isNew ? '<span class="co-badge-new">New</span>' : '') + (!ok ? '<span class="co-badge-blocked">Blocked</span>' : '') + '</div>' +
+      '<div class="co-list-meta">' + esc(c.location || "—") + '</div>' +
+      '<div class="co-list-meta">' + esc(c.email || "—") + '</div>' +
+      '<div class="co-list-stats">' +
+        '<div class="co-list-stat"><div class="sn">' + s.t + '</div><div class="sl">Cards</div></div>' +
+        '<div class="co-list-stat"><div class="sn">' + s.a + '</div><div class="sl">Active</div></div>' +
+        '<div class="co-list-stat"><div class="sn">' + s.u + '</div><div class="sl">Available</div></div>' +
+      '</div>' +
+      '<button class="coc-block-btn" onclick="coToggleActive(\'' + c.id + '\',\'' + (c.status||'active') + '\',event)" title="' + (ok ? 'Block company' : 'Unblock company') + '">' +
+        (ok ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 5.5l13 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>' : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>') +
+      '</button>' +
+    '</div>';
+  }).join("");
 }
 
 function openAddCompany() {
