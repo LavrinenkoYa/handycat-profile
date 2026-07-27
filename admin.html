@@ -121,6 +121,20 @@
     .cst{display:flex;gap:0;align-items:flex-start}
     .cst-item{display:flex;flex-direction:column;gap:8px;flex:1}
     .co-view-btn{width:34px;height:34px;border:none;background:transparent;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#858585;transition:all .15s;flex-shrink:0}
+    .sb-search-btn{display:flex;align-items:center;gap:10px;width:100%;border:1.5px solid #eceae6;background:#fff;border-radius:14px;padding:11px 16px;color:#858585;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s}
+    .sb-search-btn:hover{border-color:#164e23;color:#164e23}
+    .gs-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background .12s}
+    .gs-row:hover{background:#f5f5f5}
+    .gs-title{font-size:14px;font-weight:600;color:#111;font-family:'Inter',sans-serif}
+    .gs-sub{font-size:12px;color:#858585;font-family:'Inter',sans-serif;margin-top:1px}
+    .gs-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#aaa;font-family:'Inter',sans-serif;font-weight:700;margin:14px 12px 4px}
+    .gs-icon{width:36px;height:36px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+    .notif-row{display:flex;align-items:center;gap:16px;background:#fff;border-radius:20px;padding:18px 22px;margin-bottom:10px;cursor:pointer;transition:box-shadow .15s}
+    .notif-row:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+    .notif-icon{width:42px;height:42px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+    .notif-title{font-size:15px;font-weight:600;color:#111;font-family:'Inter',sans-serif}
+    .notif-sub{font-size:13px;color:#858585;font-family:'Inter',sans-serif;margin-top:2px}
+    .notif-time{font-size:12px;color:#aaa;font-family:'Inter',sans-serif;flex-shrink:0;white-space:nowrap}
     .co-view-btn.active{background:#164e23;color:#fff}
     .co-view-btn:hover:not(.active){background:#f5f5f5}
     .co-badge-new{background:#eafff1;color:#164e23;font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;margin-left:8px;vertical-align:middle;white-space:nowrap}
@@ -577,6 +591,11 @@
           <svg width="59" height="59" viewBox="0 0 59 59" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="59" height="59" rx="20" fill="#F9F0DF"/><mask id="sbm0" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="59" height="59"><path d="M0 20C0 8.95431 8.95431 0 20 0H39C50.0457 0 59 8.95431 59 20V39C59 50.0457 50.0457 59 39 59H20C8.95431 59 0 50.0457 0 39V20Z" fill="#E1E0DC"/></mask><g mask="url(#sbm0)"><path d="M19.0387 66.1786L15.3066 52.2502M5.56641 15.8992L15.3066 52.2502M15.3066 52.2502L26.7818 34.7445C27.6497 33.4205 29.3601 32.9379 30.792 33.613L45.6135 40.6008C46.4583 40.9991 47.0849 41.7491 47.3267 42.6513L51.3136 57.5306" stroke="#FB6305" stroke-width="7.17973" stroke-linecap="round" stroke-linejoin="round"/><path d="M28.565 55.2478C27.808 52.4226 29.4846 49.5186 32.3098 48.7616C35.135 48.0046 38.039 49.6812 38.796 52.5064L41.1072 61.132C41.2524 61.6741 40.9307 62.2313 40.3887 62.3765L32.1207 64.5919C31.5787 64.7372 31.0215 64.4155 30.8762 63.8734L28.565 55.2478Z" fill="#164E23"/><path d="M46.3092 30.3188C43.7238 20.6697 33.8058 14.9436 24.1568 17.529C21.8717 18.1413 19.8066 19.1649 18.0198 20.4987" stroke="#FB6305" stroke-width="5.40701" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
         </div>
 
+        <button class="sb-search-btn" onclick="openGlobalSearch()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>Search</span>
+        </button>
+
         <!-- Menu -->
         <nav class="sb-menu">
           <button class="nb" onclick="loadPool()">
@@ -598,27 +617,13 @@
             <span class="nb-label">Handymen</span>
           </button>
 
-          <button class="nb" onclick="nav('clients')">
-            <span class="nb-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.75C13.6569 15.75 15 14.4069 15 12.75C15 11.0931 13.6569 9.75 12 9.75C10.3431 9.75 9 11.0931 9 12.75C9 14.4069 10.3431 15.75 12 15.75Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 18C8.02395 17.3014 8.70336 16.7344 9.48442 16.3438C10.2655 15.9533 11.1267 15.75 12 15.75C12.8733 15.75 13.7345 15.9533 14.5156 16.3438C15.2966 16.7344 15.976 17.3014 16.5 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 20.25V3.75C19.5 3.33579 19.1642 3 18.75 3L5.25 3C4.83579 3 4.5 3.33579 4.5 3.75L4.5 20.25C4.5 20.6642 4.83579 21 5.25 21H18.75C19.1642 21 19.5 20.6642 19.5 20.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 6H15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <span class="nb-label">Clients</span>
-          </button>
-
-          <button class="nb" onclick="nav('orders')">
-            <span class="nb-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.125 10.875L13.125 13.875" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.3806 9.36938L17.625 13.125" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.75012 5.99989L5.04106 4.66582C5.80716 3.89961 6.71669 3.29181 7.7177 2.87713C8.71872 2.46246 9.79161 2.24902 10.8751 2.24902C11.9586 2.24902 13.0315 2.46246 14.0325 2.87713C15.0336 3.29181 15.9431 3.89961 16.7092 4.66582L23.0307 11.0305C23.1713 11.1712 23.2502 11.3618 23.2502 11.5607C23.2502 11.7595 23.1713 11.9502 23.0307 12.0908L20.3439 14.7805C20.2032 14.9211 20.0125 15 19.8137 15C19.6149 15 19.4242 14.9211 19.2836 14.7805L15.7501 11.2499L6.2195 20.7805C6.07886 20.9211 5.88817 21 5.68934 21C5.49051 21 5.29982 20.9211 5.15918 20.7805L3.2195 18.8436C3.07895 18.703 3 18.5123 3 18.3135C3 18.1147 3.07895 17.924 3.2195 17.7833L12.7501 8.24989L7.4795 2.97926" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <span class="nb-label">Orders</span>
-          </button>
-
           
-          <button class="nb" onclick="nav('applications')">
+          <button class="nb" onclick="nav('notifications')">
             <span class="nb-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.625C12 5.12772 12.1975 4.65081 12.5492 4.29917C12.9008 3.94754 13.3777 3.75 13.875 3.75C14.3723 3.75 14.8492 3.94754 15.2008 4.29917C15.5525 4.65081 15.75 5.12772 15.75 5.625V10.875" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 7.125V4.125C8.25 3.62772 8.44754 3.15081 8.79917 2.79917C9.15081 2.44754 9.62772 2.25 10.125 2.25C10.6223 2.25 11.0992 2.44754 11.4508 2.79917C11.8025 3.15081 12 3.62772 12 4.125V10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 16.5C12 15.5054 12.3951 14.5516 13.0983 13.8483C13.8016 13.1451 14.7554 12.75 15.75 12.75V10.875C15.75 10.3777 15.9475 9.90081 16.2992 9.54917C16.6508 9.19754 17.1277 9 17.625 9C18.1223 9 18.5992 9.19754 18.9508 9.54917C19.3025 9.90081 19.5 10.3777 19.5 10.875V14.25C19.5 16.2391 18.7098 18.1468 17.3033 19.5533C15.8968 20.9598 13.9891 21.75 12 21.75C10.0109 21.75 8.10322 20.9598 6.6967 19.5533C5.29018 18.1468 4.5 16.2391 4.5 14.25V7.125C4.5 6.62772 4.69754 6.15081 5.04917 5.79917C5.40081 5.44754 5.87772 5.25 6.375 5.25C6.87228 5.25 7.34919 5.44754 7.70083 5.79917C8.05246 6.15081 8.25 6.62772 8.25 7.125V11.25" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 8.25C18 6.65326 17.3679 5.12279 16.2426 3.99742C15.1174 2.87206 13.5869 2.25 12 2.25C10.4131 2.25 8.88258 2.87206 7.75736 3.99742C6.63214 5.12279 6 6.65326 6 8.25C6 15.75 3 18 3 18H21C21 18 18 15.75 18 8.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7302 21C13.5638 21.3031 13.3196 21.5565 13.023 21.7328C12.7264 21.9092 12.3882 22.0022 12.0435 22.0022C11.6988 22.0022 11.3606 21.9092 11.064 21.7328C10.7674 21.5565 10.5232 21.3031 10.3568 21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </span>
-            <span class="nb-label">Applications</span>
-            <span id="appsBadge" class="nb-badge" style="display:none"></span>
+            <span class="nb-label">Notifications</span>
+            <span id="notifBadge" class="nb-badge" style="display:none"></span>
           </button>
 
           <button class="nb" onclick="nav('archive')">
@@ -1081,6 +1086,19 @@
   </div>
 
   <!-- APPLICATIONS -->
+  <!-- NOTIFICATIONS -->
+  <div class="page" id="page-notifications">
+    <div class="pg-header">
+      <div class="pg-toprow">
+        <div>
+          <div class="pg-title">Notifications</div>
+          <div class="pg-sub">Recent activity across your system</div>
+        </div>
+      </div>
+    </div>
+    <div id="notifFeed"></div>
+  </div>
+
   <div class="page" id="page-applications">
     <div class="pg-header">
       <div class="pg-toprow">
@@ -1285,6 +1303,19 @@
 </div>
 
 <!-- CONFIRM -->
+<!-- GLOBAL SEARCH -->
+<div class="overlay" id="mGlobalSearch" onclick="if(event.target===this)closeModal('mGlobalSearch')">
+  <div class="modal" style="max-width:640px;padding:0;overflow:hidden;max-height:76vh;display:flex;flex-direction:column">
+    <div style="padding:22px 24px 16px">
+      <div class="co-search" style="margin:0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#858585" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#858585" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input id="gsInput" placeholder="Search companies, handymen, clients, orders, cards..." oninput="runGlobalSearch(this.value)" autocomplete="off" />
+      </div>
+    </div>
+    <div id="gsResults" style="overflow-y:auto;padding:0 12px 20px;flex:1"></div>
+  </div>
+</div>
+
 <div class="overlay" id="mConfirm">
   <div class="modal">
     <div class="mt" id="cfTitle" style="color:#D93025">Confirm Action</div><div class="ms" id="cfSub"></div>
@@ -1397,18 +1428,91 @@ var CC = { cos: {}, cl: {} };
 var cdId = null, cdCards = [], cdCF = "all", cdHM = [];
 var allOrds = [], ordF = "all";
 
-async function loadAppsBadge() {
+async function loadNotifications() {
+  var el = document.getElementById("notifFeed");
+  if (el) el.innerHTML = '<div class="empty" style="padding:24px">Loading...</div>';
+
+  var items = [];
+  var badgeCount = 0;
+  var LOW_STOCK_THRESHOLD = 20;
+
   try {
-    var r = await fetch(FS + "/company_applications?key=" + AKEY + "&pageSize=100", await addAppCheck({}));
-    if (!r.ok) return;
-    var d = await r.json();
-    var pending = (d.documents || []).filter(function(x) {
-      return pf(x.fields).status === "pending";
-    }).length;
-    var badge = document.getElementById("appsBadge");
-    if (pending > 0) { badge.textContent = pending; badge.style.display = "inline"; }
+    var results = await Promise.all([
+      fsL("company_applications", 200),
+      fsL("card_requests", 200),
+      fsL("companies", 500),
+      fsL("nfc_cards", 5000)
+    ]);
+    var apps = results[0], reqs = results[1], cos = results[2], cards = results[3];
+
+    apps.filter(function(a) { return a.status === "pending"; }).forEach(function(a) {
+      badgeCount++;
+      items.push({
+        ts: a.createdAt || "", icon: "📝",
+        title: "New company application — " + (a.companyName || "Unknown"),
+        sub: (a.contactPerson || "") + (a.requestedCards ? (" · " + a.requestedCards + " cards requested") : ""),
+        action: "nav('companies')"
+      });
+    });
+
+    reqs.filter(function(r) { return r.status === "pending"; }).forEach(function(r) {
+      badgeCount++;
+      items.push({
+        ts: r.createdAt || "", icon: "💳",
+        title: "New card request — " + (r.companyName || r.companyId || "Unknown"),
+        sub: (r.count || 10) + " cards requested" + (r.notes ? (" · " + r.notes) : ""),
+        action: "loadPool()"
+      });
+    });
+
+    var weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    cos.filter(function(c) { return c.createdAt && new Date(c.createdAt).getTime() > weekAgo; }).forEach(function(c) {
+      items.push({
+        ts: c.createdAt, icon: "🏢",
+        title: "New company joined — " + (c.name || c.id),
+        sub: c.location || "",
+        action: "nav('companies');openCo('" + c.id + "')"
+      });
+    });
+
+    var stockCount = cards.filter(function(c) { return !c.companyId || c.companyId === ""; }).length;
+    if (stockCount < LOW_STOCK_THRESHOLD) {
+      badgeCount++;
+      items.push({
+        ts: new Date().toISOString(), icon: "⚠️", pinned: true,
+        title: "Low stock — only " + stockCount + " card" + (stockCount === 1 ? "" : "s") + " available",
+        sub: "Order more from the Cards page",
+        action: "loadPool()"
+      });
+    }
+  } catch (e) {}
+
+  items.sort(function(a, b) {
+    if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+    return (b.ts || "").localeCompare(a.ts || "");
+  });
+
+  var badge = document.getElementById("notifBadge");
+  if (badge) {
+    if (badgeCount > 0) { badge.textContent = badgeCount; badge.style.display = "inline"; }
     else badge.style.display = "none";
-  } catch(e) {}
+  }
+
+  if (!el) return;
+  if (!items.length) {
+    el.innerHTML = '<div class="pg-card"><div class="empty">No notifications right now — you\'re all caught up.</div></div>';
+    return;
+  }
+  el.innerHTML = items.map(function(n) {
+    return '<div class="notif-row" onclick="' + n.action + '">' +
+      '<div class="notif-icon">' + n.icon + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="notif-title">' + esc(n.title) + '</div>' +
+        (n.sub ? '<div class="notif-sub">' + esc(n.sub) + '</div>' : '') +
+      '</div>' +
+      '<div class="notif-time">' + (n.ts ? fd(n.ts) : "") + '</div>' +
+    '</div>';
+  }).join("");
 }
 
 function showApp() {
@@ -1421,7 +1525,7 @@ function showApp() {
     if (email) emailEl.textContent = email;
   }
   loadCos();
-  loadAppsBadge();
+  loadNotifications();
   loadArchiveBadge();
 }
 
@@ -1537,6 +1641,7 @@ function nav(n) {
   if (n === "clients") loadCls();
   if (n === "orders") loadOrds();
   if (n === "applications") loadApps();
+  if (n === "notifications") loadNotifications();
   if (n === "archive") loadArchive();
   if (n === "co-detail") { /* already loaded */ }
   if (n === "card-detail") { /* loaded by showCardDetail */ }
@@ -1615,6 +1720,99 @@ function ini(n) { return (n || "?").split(" ").map(function(w) { return w[0]; })
 function cp(t) { navigator.clipboard.writeText(t); toast("Copied!"); }
 
 // ── COMPANIES ─────────────────────────────────────────────────
+// ── GLOBAL SEARCH ──────────────────────────────────────────────
+var gsData = null;
+
+async function openGlobalSearch() {
+  var input = document.getElementById("gsInput");
+  input.value = "";
+  document.getElementById("gsResults").innerHTML = '<div class="empty" style="padding:24px 12px">Start typing to search across companies, handymen, clients, orders and cards.</div>';
+  openModal("mGlobalSearch");
+  setTimeout(function() { input.focus(); }, 60);
+  if (!gsData) {
+    try {
+      var r = await Promise.all([
+        fsL("companies", 500), fsL("handymen", 500), fsL("clients", 500),
+        fsL("orders", 1000), fsL("nfc_cards", 3000)
+      ]);
+      gsData = { companies: r[0], handymen: r[1], clients: r[2], orders: r[3], cards: r[4] };
+    } catch (e) { gsData = { companies: [], handymen: [], clients: [], orders: [], cards: [] }; }
+  }
+}
+
+function gsSection(title, items, renderFn) {
+  if (!items.length) return "";
+  return '<div class="gs-section-title">' + title + '</div>' + items.map(renderFn).join("");
+}
+
+function runGlobalSearch(qRaw) {
+  var out = document.getElementById("gsResults");
+  var q = (qRaw || "").trim().toLowerCase();
+  if (!q) { out.innerHTML = '<div class="empty" style="padding:24px 12px">Start typing to search across companies, handymen, clients, orders and cards.</div>'; return; }
+  if (!gsData) { out.innerHTML = '<div class="empty" style="padding:24px 12px">Loading...</div>'; return; }
+
+  var coMap = {}; gsData.companies.forEach(function(c) { coMap[c.id] = c; });
+  var clMap = {}; gsData.clients.forEach(function(c) { clMap[c.id] = c; });
+
+  var companies = gsData.companies.filter(function(c) {
+    return (c.name || "").toLowerCase().includes(q) || (c.location || "").toLowerCase().includes(q) || (c.email || "").toLowerCase().includes(q);
+  }).slice(0, 6);
+
+  var handymen = gsData.handymen.filter(function(h) {
+    return (h.name || "").toLowerCase().includes(q) || (h.phone || "").toLowerCase().includes(q);
+  }).slice(0, 6);
+
+  var clients = gsData.clients.filter(function(c) {
+    return (c.name || "").toLowerCase().includes(q) || (c.phone || "").toLowerCase().includes(q) || (c.email || "").toLowerCase().includes(q);
+  }).slice(0, 6);
+
+  var orders = gsData.orders.filter(function(o) {
+    var cn = (coMap[o.companyId] || {}).name || "";
+    var cln = (clMap[o.clientId] || {}).name || "";
+    return cn.toLowerCase().includes(q) || cln.toLowerCase().includes(q) || (o.category || "").toLowerCase().includes(q);
+  }).slice(0, 6);
+
+  var cards = gsData.cards.filter(function(c) {
+    return (c.printId || "").toLowerCase().includes(q) || (c.id || "").toLowerCase().includes(q);
+  }).slice(0, 6);
+
+  var html = "";
+  html += gsSection("Companies", companies, function(c) {
+    return '<div class="gs-row" onclick="closeModal(\'mGlobalSearch\');nav(\'companies\');openCo(\'' + c.id + '\')">' +
+      '<div class="gs-icon">' + ini(c.name) + '</div>' +
+      '<div><div class="gs-title">' + esc(c.name || c.id) + '</div><div class="gs-sub">' + esc(c.location || "") + '</div></div>' +
+    '</div>';
+  });
+  html += gsSection("Handymen", handymen, function(h) {
+    return '<div class="gs-row" onclick="closeModal(\'mGlobalSearch\');openHMDetail(\'' + h.id + '\',\'handymen\')">' +
+      '<div class="gs-icon">' + ini(h.name) + '</div>' +
+      '<div><div class="gs-title">' + esc(h.name || h.id) + '</div><div class="gs-sub">' + esc(h.phone || "") + '</div></div>' +
+    '</div>';
+  });
+  html += gsSection("Clients", clients, function(c) {
+    return '<div class="gs-row" onclick="closeModal(\'mGlobalSearch\');openCl(\'' + c.id + '\')">' +
+      '<div class="gs-icon">' + ini(c.name) + '</div>' +
+      '<div><div class="gs-title">' + esc(c.name || c.id) + '</div><div class="gs-sub">' + esc(c.phone || c.email || "") + '</div></div>' +
+    '</div>';
+  });
+  html += gsSection("Orders", orders, function(o) {
+    var cn = (coMap[o.companyId] || {}).name || "—";
+    var cln = (clMap[o.clientId] || {}).name || "—";
+    return '<div class="gs-row" onclick="closeModal(\'mGlobalSearch\');showOrderDetail(\'' + o.id + '\',\'companies\')">' +
+      '<div class="gs-icon">📋</div>' +
+      '<div><div class="gs-title">' + esc(cln) + ' · ' + esc(o.category || "Order") + '</div><div class="gs-sub">' + esc(cn) + '</div></div>' +
+    '</div>';
+  });
+  html += gsSection("Cards", cards, function(c) {
+    return '<div class="gs-row" onclick="closeModal(\'mGlobalSearch\');nav(\'card-detail\');showCardDetail(\'' + c.id + '\')">' +
+      '<div class="gs-icon">💳</div>' +
+      '<div><div class="gs-title">' + esc(c.printId || c.id) + '</div><div class="gs-sub">' + esc((coMap[c.companyId] || {}).name || "In stock") + '</div></div>' +
+    '</div>';
+  });
+
+  out.innerHTML = html || '<div class="empty" style="padding:24px 12px">No results for &quot;' + esc(qRaw) + '&quot;</div>';
+}
+
 var coViewMode = "grid";
 var coPendingApps = [];
 
@@ -1700,11 +1898,13 @@ function renderCoPending() {
 async function coApproveApp(id) {
   await updateAppStatus(id, "approved");
   loadCos();
+  loadNotifications();
 }
 async function coRejectApp(id) {
   if (!confirm("Reject this application?")) return;
   await updateAppStatus(id, "rejected");
   loadCos();
+  loadNotifications();
 }
 
 async function coToggleActive(id, currentStatus, evt) {
@@ -2923,9 +3123,6 @@ async function loadApps() {
   var d = await r.json();
   allApps = (d.documents || []).map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
   allApps.sort(function(a, b) { return (b.createdAt || "").localeCompare(a.createdAt || ""); });
-  var pending = allApps.filter(function(a) { return a.status === "pending"; }).length;
-  var badge = document.getElementById("appsBadge");
-  badge.textContent = pending; badge.style.display = pending > 0 ? "inline" : "none";
   renderApps();
 }
 
@@ -3442,6 +3639,7 @@ async function doAssignCards() {
 
     closeModal('mAssignCards');
     renderCardReqs();
+    loadNotifications();
     toast('✓ ' + count + ' cards assigned to company!');
 
   } catch(e) {
@@ -3622,6 +3820,7 @@ async function rejectCardReq(reqId) {
   var idx = allCardReqs.findIndex(function(r) { return r.id === reqId; });
   if (idx >= 0) allCardReqs[idx].status = "rejected";
   renderCardReqs();
+  loadNotifications();
   toast("Request rejected");
 }
 
@@ -3771,10 +3970,8 @@ async function updateAppStatus(appId, newStatus) {
     toast("Status updated but email may have failed");
   }
 
-  // Refresh badge
-  var pending = allApps.filter(function(a) { return a.status === "pending"; }).length;
-  var badge = document.getElementById("appsBadge");
-  badge.textContent = pending; badge.style.display = pending > 0 ? "inline" : "none";
+  // Refresh notifications badge
+  loadNotifications();
   showAppDetail(appId);
 }
 
