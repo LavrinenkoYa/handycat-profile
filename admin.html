@@ -1241,6 +1241,11 @@
         <label>Description</label>
         <textarea id="coDesc" placeholder="Brief description of the company..."></textarea>
       </div>
+      <div class="dfg">
+        <label>Bonus Leads (free cards remaining)</label>
+        <input id="coBonusLeads" type="number" min="0" placeholder="0" />
+        <div style="font-size:12px;color:#aaa;margin-top:4px">Free cards this company can assign before needing a paid order. Auto-granted on approval (2 per 10 requested) — adjust anytime.</div>
+      </div>
     </div>
 
     <!-- Footer buttons -->
@@ -2004,6 +2009,7 @@ function openAddCompany() {
   document.getElementById("editCoId").value = "";
   document.getElementById("deleteCoBtn").style.display = "none";
   ["coName", "coLoc", "coEmail", "coPhone", "coDesc"].forEach(function(id) { document.getElementById(id).value = ""; });
+  document.getElementById("coBonusLeads").value = "0";
   // Reset drawer position before opening
   var drawer = document.querySelector("#mAddCo .drawer");
   if (drawer) drawer.style.transform = "translateX(100%)";
@@ -2032,6 +2038,7 @@ function editCompany() {
   document.getElementById("coEmail").value = c.email || "";
   document.getElementById("coPhone").value = c.phone || "";
   document.getElementById("coDesc").value = c.description || "";
+  document.getElementById("coBonusLeads").value = c.bonusLeads || 0;
   // Reset drawer position before opening
   var drawer = document.querySelector("#mAddCo .drawer");
   if (drawer) drawer.style.transform = "translateX(100%)";
@@ -2046,11 +2053,14 @@ async function saveCo() {
   var eid = document.getElementById("editCoId").value;
   var id = eid || (name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now().toString(36));
   var ec = CC.cos[eid] || {};
+  var bonusLeads = parseInt(document.getElementById("coBonusLeads").value, 10);
+  if (isNaN(bonusLeads) || bonusLeads < 0) bonusLeads = 0;
   var ok = await fsP("companies", id, {
     name: sv(name), location: sv(document.getElementById("coLoc").value),
     email: sv(document.getElementById("coEmail").value), phone: sv(document.getElementById("coPhone").value),
     description: sv(document.getElementById("coDesc").value),
-    status: sv(ec.status || "active"), createdAt: sv(ec.createdAt || new Date().toISOString())
+    status: sv(ec.status || "active"), createdAt: sv(ec.createdAt || new Date().toISOString()),
+    bonusLeads: nv(bonusLeads)
   });
   if (btn) btn.classList.remove("loading");
   if (ok) { closeModal("mAddCo"); toast(eid ? "Company updated!" : "Company created!"); if (eid) openCo(eid); else loadCos(); }
@@ -2302,11 +2312,13 @@ async function loadCDCards() {
     else if (c.status === "deactivated") s.d++;
     else s.u++;
   });
+  var bonusLeadsLeft = (CC.cos[cdId] || {}).bonusLeads || 0;
   document.getElementById("cdStats").innerHTML =
     '<div class="cd-stat"><div class="cd-stat-num">' + s.t + '</div><div class="cd-stat-label">Total Cards</div></div>' +
     '<div class="cd-stat"><div class="cd-stat-num">' + s.u + '</div><div class="cd-stat-label">Available</div></div>' +
     '<div class="cd-stat"><div class="cd-stat-num">' + s.wh + '</div><div class="cd-stat-label">With Handymen</div></div>' +
-    '<div class="cd-stat"><div class="cd-stat-num">' + s.a + '</div><div class="cd-stat-label">Activated by Clients</div></div>';
+    '<div class="cd-stat"><div class="cd-stat-num">' + s.a + '</div><div class="cd-stat-label">Activated by Clients</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num">' + bonusLeadsLeft + '</div><div class="cd-stat-label">Bonus Leads Left</div></div>';
   CC._hmByToken = hmByToken;
   CC._hmById = hmById;
   renderCDCards();
@@ -2693,16 +2705,30 @@ async function assignStockCards() {
     return;
   }
 
+  // Consume bonus leads first (free), remainder is a standard/paid assignment
+  var coFresh = await fsGet("companies", cdId);
+  var bonusLeads = (coFresh && coFresh.bonusLeads) || 0;
+  var freeCount = Math.min(cnt, bonusLeads);
+  var paidCount = cnt - freeCount;
+
   var toAssign = stock.slice(0, cnt);
   var saved = 0;
   for (var i = 0; i < toAssign.length; i++) {
     prog.textContent = "Assigning " + (i + 1) + " of " + cnt + "...";
-    var ok = await fsMerge("nfc_cards", toAssign[i].id, { companyId: sv(cdId) });
+    var isFree = i < freeCount;
+    var ok = await fsMerge("nfc_cards", toAssign[i].id, { companyId: sv(cdId), source: sv(isFree ? "lead" : "paid") });
     if (ok) saved++;
+  }
+  if (freeCount > 0) {
+    var newBonusLeads = bonusLeads - freeCount;
+    await fsMerge("companies", cdId, { bonusLeads: nv(newBonusLeads) });
+    if (CC.cos[cdId]) CC.cos[cdId].bonusLeads = newBonusLeads;
   }
   btn.disabled = false; btn.classList.remove("loading");
   closeModal("mGenCards");
-  toast("✓ Assigned " + saved + " card" + (saved === 1 ? "" : "s") + " from stock");
+  var msg = "✓ Assigned " + saved + " card" + (saved === 1 ? "" : "s") + " from stock";
+  if (freeCount > 0) msg += " (" + freeCount + " free lead" + (freeCount === 1 ? "" : "s") + (paidCount > 0 ? ", " + paidCount + " standard" : "") + ")";
+  toast(msg);
   await loadCDCards();
 }
 
@@ -3610,6 +3636,12 @@ async function doAssignCards() {
       return;
     }
 
+    // Consume bonus leads first (free), remainder is a standard/paid assignment
+    var coFresh = await fsGet('companies', companyId);
+    var bonusLeads = (coFresh && coFresh.bonusLeads) || 0;
+    var freeCount = Math.min(count, bonusLeads);
+    var paidCount = count - freeCount;
+
     // Assign first N cards from stock to this company
     var toAssign = stockCards.slice(0, count);
     var now = new Date().toISOString();
@@ -3617,13 +3649,21 @@ async function doAssignCards() {
     var batchSize = 5;
     for (var i = 0; i < toAssign.length; i += batchSize) {
       var batch = toAssign.slice(i, i + batchSize);
-      await Promise.all(batch.map(function(card) {
+      await Promise.all(batch.map(function(card, bi) {
+        var idxInAll = i + bi;
         return fsMerge('nfc_cards', card.id, {
           companyId:  sv(companyId),
           status:     sv('unassigned'),
-          assignedAt: sv(now)
+          assignedAt: sv(now),
+          source:     sv(idxInAll < freeCount ? 'lead' : 'paid')
         });
       }));
+    }
+
+    if (freeCount > 0) {
+      var newBonusLeads = bonusLeads - freeCount;
+      await fsMerge('companies', companyId, { bonusLeads: nv(newBonusLeads) });
+      if (CC.cos[companyId]) CC.cos[companyId].bonusLeads = newBonusLeads;
     }
 
     // Mark request as fulfilled
@@ -3640,7 +3680,9 @@ async function doAssignCards() {
     closeModal('mAssignCards');
     renderCardReqs();
     loadNotifications();
-    toast('✓ ' + count + ' cards assigned to company!');
+    var msg = '✓ ' + count + ' cards assigned to company!';
+    if (freeCount > 0) msg += ' (' + freeCount + ' free lead' + (freeCount === 1 ? '' : 's') + (paidCount > 0 ? ', ' + paidCount + ' standard' : '') + ')';
+    toast(msg);
 
   } catch(e) {
     console.error(e);
@@ -3943,11 +3985,13 @@ async function updateAppStatus(appId, newStatus) {
       var token = "tok-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
       var companyId = app.id.toLowerCase();
       var dashLink = "https://app.handycat.us/company?token=" + token;
-      // Save company
+      // Save company — auto-grant bonus leads: 2 free per 10 cards requested
+      var bonusLeadsGrant = Math.floor((app.requestedCards || 0) / 10) * 2;
       await fsMerge("companies", companyId, {
         name: sv(app.companyName), email: sv(app.email), phone: sv(app.phone),
         location: sv(app.region), status: sv("active"), appId: sv(app.id),
         requestedCards: { integerValue: String(app.requestedCards || 0) },
+        bonusLeads: nv(bonusLeadsGrant),
         createdAt: sv(new Date().toISOString())
       });
       // Save magic token
