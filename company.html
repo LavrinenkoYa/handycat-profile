@@ -332,7 +332,14 @@
     /* ═══════════════════════════════════════════════════════ */
 
   .grecaptcha-badge{visibility:hidden !important}
-    .lang-switcher{position:fixed;top:10px;right:10px;z-index:98;background:#fff;border:1px solid #eee;border-radius:100px;padding:7px 12px;font-size:12px;font-weight:600;color:#333;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);font-family:sans-serif;user-select:none}
+    .lang-switcher{position:fixed;top:10px;right:10px;z-index:98;font-family:sans-serif;user-select:none}
+    .lang-switcher-btn{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #eee;border-radius:100px;padding:7px 14px;font-size:12px;font-weight:600;color:#333;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .lang-switcher-caret{font-size:8px;color:#999;margin-left:1px}
+    .lang-switcher-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #eee;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;min-width:150px}
+    .lang-switcher.open .lang-switcher-menu{display:block}
+    .lang-switcher-opt{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:9px;font-size:13px;font-weight:600;color:#333;cursor:pointer;white-space:nowrap}
+    .lang-switcher-opt:hover{background:#f6f6f6}
+    .lang-switcher-opt.active{background:#eef4fb;color:#185FA5}
     </style>
 <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
 </head>
@@ -673,7 +680,14 @@
 </div><!-- /app-layout -->
 
 <div class="toast" id="toast"></div>
-<div class="lang-switcher" id="langSwitcher" onclick="cycleLang()">🌐 EN</div>
+<div class="lang-switcher" id="langSwitcher">
+  <div class="lang-switcher-btn" onclick="toggleLangMenu(event)"><span id="langSwitcherLabel">🌐 EN</span><span class="lang-switcher-caret">▾</span></div>
+  <div class="lang-switcher-menu" id="langSwitcherMenu">
+    <div class="lang-switcher-opt" data-lang="en" onclick="setLang('en')">🇬🇧 English</div>
+    <div class="lang-switcher-opt" data-lang="uk" onclick="setLang('uk')">🇺🇦 Українська</div>
+    <div class="lang-switcher-opt" data-lang="es" onclick="setLang('es')">🇪🇸 Español</div>
+  </div>
+</div>
 
 <script>
 var I18N = {
@@ -1193,11 +1207,27 @@ function applyStaticTranslations(){
   });
 }
 function renderLangSwitcher(){
-  var el = document.getElementById("langSwitcher");
-  if (!el) return;
   var labels = {en:"EN", uk:"UA", es:"ES"};
-  el.textContent = "🌐 " + labels[LANG];
+  var lbl = document.getElementById("langSwitcherLabel");
+  if (lbl) lbl.textContent = "🌐" + " " + labels[LANG];
+  document.querySelectorAll(".lang-switcher-opt").forEach(function(o){
+    o.classList.toggle("active", o.getAttribute("data-lang") === LANG);
+  });
+  var sw = document.getElementById("langSwitcher");
+  if (sw) sw.classList.remove("open");
 }
+
+function toggleLangMenu(e){
+  if (e) e.stopPropagation();
+  var sw = document.getElementById("langSwitcher");
+  if (sw) sw.classList.toggle("open");
+}
+
+document.addEventListener("click", function(e){
+  var sw = document.getElementById("langSwitcher");
+  if (sw && sw.classList.contains("open") && !sw.contains(e.target)) sw.classList.remove("open");
+});
+
 function setLang(lang){
   LANG = lang;
   localStorage.setItem("hc_lang", lang);
@@ -1213,12 +1243,6 @@ function setLang(lang){
     else if (pid==="cp-orders") renderOrders();
   }
 }
-function cycleLang(){
-  var order = ["en","uk","es"];
-  var next = order[(order.indexOf(LANG)+1) % order.length];
-  setLang(next);
-}
-
 var PID="handycat-98416",AKEY="AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
 var FS="https://firestore.googleapis.com/v1/projects/"+PID+"/databases/(default)/documents";
 var APP_ID="1:299592863157:web:1762bf7633443ae2c89dfc";
