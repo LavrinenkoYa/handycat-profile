@@ -126,8 +126,30 @@
   </div>
 
   <div class="main">
+    <!-- EMAIL VERIFICATION GATE -->
+    <div class="ss active" id="s-verify">
+      <div class="step-icon" style="background:#e0f2e9">&#x1F4E7;</div>
+      <div class="step-title" data-i18n="verify_title">Verify your email</div>
+      <div class="step-sub" data-i18n="verify_sub">We'll send a 6-digit code to confirm it's really you before you apply.</div>
+      <div class="fg"><label data-i18n="label_email_address">Email Address *</label><input id="verifyEmail" type="email" data-i18n-ph="ph_email_address" placeholder="john@fixpro.com"/></div>
+      <div class="actions">
+        <button class="btn-back" disabled style="visibility:hidden" data-i18n="btn_back">Back</button>
+        <button class="btn-next" id="sendCodeBtn" onclick="sendVerificationCode()"><span class="ld"></span><span data-i18n="btn_send_code">Send Code</span></button>
+      </div>
+      <div id="codeEntryWrap" style="display:none;margin-top:20px">
+        <div class="fg"><label data-i18n="label_verification_code">Verification Code</label><input id="verifyCode" maxlength="6" inputmode="numeric" placeholder="123456"/></div>
+        <div class="actions">
+          <button class="btn-back" onclick="backToEmailEntry()" data-i18n="btn_back">Back</button>
+          <button class="btn-next" id="verifyCodeBtn" onclick="verifyEnteredCode()"><span class="ld"></span><span data-i18n="btn_verify_code">Verify Code</span></button>
+        </div>
+        <div style="margin-top:14px;font-size:13px;color:#888">
+          <span data-i18n="label_didnt_get_code">Didn't get a code?</span> <a href="#" id="resendLink" onclick="sendVerificationCode(true);return false;" data-i18n="btn_resend_code" style="color:#185FA5;font-weight:600">Resend</a>
+        </div>
+      </div>
+    </div>
+
     <!-- STEP 1 -->
-    <div class="ss active" id="step-1">
+    <div class="ss" id="step-1">
       <div class="step-icon" style="background:#fff4e1">&#x1F4CB;</div>
       <div class="step-title" data-i18n="step1_title">Let's start with your details</div>
       <div class="step-sub" data-i18n="step1_sub">Tell us about your company and how we can reach you.</div>
@@ -333,6 +355,28 @@ var RECAPTCHA_KEY="6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD";
 var I18N = {
  "en": {
   "logo_sub": "Company registration",
+  "verify_title": "Verify your email",
+  "verify_sub": "We'll send a 6-digit code to confirm it's really you before you apply.",
+  "btn_send_code": "Send Code",
+  "label_verification_code": "Verification Code",
+  "btn_verify_code": "Verify Code",
+  "label_didnt_get_code": "Didn't get a code?",
+  "btn_resend_code": "Resend",
+  "btn_resend_in_seconds": "Resend in {seconds}s",
+  "toast_enter_valid_email": "Please enter a valid email address",
+  "toast_code_sent": "Code sent! Check your inbox.",
+  "toast_code_resent": "Code resent! Check your inbox.",
+  "toast_enter_code": "Please enter the code",
+  "toast_code_invalid": "Something went wrong, please try sending the code again",
+  "toast_code_expired": "This code has expired. Please request a new one.",
+  "toast_code_incorrect": "Incorrect code, please try again",
+  "toast_too_many_attempts": "Too many attempts. Please request a new code.",
+  "toast_email_verified": "Email verified!",
+  "toast_email_not_verified": "Please verify your email first",
+  "email_otp_subject": "Your HandyCat verification code",
+  "email_otp_greeting": "Hi,",
+  "email_otp_body": "Use the code below to verify your email and continue your HandyCat application:",
+  "email_otp_expiry": "This code expires in 10 minutes.",
   "preview_default_name": "Your Handyman",
   "preview_default_title": "Service professional",
   "preview_default_loc": "Your service area",
@@ -453,6 +497,28 @@ var I18N = {
  },
  "uk": {
   "logo_sub": "Реєстрація компанії",
+  "verify_title": "Підтвердьте свою електронну адресу",
+  "verify_sub": "Ми надішлемо 6-значний код, щоб підтвердити, що це справді ви, перш ніж подати заявку.",
+  "btn_send_code": "Надіслати код",
+  "label_verification_code": "Код підтвердження",
+  "btn_verify_code": "Підтвердити код",
+  "label_didnt_get_code": "Не отримали код?",
+  "btn_resend_code": "Надіслати ще раз",
+  "btn_resend_in_seconds": "Повторно через {seconds}с",
+  "toast_enter_valid_email": "Будь ласка, введіть дійсну електронну адресу",
+  "toast_code_sent": "Код надіслано! Перевірте пошту.",
+  "toast_code_resent": "Код надіслано повторно! Перевірте пошту.",
+  "toast_enter_code": "Будь ласка, введіть код",
+  "toast_code_invalid": "Щось пішло не так, спробуйте надіслати код ще раз",
+  "toast_code_expired": "Термін дії цього коду минув. Будь ласка, запросіть новий.",
+  "toast_code_incorrect": "Невірний код, спробуйте ще раз",
+  "toast_too_many_attempts": "Забагато спроб. Будь ласка, запросіть новий код.",
+  "toast_email_verified": "Email підтверджено!",
+  "toast_email_not_verified": "Будь ласка, спочатку підтвердьте свою електронну адресу",
+  "email_otp_subject": "Ваш код підтвердження HandyCat",
+  "email_otp_greeting": "Вітаємо,",
+  "email_otp_body": "Використайте код нижче, щоб підтвердити свою електронну адресу та продовжити заявку в HandyCat:",
+  "email_otp_expiry": "Термін дії цього коду — 10 хвилин.",
   "preview_default_name": "Ваш майстер",
   "preview_default_title": "Спеціаліст з обслуговування",
   "preview_default_loc": "Ваш район обслуговування",
@@ -573,6 +639,28 @@ var I18N = {
  },
  "es": {
   "logo_sub": "Registro de empresa",
+  "verify_title": "Verifica tu correo electrónico",
+  "verify_sub": "Te enviaremos un código de 6 dígitos para confirmar que eres tú antes de continuar.",
+  "btn_send_code": "Enviar código",
+  "label_verification_code": "Código de verificación",
+  "btn_verify_code": "Verificar código",
+  "label_didnt_get_code": "¿No recibiste el código?",
+  "btn_resend_code": "Reenviar",
+  "btn_resend_in_seconds": "Reenviar en {seconds}s",
+  "toast_enter_valid_email": "Por favor, introduce un correo electrónico válido",
+  "toast_code_sent": "¡Código enviado! Revisa tu bandeja de entrada.",
+  "toast_code_resent": "¡Código reenviado! Revisa tu bandeja de entrada.",
+  "toast_enter_code": "Por favor, introduce el código",
+  "toast_code_invalid": "Algo salió mal, intenta enviar el código de nuevo",
+  "toast_code_expired": "Este código ha caducado. Solicita uno nuevo.",
+  "toast_code_incorrect": "Código incorrecto, inténtalo de nuevo",
+  "toast_too_many_attempts": "Demasiados intentos. Solicita un nuevo código.",
+  "toast_email_verified": "¡Correo verificado!",
+  "toast_email_not_verified": "Por favor, verifica tu correo electrónico primero",
+  "email_otp_subject": "Tu código de verificación de HandyCat",
+  "email_otp_greeting": "Hola,",
+  "email_otp_body": "Usa el código a continuación para verificar tu correo y continuar tu solicitud en HandyCat:",
+  "email_otp_expiry": "Este código caduca en 10 minutos.",
   "preview_default_name": "Tu técnico",
   "preview_default_title": "Profesional de servicio",
   "preview_default_loc": "Tu área de servicio",
@@ -795,6 +883,125 @@ function sendEmail(to,subject,html){
   });
 }
 
+// ── EMAIL VERIFICATION (OTP gate before the application form) ──
+var verifiedEmail=null;
+var resendCooldownTimer=null;
+
+function isValidEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);}
+
+function verifDocUrl(email){return FS+"/email_verifications/"+encodeURIComponent(email.toLowerCase())+"?key="+AKEY;}
+
+async function sendVerificationCode(isResend){
+  var email=document.getElementById("verifyEmail").value.trim();
+  if(!isValidEmail(email)){toast(t("toast_enter_valid_email"));return;}
+  var btn=document.getElementById("sendCodeBtn");
+  if(btn){btn.disabled=true;btn.classList.add("loading");}
+  var code=String(Math.floor(100000+Math.random()*900000));
+  try{
+    var r=await fsWithCheck(verifDocUrl(email),{
+      method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({fields:{
+        code:sv(code),
+        expiresAt:sv(new Date(Date.now()+10*60*1000).toISOString()),
+        verified:{booleanValue:false},
+        attempts:nv(0),
+        createdAt:sv(new Date().toISOString())
+      }})
+    });
+    if(!r.ok){toast(t("toast_code_invalid"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
+    await sendEmail(email,t("email_otp_subject"),
+      "<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px'>"+
+      "<h2 style='color:#185FA5'>HandyCat</h2>"+
+      "<p>"+t("email_otp_greeting")+"</p>"+
+      "<p>"+t("email_otp_body")+"</p>"+
+      "<div style='font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;background:#f5f5f7;border-radius:12px;padding:16px;margin:20px 0'>"+code+"</div>"+
+      "<p style='font-size:13px;color:#888'>"+t("email_otp_expiry")+"</p>"+
+      "</div>"
+    );
+    document.getElementById("codeEntryWrap").style.display="block";
+    document.getElementById("verifyEmail").disabled=true;
+    toast(isResend?t("toast_code_resent"):t("toast_code_sent"));
+    startResendCooldown();
+  }catch(e){
+    console.error(e);
+    toast(t("toast_code_invalid"));
+  }
+  if(btn){btn.disabled=false;btn.classList.remove("loading");}
+}
+
+function startResendCooldown(){
+  var link=document.getElementById("resendLink");
+  if(!link)return;
+  var seconds=60;
+  var original=t("btn_resend_code");
+  link.style.pointerEvents="none";link.style.opacity=.5;
+  clearInterval(resendCooldownTimer);
+  resendCooldownTimer=setInterval(function(){
+    seconds--;
+    link.textContent=tf("btn_resend_in_seconds",{seconds:seconds});
+    if(seconds<=0){
+      clearInterval(resendCooldownTimer);
+      link.style.pointerEvents="auto";link.style.opacity=1;
+      link.textContent=original;
+    }
+  },1000);
+}
+
+function backToEmailEntry(){
+  document.getElementById("codeEntryWrap").style.display="none";
+  document.getElementById("verifyEmail").disabled=false;
+  document.getElementById("verifyCode").value="";
+  clearInterval(resendCooldownTimer);
+}
+
+async function verifyEnteredCode(){
+  var email=document.getElementById("verifyEmail").value.trim();
+  var code=document.getElementById("verifyCode").value.trim();
+  if(!code){toast(t("toast_enter_code"));return;}
+  var btn=document.getElementById("verifyCodeBtn");
+  if(btn){btn.disabled=true;btn.classList.add("loading");}
+  try{
+    var r=await fsWithCheck(verifDocUrl(email),{});
+    if(!r.ok){toast(t("toast_code_expired"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
+    var d=await r.json();
+    var f=d.fields||{};
+    var storedCode=f.code?f.code.stringValue:null;
+    var expiresAt=f.expiresAt?f.expiresAt.stringValue:null;
+    var attempts=f.attempts?Number(f.attempts.integerValue||0):0;
+    if(attempts>=5){toast(t("toast_too_many_attempts"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
+    if(!storedCode||!expiresAt||new Date(expiresAt)<new Date()){toast(t("toast_code_expired"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
+    if(code!==storedCode){
+      await fsWithCheck(verifDocUrl(email),{
+        method:"PATCH",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({fields:Object.assign({},f,{attempts:nv(attempts+1)})})
+      });
+      toast(t("toast_code_incorrect"));
+      if(btn){btn.disabled=false;btn.classList.remove("loading");}
+      return;
+    }
+    await fsWithCheck(verifDocUrl(email),{
+      method:"PATCH",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({fields:Object.assign({},f,{verified:{booleanValue:true}})})
+    });
+    verifiedEmail=email;
+    clearInterval(resendCooldownTimer);
+    unlockForm(email);
+  }catch(e){
+    console.error(e);
+    toast(t("toast_code_invalid"));
+  }
+  if(btn){btn.disabled=false;btn.classList.remove("loading");}
+}
+
+function unlockForm(email){
+  document.getElementById("s-verify").classList.remove("active");
+  document.getElementById("step-1").classList.add("active");
+  var emailField=document.getElementById("f-email");
+  if(emailField){emailField.value=email;emailField.readOnly=true;}
+  toast(t("toast_email_verified"));
+}
+
 function buildSteps(){
   var el=document.getElementById("sideSteps");
   el.innerHTML=STEP_LABELS().map(function(l,i){
@@ -918,6 +1125,7 @@ function prevStep(){
 }
 
 async function submitApplication(skip){
+  if(!verifiedEmail){toast(t("toast_email_not_verified"));return;}
   if(!validate(4,skip))return;
   var btn=document.getElementById("submitBtn");
   btn.disabled=true;btn.classList.add("loading");

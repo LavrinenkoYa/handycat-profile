@@ -121,7 +121,7 @@
     .cst{display:flex;gap:0;align-items:flex-start}
     .cst-item{display:flex;flex-direction:column;gap:8px;flex:1}
     .co-view-btn{width:34px;height:34px;border:none;background:transparent;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#858585;transition:all .15s;flex-shrink:0}
-    .sb-search-btn{display:flex;align-items:center;gap:10px;width:100%;border:1.5px solid #eceae6;background:#fff;border-radius:14px;padding:11px 16px;color:#858585;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s}
+    .sb-search-btn{display:flex;align-items:center;gap:10px;width:100%;border:1.5px solid #eceae6;background:#fff;border-radius:14px;padding:11px 16px;color:#858585;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s;margin-bottom:20px}
     .sb-search-btn:hover{border-color:#164e23;color:#164e23}
     .gs-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background .12s}
     .gs-row:hover{background:#f5f5f5}
@@ -714,6 +714,10 @@
         <div style="flex:1;min-width:0">
           <div class="cd-title-row">
             <div class="cd-title" id="cdName">—</div>
+            <span id="cdStatusBadge" class="co-badge-blocked" style="display:none"></span>
+            <button class="coc-block-btn" id="cdBlockBtn" onclick="cdToggleActive()" title="Block company" style="width:34px;height:34px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 5.5l13 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </button>
             <button class="cd-edit-btn" onclick="editCompany()" title="Edit company"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.6484 5.84219L14.157 2.35079C14.0555 2.24921 13.9349 2.16864 13.8022 2.11366C13.6695 2.05869 13.5272 2.0304 13.3836 2.0304C13.24 2.0304 13.0977 2.05869 12.965 2.11366C12.8323 2.16864 12.7117 2.24921 12.6102 2.35079L2.97656 11.9852C2.87479 12.0866 2.7941 12.2071 2.73912 12.3399C2.68415 12.4726 2.65599 12.6149 2.65625 12.7586V16.25C2.65625 16.5401 2.77149 16.8183 2.9766 17.0234C3.18172 17.2285 3.45992 17.3438 3.75 17.3438H7.24141C7.38508 17.344 7.52739 17.3159 7.66013 17.2609C7.79288 17.2059 7.91343 17.1252 8.01485 17.0234L17.6484 7.38907C17.75 7.2875 17.8306 7.16692 17.8856 7.03422C17.9405 6.90151 17.9688 6.75927 17.9688 6.61563C17.9688 6.47199 17.9405 6.32975 17.8856 6.19705C17.8306 6.06434 17.75 5.94376 17.6484 5.84219ZM7.35156 16.3602C7.3224 16.3895 7.28278 16.4061 7.24141 16.4063H3.75C3.70856 16.4063 3.66882 16.3898 3.63952 16.3605C3.61021 16.3312 3.59375 16.2914 3.59375 16.25V12.7586C3.59393 12.7172 3.6105 12.6776 3.63985 12.6484L10.625 5.66251L14.3367 9.37501L7.35156 16.3602ZM16.9852 6.72657L15 8.71172L11.2883 5.00001L13.2734 3.01407C13.288 2.99954 13.3052 2.98802 13.3242 2.98015C13.3431 2.97229 13.3635 2.96824 13.384 2.96824C13.4045 2.96824 13.4249 2.97229 13.4438 2.98015C13.4628 2.98802 13.48 2.99954 13.4945 3.01407L16.9852 6.50547C16.9997 6.51999 17.0112 6.53722 17.0191 6.55619C17.0269 6.57516 17.031 6.59549 17.031 6.61602C17.031 6.63655 17.0269 6.65689 17.0191 6.67586C17.0112 6.69482 16.9997 6.71206 16.9852 6.72657Z" fill="#343330"/></svg></button>
           </div>
           <div class="cd-meta" id="cdMeta">—</div>
@@ -959,12 +963,12 @@
 
     <!-- Tabs -->
     <div style="display:flex;align-items:flex-end;gap:0;margin-bottom:0">
-      <button class="cd-tab" id="poolTabAll" onclick="switchPoolTab('all')" data-i18n="tab_all_cards">All Cards</button>
-      <button class="cd-tab active" id="poolTabOrders" onclick="switchPoolTab('orders')" data-i18n="tab_orders">Orders</button>
+      <button class="cd-tab active" id="poolTabAll" onclick="switchPoolTab('all')" data-i18n="tab_all_cards">All Cards</button>
+      <button class="cd-tab" id="poolTabOrders" onclick="switchPoolTab('orders')" data-i18n="tab_orders">Orders</button>
       <button class="cd-tab" id="poolTabReq" onclick="switchPoolTab('requests')"><span data-i18n="tab_requests">Requests</span> <span id="cardReqBadge" class="pg-badge pg-badge-blue" style="display:none;margin-left:6px;vertical-align:middle"></span></button>
     </div>
 
-    <div id="poolPanelAll" style="display:none">
+    <div id="poolPanelAll">
     <div class="pg-header">
       <div class="pg-toprow" style="margin-bottom:20px">
         <div>
@@ -993,16 +997,20 @@
       </div>
     </div>
     <div id="acStats" class="cd-stats-row"></div>
-    <div class="pg-table-wrap">
+    <div class="pg-table-wrap" style="border-radius:0 30px 30px 30px">
+      <div class="cd-bulk-bar" id="acBulkBar">
+        <span class="cd-bulk-label" id="acBulkCount"></span>
+        <button class="cd-bulk-del" onclick="acBulkDelete()" data-i18n="btn_delete_selected">Delete Selected</button>
+      </div>
       <table class="pg-table">
-        <thead><tr><th data-i18n="th_print_id">Print ID</th><th data-i18n="th_status">Status</th><th data-i18n="th_company">Company</th><th data-i18n="th_handyman">Handyman</th><th data-i18n="th_client">Client</th><th data-i18n="th_created">Created</th><th style="width:90px"></th></tr></thead>
+        <thead><tr><th style="width:44px"><input type="checkbox" class="cd-cb" id="acSelAll" onclick="event.stopPropagation()" onchange="acToggleSelAll(this)"/></th><th data-i18n="th_print_id">Print ID</th><th data-i18n="th_status">Status</th><th data-i18n="th_company">Company</th><th data-i18n="th_handyman">Handyman</th><th data-i18n="th_client">Client</th><th data-i18n="th_created">Created</th><th style="width:90px"></th></tr></thead>
         <tbody id="acBody"></tbody>
       </table>
     </div>
   </div>
 
-    <div id="poolPanelOrders">
-    <div class="pg-table-wrap">
+    <div id="poolPanelOrders" style="display:none">
+    <div class="pg-table-wrap" style="border-radius:0 30px 30px 30px">
       <div class="pg-table-toolbar pool-toolbar">
         <div class="pg-section-title" style="margin:0" data-i18n="section_card_orders">Card orders</div>
       </div>
@@ -1019,7 +1027,7 @@
     </div>
 
     <div id="poolPanelRequests" style="display:none">
-    <div class="pg-table-wrap">
+    <div class="pg-table-wrap" style="border-radius:0 30px 30px 30px">
       <div class="pg-table-toolbar pool-toolbar">
         <div class="pg-section-title" style="margin:0" data-i18n="section_requests">Requests</div>
       </div>
@@ -1571,6 +1579,11 @@ var I18N = {
   "label_included_in_email": "(included in email)",
   "ph_appmsg": "Optional: explain your decision, what needs to be fixed, or welcome them to HandyCat...",
   "btn_approve_send": "Approve & Send Access",
+  "label_bonus_leads_grant": "Bonus leads to grant",
+  "hint_bonus_leads_grant": "Free lead requests this company can use before paying per card",
+  "decision_already_made": "A decision has already been made for this application.",
+  "btn_approving_progress": "Approving...",
+  "btn_processing_progress": "Processing...",
   "btn_needs_revision": "Needs Revision",
   "app_id_label": "App ID: {id}",
   "orders_title": "Orders",
@@ -2023,6 +2036,11 @@ var I18N = {
   "label_included_in_email": "(включено в лист)",
   "ph_appmsg": "Необов'язково: поясніть своє рішення, що потрібно виправити, або привітайте компанію в HandyCat...",
   "btn_approve_send": "Схвалити та надіслати доступ",
+  "label_bonus_leads_grant": "Бонусні ліди",
+  "hint_bonus_leads_grant": "Кількість безкоштовних заявок, які компанія може використати до оплати за картку",
+  "decision_already_made": "Рішення щодо цієї заявки вже прийнято.",
+  "btn_approving_progress": "Схвалення...",
+  "btn_processing_progress": "Обробка...",
   "btn_needs_revision": "Потребує доопрацювання",
   "app_id_label": "ID заявки: {id}",
   "orders_title": "Замовлення",
@@ -2475,6 +2493,11 @@ var I18N = {
   "label_included_in_email": "(incluido en el correo)",
   "ph_appmsg": "Opcional: explica tu decisión, qué debe corregirse, o da la bienvenida a HandyCat...",
   "btn_approve_send": "Aprobar y enviar acceso",
+  "label_bonus_leads_grant": "Leads de bonificación",
+  "hint_bonus_leads_grant": "Solicitudes gratuitas que la empresa puede usar antes de pagar por tarjeta",
+  "decision_already_made": "Ya se ha tomado una decisión para esta solicitud.",
+  "btn_approving_progress": "Aprobando...",
+  "btn_processing_progress": "Procesando...",
   "btn_needs_revision": "Necesita revisión",
   "app_id_label": "ID de solicitud: {id}",
   "orders_title": "Pedidos",
@@ -2959,7 +2982,7 @@ function showApp() {
     var email = document.getElementById("authEmail").value.trim();
     if (email) emailEl.textContent = email;
   }
-  nav('companies');
+  loadPool();
   loadNotifications();
   loadArchiveBadge();
 }
@@ -3372,6 +3395,25 @@ async function coToggleActive(id, currentStatus, evt) {
   }
 }
 
+async function cdToggleActive() {
+  if (!cdId) return;
+  var status = (CC.cos[cdId] || {}).status || "active";
+  await coToggleActive(cdId, status, null);
+  updateCdStatusBadge();
+}
+function updateCdStatusBadge() {
+  var badge = document.getElementById("cdStatusBadge");
+  var btn = document.getElementById("cdBlockBtn");
+  if (!cdId || !badge || !btn) return;
+  var ok = (CC.cos[cdId] || {}).status !== "inactive";
+  badge.style.display = ok ? "none" : "inline-block";
+  badge.textContent = t("badge_blocked");
+  btn.title = ok ? t("title_block_company") : t("title_unblock_company");
+  btn.innerHTML = ok
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 5.5l13 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>';
+}
+
 function getFilteredCos() {
   var all = CC._allCos || [];
   var q = ((document.getElementById("coSearchInput") || {}).value || "").trim().toLowerCase();
@@ -3411,9 +3453,6 @@ function renderCos() {
           '<div class="coc-avatar' + (ok ? "" : " off") + '">' + initials + '</div>' +
           '<div class="cn">' + nm + (c._isNew ? '<span class="co-badge-new">' + t("badge_new") + '</span>' : '') + (!ok ? '<span class="co-badge-blocked">' + t("badge_blocked") + '</span>' : '') + '</div>' +
         '</div>' +
-        '<button class="coc-block-btn" onclick="coToggleActive(\'' + c.id + '\',\'' + (c.status||'active') + '\',event)" title="' + (ok ? 'Block company' : 'Unblock company') + '">' +
-          (ok ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 5.5l13 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>' : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>') +
-        '</button>' +
       '</div>' +
       '<div class="cm">' +
         (c.location ? '<span>' + esc(c.location) + '</span>' : '') +
@@ -3443,9 +3482,6 @@ function renderCos() {
         '<div class="co-list-stat"><div class="sn">' + s.a + '</div><div class="sl">' + t("status_active") + '</div></div>' +
         '<div class="co-list-stat"><div class="sn">' + s.u + '</div><div class="sl">' + t("status_available") + '</div></div>' +
       '</div>' +
-      '<button class="coc-block-btn" onclick="coToggleActive(\'' + c.id + '\',\'' + (c.status||'active') + '\',event)" title="' + (ok ? 'Block company' : 'Unblock company') + '">' +
-        (ok ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 5.5l13 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>' : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>') +
-      '</button>' +
     '</div>';
   }).join("");
 }
@@ -3602,6 +3638,7 @@ async function openCo(id) {
   document.getElementById("cdName").textContent = c.name || id;
   var meta = [c.email, c.phone, c.location].filter(Boolean).join(" · ");
   document.getElementById("cdMeta").textContent = meta || "—";
+  updateCdStatusBadge();
   // Reset tab to cards
   switchCDTab("cards");
   // Load both
@@ -4713,7 +4750,7 @@ function switchPoolTab(tab) {
 
 async function loadPool() {
   nav('nfc-pool');
-  switchPoolTab('orders');
+  switchPoolTab('all');
   loadCardRequests();
   document.getElementById('poolBatchBody').innerHTML =
     '<tr><td colspan="5" class="pg-empty">' + t("loading_text") + '</td></tr>';
@@ -5448,23 +5485,47 @@ async function showAppDetail(appId) {
       '</div>' +
     '</div>' +
 
-    '<div class="pg-card">' +
-      '<div class="pg-section-title">' + t("section_decision") + '</div>' +
-      '<div class="dfg" style="margin-bottom:16px"><label>' + t("label_message_to_company") + ' <span style="font-weight:400;color:#aaa">' + t("label_included_in_email") + '</span></label>' +
-        '<textarea id="appMsg" class="pg-textarea" placeholder="' + t("ph_appmsg") + '">' + (app.adminMessage || "") + '</textarea>' +
-      '</div>' +
-      '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-        '<button class="pg-decision-btn pg-decision-approve" id="approveBtn" onclick="updateAppStatus(\'' + appId + '\',\'approved\')">' + t("btn_approve_send") + '</button>' +
-        '<button class="pg-decision-btn pg-decision-revision" onclick="updateAppStatus(\'' + appId + '\',\'needs_revision\')">' + t("btn_needs_revision") + '</button>' +
-        '<button class="pg-decision-btn pg-decision-reject" onclick="updateAppStatus(\'' + appId + '\',\'rejected\')">' + t("btn_reject") + '</button>' +
-      '</div>' +
-    '</div>';
+    (function() {
+      var decided = app.status === "approved" || app.status === "rejected";
+      var suggestedLeads = Math.floor((app.requestedCards || 0) / 10) * 2;
+      if (decided) {
+        return '<div class="pg-card">' +
+          '<div class="pg-section-title">' + t("section_decision") + '</div>' +
+          '<div style="color:#858585;font-size:14px">' + t("decision_already_made") + '</div>' +
+        '</div>';
+      }
+      return '<div class="pg-card">' +
+        '<div class="pg-section-title">' + t("section_decision") + '</div>' +
+        '<div class="dfg" style="margin-bottom:16px"><label>' + t("label_message_to_company") + ' <span style="font-weight:400;color:#aaa">' + t("label_included_in_email") + '</span></label>' +
+          '<textarea id="appMsg" class="pg-textarea" placeholder="' + t("ph_appmsg") + '">' + (app.adminMessage || "") + '</textarea>' +
+        '</div>' +
+        '<div class="dfg" style="margin-bottom:16px;max-width:260px"><label>' + t("label_bonus_leads_grant") + '</label>' +
+          '<input type="number" id="appBonusLeads" min="0" value="' + suggestedLeads + '"/>' +
+          '<div style="font-size:12px;color:#aaa;margin-top:4px">' + t("hint_bonus_leads_grant") + '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+          '<button class="pg-decision-btn pg-decision-approve" id="approveBtn" onclick="updateAppStatus(\'' + appId + '\',\'approved\')">' + t("btn_approve_send") + '</button>' +
+          '<button class="pg-decision-btn pg-decision-revision" id="revisionBtn" onclick="updateAppStatus(\'' + appId + '\',\'needs_revision\')">' + t("btn_needs_revision") + '</button>' +
+          '<button class="pg-decision-btn pg-decision-reject" id="rejectBtn" onclick="updateAppStatus(\'' + appId + '\',\'rejected\')">' + t("btn_reject") + '</button>' +
+        '</div>' +
+      '</div>';
+    })();
 }
 
 async function updateAppStatus(appId, newStatus) {
   var msg = document.getElementById("appMsg") ? document.getElementById("appMsg").value.trim() : "";
   var app = allApps.find(function(a) { return a.id === appId; });
   if (!app) return;
+
+  // Disable all decision buttons and show a loading label on the one clicked,
+  // so the admin gets immediate feedback instead of the button looking dead.
+  var btnIds = { approved: "approveBtn", needs_revision: "revisionBtn", rejected: "rejectBtn" };
+  var clickedBtn = document.getElementById(btnIds[newStatus]);
+  ["approveBtn", "revisionBtn", "rejectBtn"].forEach(function(id) {
+    var b = document.getElementById(id);
+    if (b) b.disabled = true;
+  });
+  if (clickedBtn) clickedBtn.textContent = newStatus === "approved" ? t("btn_approving_progress") : t("btn_processing_progress");
 
   // Update status in Firestore
   var r = await fetch(FS + "/company_applications/" + appId + "?key=" + AKEY, await addAppCheck({}));
@@ -5479,7 +5540,15 @@ async function updateAppStatus(appId, newStatus) {
     method: "PATCH", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ fields: merged })
   });
-  if (!wr.ok) { toast(t("toast_error_updating_status")); return; }
+  if (!wr.ok) {
+    toast(t("toast_error_updating_status"));
+    ["approveBtn", "revisionBtn", "rejectBtn"].forEach(function(id) {
+      var b = document.getElementById(id);
+      if (b) b.disabled = false;
+    });
+    if (clickedBtn) clickedBtn.textContent = newStatus === "approved" ? t("btn_approve_send") : (newStatus === "needs_revision" ? t("btn_needs_revision") : t("btn_reject"));
+    return;
+  }
 
   app.status = newStatus; app.adminMessage = msg;
 
@@ -5490,8 +5559,11 @@ async function updateAppStatus(appId, newStatus) {
       var token = "tok-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
       var companyId = app.id.toLowerCase();
       var dashLink = "https://app.handycat.us/company?token=" + token;
-      // Save company — auto-grant bonus leads: 2 free per 10 cards requested
-      var bonusLeadsGrant = Math.floor((app.requestedCards || 0) / 10) * 2;
+      // Bonus leads: use the admin-editable field if present, else fall back to
+      // the auto-grant formula (2 free leads per 10 cards requested)
+      var leadsInput = document.getElementById("appBonusLeads");
+      var bonusLeadsGrant = leadsInput ? parseInt(leadsInput.value, 10) : NaN;
+      if (isNaN(bonusLeadsGrant) || bonusLeadsGrant < 0) bonusLeadsGrant = Math.floor((app.requestedCards || 0) / 10) * 2;
       await fsMerge("companies", companyId, {
         name: sv(app.companyName), email: sv(app.email), phone: sv(app.phone),
         location: sv(app.region), status: sv("active"), appId: sv(app.id),
@@ -5595,7 +5667,7 @@ function renderAllCards() {
     return true;
   });
 
-  if (!fil.length) { tb.innerHTML = '<tr><td colspan="7" class="pg-empty">' + t("empty_no_cards_found") + '</td></tr>'; return; }
+  if (!fil.length) { tb.innerHTML = '<tr><td colspan="8" class="pg-empty">' + t("empty_no_cards_found") + '</td></tr>'; acClearSel(); return; }
 
   tb.innerHTML = fil.map(function(c) {
     var printId = c.printId || c.id.slice(-6).toUpperCase();
@@ -5603,6 +5675,7 @@ function renderAllCards() {
     var hm = c._handyman ? esc(c._handyman.name) : "—";
     var cl = c._client ? esc(c._client.name) : (c.clientId ? t("status_activated") : "—");
     return '<tr style="cursor:pointer" onclick="showAllCardDetail(\'' + c.id + '\')">' +
+      '<td><input type="checkbox" class="ac-cb" value="' + c.id + '" onclick="event.stopPropagation()" onchange="acUpdateBulk()"/></td>' +
       '<td><span class="cd-pid">' + printId + '</span></td>' +
       '<td>' + bdg(c.status||"unassigned") + '</td>' +
       '<td style="color:#858585">' + co + '</td>' +
@@ -5612,6 +5685,41 @@ function renderAllCards() {
       '<td style="text-align:right"><button class="cd-action-btn" title="View"><svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.3681 13.4307L15.0556 20.7432C14.9401 20.8508 14.7873 20.9094 14.6295 20.9066C14.4716 20.9039 14.321 20.8399 14.2093 20.7283C14.0977 20.6166 14.0337 20.466 14.0309 20.3081C14.0281 20.1502 14.0867 19.9975 14.1944 19.8819L20.4659 13.6094H4.0625C3.90088 13.6094 3.74589 13.5452 3.63161 13.431C3.51733 13.3167 3.45313 13.1617 3.45312 13.0001C3.45312 12.8384 3.51733 12.6834 3.63161 12.5692C3.74589 12.4549 3.90088 12.3907 4.0625 12.3907H20.4659L14.1944 6.11818C14.0867 6.00267 14.0281 5.84988 14.0309 5.69201C14.0337 5.53414 14.0977 5.38351 14.2093 5.27187C14.321 5.16022 14.4716 5.09626 14.6295 5.09348C14.7873 5.09069 14.9401 5.14929 15.0556 5.25693L22.3681 12.5694C22.4822 12.6837 22.5463 12.8386 22.5463 13.0001C22.5463 13.1615 22.4822 13.3164 22.3681 13.4307Z" fill="#4F00DF"/></svg></button></td>' +
     '</tr>';
   }).join("");
+  acClearSel();
+}
+
+function acGetSel() { return Array.from(document.querySelectorAll(".ac-cb:checked")).map(function(x) { return x.value; }); }
+function acClearSel() {
+  document.querySelectorAll(".ac-cb").forEach(function(x) { x.checked = false; });
+  var sa = document.getElementById("acSelAll"); if (sa) sa.checked = false;
+  acUpdateBulk();
+}
+function acToggleSelAll(cb) { document.querySelectorAll(".ac-cb").forEach(function(x) { x.checked = cb.checked; }); acUpdateBulk(); }
+function acUpdateBulk() {
+  var sel = acGetSel();
+  var bar = document.getElementById("acBulkBar");
+  if (!bar) return;
+  if (sel.length > 0) { bar.classList.add("show"); document.getElementById("acBulkCount").textContent = tf("label_n_selected", {count: sel.length}); }
+  else bar.classList.remove("show");
+}
+async function acBulkDelete() {
+  var sel = acGetSel(); if (!sel.length) return;
+  var assigned = sel.filter(function(id) {
+    var c = allCardsData.find(function(x) { return x.id === id; });
+    return c && (c.status === "active" || c.clientId);
+  });
+  var warn = assigned.length ? tf("confirm_cards_active_warning", {count: assigned.length}) : "";
+  cfm(tf("confirm_delete_n_cards", {count: sel.length}), t("confirm_cannot_undone_short") + warn, async function(btn) {
+    var deleted = 0;
+    for (var i = 0; i < sel.length; i++) {
+      if (btn) btn.textContent = tf("confirm_deleting_progress", {done: i+1, total: sel.length});
+      var ok = await fsDel("nfc_cards", sel[i]);
+      if (ok) deleted++;
+    }
+    closeModal("mConfirm");
+    toast(tf("toast_deleted_of_cards", {deleted: deleted, total: sel.length}));
+    await loadAllCards();
+  });
 }
 
 async function showAllCardDetail(cardId) {
