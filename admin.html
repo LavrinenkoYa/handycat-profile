@@ -1707,6 +1707,8 @@ var I18N = {
   "toast_no_stock_request_recorded": "No cards in stock. Recorded a request for {count} — the company will see it as pending until you generate more cards.",
   "toast_shortfall_suffix": "— {count} more requested (out of stock)",
   "note_auto_shortfall": "Auto-created: not enough stock to fully assign an admin card request.",
+  "note_initial_cards_from_signup": "Initial cards from approved company application.",
+  "toast_processing_request": "Processing...",
   "btn_add_leads": "Add leads",
   "prompt_add_leads_count": "How many leads to add? (use a negative number to remove)",
   "toast_invalid_number": "Please enter a valid non-zero number",
@@ -2171,6 +2173,8 @@ var I18N = {
   "toast_no_stock_request_recorded": "На складі немає карток. Записано запит на {count} — компанія побачить його як очікуючий, поки ви не згенеруєте більше карток.",
   "toast_shortfall_suffix": "— ще {count} запитано (немає в наявності)",
   "note_auto_shortfall": "Створено автоматично: недостатньо карток на складі, щоб повністю виконати запит адміністратора.",
+  "note_initial_cards_from_signup": "Початкові картки із затвердженої заявки компанії.",
+  "toast_processing_request": "Обробка...",
   "btn_add_leads": "Додати ліди",
   "prompt_add_leads_count": "Скільки лідів додати? (від'ємне число, щоб забрати)",
   "toast_invalid_number": "Будь ласка, введіть дійсне ненульове число",
@@ -2635,6 +2639,8 @@ var I18N = {
   "toast_no_stock_request_recorded": "No hay tarjetas en stock. Se registró una solicitud de {count} — la empresa la verá como pendiente hasta que generes más tarjetas.",
   "toast_shortfall_suffix": "— {count} más solicitadas (sin stock)",
   "note_auto_shortfall": "Creado automáticamente: no hay suficiente stock para completar una solicitud de tarjetas del administrador.",
+  "note_initial_cards_from_signup": "Tarjetas iniciales de la solicitud de empresa aprobada.",
+  "toast_processing_request": "Procesando...",
   "btn_add_leads": "Añadir leads",
   "prompt_add_leads_count": "¿Cuántos leads añadir? (usa un número negativo para quitar)",
   "toast_invalid_number": "Por favor, introduce un número válido distinto de cero",
@@ -3144,6 +3150,7 @@ window.addEventListener("popstate", function(e) {
 });
 
 function nav(n, skipHistory) {
+  var alreadyActiveNav = document.getElementById("page-" + n).classList.contains("active");
   document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
   document.querySelectorAll(".nb").forEach(function(b) { b.classList.remove("active"); });
   document.getElementById("page-" + n).classList.add("active");
@@ -3168,12 +3175,13 @@ function nav(n, skipHistory) {
   // skipHistory: used for a transient intermediate hop (e.g. nav('companies') right
   // before openCo() immediately pushes 'co-detail') so Back goes straight to whatever
   // was current before this call, instead of stopping on the transient view.
-  if (!_isPopNav && !skipHistory) history.pushState({ fn: "nav", route: n }, "", location.href);
+  if (!_isPopNav && !skipHistory && !alreadyActiveNav) history.pushState({ fn: "nav", route: n }, "", location.href);
 }
 function sp(n) {
+  var alreadyActive = document.getElementById("page-" + n).classList.contains("active");
   document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
   document.getElementById("page-" + n).classList.add("active");
-  if (!_isPopNav) history.pushState({ fn: "sp", route: n }, "", location.href);
+  if (!_isPopNav && !alreadyActive) history.pushState({ fn: "sp", route: n }, "", location.href);
 }
 function openModal(id) {
   var el = document.getElementById(id);
@@ -5609,7 +5617,15 @@ async function showAppDetail(appId) {
 async function updateAppStatus(appId, newStatus) {
   var msg = document.getElementById("appMsg") ? document.getElementById("appMsg").value.trim() : "";
   var app = allApps.find(function(a) { return a.id === appId; });
-  if (!app) return;
+  if (!app) {
+    // allApps is only populated by loadApps() (the Company Applications list page).
+    // If this page was reached another way (e.g. a link from the Companies page),
+    // allApps can still be empty on the very first visit — fall back to a direct
+    // fetch instead of silently doing nothing.
+    app = await fsGet("company_applications", appId);
+    if (app) allApps.push(app);
+  }
+  if (!app) { toast(t("toast_error_updating_status")); return; }
 
   // Disable all decision buttons and show a loading label on the one clicked,
   // so the admin gets immediate feedback instead of the button looking dead.
@@ -5620,6 +5636,7 @@ async function updateAppStatus(appId, newStatus) {
     if (b) b.disabled = true;
   });
   if (clickedBtn) clickedBtn.textContent = newStatus === "approved" ? t("btn_approving_progress") : t("btn_processing_progress");
+  toast(t("toast_processing_request"));
 
   // Update status in Firestore
   var r = await fetch(FS + "/company_applications/" + appId + "?key=" + AKEY, await addAppCheck({}));
@@ -5671,6 +5688,21 @@ async function updateAppStatus(appId, newStatus) {
         expiresAt: sv(new Date(Date.now() + 7*24*60*60*1000).toISOString()),
         used: { booleanValue: false }
       });
+      // Auto-create a pending card request for the cards they asked for on
+      // signup, so it shows up immediately in both the company's own dashboard
+      // (pending banner) and the admin Cards > Requests tab, ready to fulfill —
+      // instead of silently requiring the admin to remember to assign cards later.
+      if ((app.requestedCards || 0) > 0) {
+        var initialReqId = "cardreq-signup-" + Date.now().toString(36);
+        await fsP("card_requests", initialReqId, {
+          companyId: sv(companyId), companyName: sv(app.companyName || ""),
+          email: sv(app.email || ""),
+          count: { integerValue: String(app.requestedCards) },
+          notes: sv(t("note_initial_cards_from_signup")),
+          status: sv("pending"),
+          createdAt: sv(new Date().toISOString())
+        });
+      }
       await emailApproved(Object.assign({}, app, { adminMessage: msg }), dashLink);
       toast(tf("toast_approved_email_sent", {email: app.email}));
     } else if (newStatus === "needs_revision") {
