@@ -91,6 +91,7 @@
     .feat{display:flex;align-items:center;gap:10px;font-size:13px;color:#555}
     .feat-icon{color:#22c55e;font-size:16px}
     .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:99;opacity:0;transition:opacity .2s;pointer-events:none}
+    .lang-switcher{position:fixed;top:10px;right:10px;z-index:98;background:#fff;border:1px solid #eee;border-radius:100px;padding:7px 12px;font-size:12px;font-weight:600;color:#333;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);font-family:sans-serif;user-select:none}
     .toast.show{opacity:1}
   .grecaptcha-badge{visibility:hidden !important}
     </style>
@@ -100,16 +101,16 @@
 <div class="container">
   <div class="sidebar">
     <div class="logo" style="display:flex;align-items:center;gap:8px"><svg width="28" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.0387 66.1786L15.3066 52.2502M5.56641 15.8992L15.3066 52.2502M15.3066 52.2502L26.7818 34.7445C27.6497 33.4205 29.3601 32.9379 30.792 33.613L45.6135 40.6008C46.4583 40.9991 47.0849 41.7491 47.3267 42.6513L51.3136 57.5306" stroke="#FB6305" stroke-width="7.17973" stroke-linecap="round" stroke-linejoin="round" transform="scale(0.4)"/><path d="M28.565 55.2478C27.808 52.4226 29.4846 49.5186 32.3098 48.7616C35.135 48.0046 38.039 49.6812 38.796 52.5064L41.1072 61.132C41.2524 61.6741 40.9307 62.2313 40.3887 62.3765L32.1207 64.5919C31.5787 64.7372 31.0215 64.4155 30.8762 63.8734L28.565 55.2478Z" fill="#164E23" transform="scale(0.4)"/></svg>Handy<span>Cat</span></div>
-    <div class="logo-sub">Company registration</div>
+    <div class="logo-sub" data-i18n="logo_sub">Company registration</div>
     <div class="hm-card">
       <div class="hm-top">
         <div class="hm-av"><span id="prevAvatarText">JL</span><div class="hm-dot"></div></div>
-        <div><div class="hm-name" id="prevName">Your Handyman</div><div class="hm-title" id="prevTitle">Service professional</div></div>
+        <div><div class="hm-name" id="prevName" data-i18n="preview_default_name">Your Handyman</div><div class="hm-title" id="prevTitle" data-i18n="preview_default_title">Service professional</div></div>
       </div>
       <div class="cats" id="prevCats">
         <span class="cat">Plumbing</span><span class="cat">Electrical</span><span class="cat">HVAC</span><span class="cat">+ more</span>
       </div>
-      <div class="hm-loc" id="prevLoc">&#x1F3E0; Your service area</div>
+      <div class="hm-loc" id="prevLoc">&#x1F3E0; <span data-i18n="preview_default_loc">Your service area</span></div>
       <div class="hm-rat"><span class="n">4.9</span><span class="d">/ 5.0</span></div>
     </div>
     <div class="prog-sec">
@@ -128,126 +129,126 @@
     <!-- STEP 1 -->
     <div class="ss active" id="step-1">
       <div class="step-icon" style="background:#fff4e1">&#x1F4CB;</div>
-      <div class="step-title">Let's start with your details</div>
-      <div class="step-sub">Tell us about your company and how we can reach you.</div>
+      <div class="step-title" data-i18n="step1_title">Let's start with your details</div>
+      <div class="step-sub" data-i18n="step1_sub">Tell us about your company and how we can reach you.</div>
       <div class="fgr">
-        <div class="fg"><label>Company Name *</label><input id="f-company" placeholder="FixPro Services" oninput="updatePreviewCard()"/></div>
-        <div class="fg"><label>Contact Person *</label><input id="f-contact" placeholder="John Smith" oninput="updatePreviewCard()"/></div>
+        <div class="fg"><label data-i18n="label_company_name">Company Name *</label><input id="f-company" data-i18n-ph="ph_company_name" placeholder="FixPro Services" oninput="updatePreviewCard()"/></div>
+        <div class="fg"><label data-i18n="label_contact_person">Contact Person *</label><input id="f-contact" data-i18n-ph="ph_contact_person" placeholder="John Smith" oninput="updatePreviewCard()"/></div>
       </div>
       <div class="fgr">
-        <div class="fg"><label>Email Address *</label><input id="f-email" type="email" placeholder="john@fixpro.com"/></div>
-        <div class="fg"><label>Phone Number *</label><input id="f-phone" type="tel" placeholder="+1 (555) 000-0000"/></div>
+        <div class="fg"><label data-i18n="label_email_address">Email Address *</label><input id="f-email" type="email" data-i18n-ph="ph_email_address" placeholder="john@fixpro.com"/></div>
+        <div class="fg"><label data-i18n="label_phone_number">Phone Number *</label><input id="f-phone" type="tel" data-i18n-ph="ph_phone_number" placeholder="+1 (555) 000-0000"/></div>
       </div>
-      <div class="fg"><label>Business Address *</label><input id="f-address" placeholder="123 Main St, New York, NY" oninput="updatePreviewCard()"/></div>
-      <div class="fg"><label>Service Region *</label><input id="f-region" placeholder="New York metropolitan area" oninput="updatePreviewCard()"/></div>
+      <div class="fg"><label data-i18n="label_business_address">Business Address *</label><input id="f-address" data-i18n-ph="ph_business_address" placeholder="123 Main St, New York, NY" oninput="updatePreviewCard()"/></div>
+      <div class="fg"><label data-i18n="label_service_region">Service Region *</label><input id="f-region" data-i18n-ph="ph_service_region" placeholder="New York metropolitan area" oninput="updatePreviewCard()"/></div>
       <div class="actions">
-        <button class="btn-back" disabled style="visibility:hidden">Back</button>
-        <button class="btn-next" onclick="nextStep()"><span>Next</span> &#x2192;</button>
+        <button class="btn-back" disabled style="visibility:hidden" data-i18n="btn_back">Back</button>
+        <button class="btn-next" onclick="nextStep()"><span data-i18n="btn_next">Next</span> &#x2192;</button>
       </div>
     </div>
 
     <!-- STEP 2 -->
     <div class="ss" id="step-2">
       <div class="step-icon" style="background:#bff5ff">&#x1F4BC;</div>
-      <div class="step-title">About your business</div>
-      <div class="step-sub">Help us understand your company better.</div>
+      <div class="step-title" data-i18n="step2_title">About your business</div>
+      <div class="step-sub" data-i18n="step2_sub">Help us understand your company better.</div>
       <div class="fgr">
         <div class="fg">
-          <label>Business Type *</label>
+          <label data-i18n="label_business_type">Business Type *</label>
           <select id="f-biztype">
-            <option value="">Select type...</option>
-            <option>Home Services Company</option>
-            <option>Facility Management</option>
-            <option>Property Management</option>
-            <option>Construction Company</option>
-            <option>Cleaning Services</option>
-            <option>HVAC & Plumbing</option>
-            <option>Electrical Services</option>
-            <option>General Contracting</option>
-            <option>Other</option>
+            <option value="" data-i18n="select_type_placeholder">Select type...</option>
+            <option value="Home Services Company" data-i18n="biztype_home_services">Home Services Company</option>
+            <option value="Facility Management" data-i18n="biztype_facility_mgmt">Facility Management</option>
+            <option value="Property Management" data-i18n="biztype_property_mgmt">Property Management</option>
+            <option value="Construction Company" data-i18n="biztype_construction">Construction Company</option>
+            <option value="Cleaning Services" data-i18n="biztype_cleaning">Cleaning Services</option>
+            <option value="HVAC & Plumbing" data-i18n="biztype_hvac_plumbing">HVAC & Plumbing</option>
+            <option value="Electrical Services" data-i18n="biztype_electrical">Electrical Services</option>
+            <option value="General Contracting" data-i18n="biztype_general_contracting">General Contracting</option>
+            <option value="Other" data-i18n="biztype_other">Other</option>
           </select>
         </div>
         <div class="fg">
-          <label>Team Size *</label>
+          <label data-i18n="label_team_size">Team Size *</label>
           <select id="f-teamsize">
-            <option value="">Select size...</option>
-            <option>1–5 people</option>
-            <option>6–15 people</option>
-            <option>16–50 people</option>
-            <option>51–100 people</option>
-            <option>100+ people</option>
+            <option value="" data-i18n="select_size_placeholder">Select size...</option>
+            <option value="1–5 people" data-i18n="teamsize_1_5">1–5 people</option>
+            <option value="6–15 people" data-i18n="teamsize_6_15">6–15 people</option>
+            <option value="16–50 people" data-i18n="teamsize_16_50">16–50 people</option>
+            <option value="51–100 people" data-i18n="teamsize_51_100">51–100 people</option>
+            <option value="100+ people" data-i18n="teamsize_100_plus">100+ people</option>
           </select>
         </div>
       </div>
       <div class="fg">
-        <label>Services Offered *</label>
+        <label data-i18n="label_services_offered">Services Offered *</label>
         <div class="chip-group" id="serviceChips">
-          <span class="chip" onclick="togChip(this)">Plumbing</span>
-          <span class="chip" onclick="togChip(this)">Electrical</span>
-          <span class="chip" onclick="togChip(this)">Painting</span>
-          <span class="chip" onclick="togChip(this)">HVAC</span>
-          <span class="chip" onclick="togChip(this)">Carpentry</span>
-          <span class="chip" onclick="togChip(this)">Flooring</span>
-          <span class="chip" onclick="togChip(this)">Cleaning</span>
-          <span class="chip" onclick="togChip(this)">Appliances</span>
-          <span class="chip" onclick="togChip(this)">Landscaping</span>
-          <span class="chip" onclick="togChip(this)">Moving</span>
-          <span class="chip" onclick="togChip(this)">Drywall</span>
-          <span class="chip" onclick="togChip(this)">Tiling</span>
+          <span class="chip" data-label="Plumbing" onclick="togChip(this)" data-i18n="cat_plumbing">Plumbing</span>
+          <span class="chip" data-label="Electrical" onclick="togChip(this)" data-i18n="cat_electrical">Electrical</span>
+          <span class="chip" data-label="Painting" onclick="togChip(this)" data-i18n="cat_painting">Painting</span>
+          <span class="chip" data-label="HVAC" onclick="togChip(this)" data-i18n="cat_hvac">HVAC</span>
+          <span class="chip" data-label="Carpentry" onclick="togChip(this)" data-i18n="cat_carpentry">Carpentry</span>
+          <span class="chip" data-label="Flooring" onclick="togChip(this)" data-i18n="cat_flooring">Flooring</span>
+          <span class="chip" data-label="Cleaning" onclick="togChip(this)" data-i18n="cat_cleaning">Cleaning</span>
+          <span class="chip" data-label="Appliances" onclick="togChip(this)" data-i18n="cat_appliances">Appliances</span>
+          <span class="chip" data-label="Landscaping" onclick="togChip(this)" data-i18n="cat_landscaping">Landscaping</span>
+          <span class="chip" data-label="Moving" onclick="togChip(this)" data-i18n="cat_moving">Moving</span>
+          <span class="chip" data-label="Drywall" onclick="togChip(this)" data-i18n="cat_drywall">Drywall</span>
+          <span class="chip" data-label="Tiling" onclick="togChip(this)" data-i18n="cat_tiling">Tiling</span>
         </div>
         <div style="display:flex;gap:8px;margin-top:10px">
-          <input id="customServiceInput" placeholder="Add your own skill/service..." onkeypress="if(event.key==='Enter'){event.preventDefault();addCustomService();}"/>
-          <button type="button" onclick="addCustomService()" style="white-space:nowrap;background:#f5f5f7;border:1px solid #e9e9e9;border-radius:17px;padding:0 22px;font-size:14px;color:#0d0c19;cursor:pointer;font-family:'Work Sans',sans-serif">+ Add</button>
+          <input id="customServiceInput" data-i18n-ph="ph_custom_service" placeholder="Add your own skill/service..." onkeypress="if(event.key==='Enter'){event.preventDefault();addCustomService();}"/>
+          <button type="button" onclick="addCustomService()" style="white-space:nowrap;background:#f5f5f7;border:1px solid #e9e9e9;border-radius:17px;padding:0 22px;font-size:14px;color:#0d0c19;cursor:pointer;font-family:'Work Sans',sans-serif" data-i18n="btn_add">+ Add</button>
         </div>
       </div>
-      <div class="fg"><label>Website or Social Media <span style="color:#aaa;font-weight:400">(optional)</span></label><input id="f-website" placeholder="https://yourwebsite.com"/></div>
+      <div class="fg"><label><span data-i18n="label_website">Website or Social Media</span> <span style="color:#aaa;font-weight:400" data-i18n="optional">(optional)</span></label><input id="f-website" data-i18n-ph="ph_website" placeholder="https://yourwebsite.com"/></div>
       <div class="actions">
-        <button class="btn-back" onclick="prevStep()">&#x2190; Back</button>
-        <button class="btn-next" onclick="nextStep()"><span>Next</span> &#x2192;</button>
+        <button class="btn-back" onclick="prevStep()">&#x2190; <span data-i18n="btn_back">Back</span></button>
+        <button class="btn-next" onclick="nextStep()"><span data-i18n="btn_next">Next</span> &#x2192;</button>
       </div>
     </div>
 
     <!-- STEP 3 -->
     <div class="ss" id="step-3">
       <div class="step-icon" style="background:#fde2e2">&#x1F4B3;</div>
-      <div class="step-title">How many NFC cards do you need?</div>
-      <div class="step-sub">Each card is assigned to one handyman. We'll prepare your order after approval.</div>
+      <div class="step-title" data-i18n="step3_title">How many NFC cards do you need?</div>
+      <div class="step-sub" data-i18n="step3_sub">Each card is assigned to one handyman. We'll prepare your order after approval.</div>
       <div class="pkg-grid" id="pkgGrid"></div>
       <div id="customQtyWrap" style="display:none;margin-bottom:16px">
-        <label style="display:block;font-size:13px;color:#0d0c19;margin-bottom:6px">Number of cards</label>
-        <input id="customQtyInput" type="number" min="5" placeholder="e.g. 750" oninput="updateCustomQty()"/>
+        <label style="display:block;font-size:13px;color:#0d0c19;margin-bottom:6px" data-i18n="label_num_cards">Number of cards</label>
+        <input id="customQtyInput" type="number" min="5" data-i18n-ph="ph_custom_qty" placeholder="e.g. 750" oninput="updateCustomQty()"/>
       </div>
       <div style="background:#f8f8f8;border-radius:12px;padding:16px;margin-bottom:16px">
-        <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">What's included with each card:</div>
+        <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px" data-i18n="whats_included">What's included with each card:</div>
         <div class="feat-list">
-          <div class="feat"><span class="feat-icon">&#x2713;</span>NFC chip pre-programmed with handyman's profile URL</div>
-          <div class="feat"><span class="feat-icon">&#x2713;</span>Client registration &amp; review system</div>
-          <div class="feat"><span class="feat-icon">&#x2713;</span>Order tracking &amp; history</div>
-          <div class="feat"><span class="feat-icon">&#x2713;</span>Company dashboard access</div>
+          <div class="feat"><span class="feat-icon">&#x2713;</span><span data-i18n="feat_nfc_chip">NFC chip pre-programmed with handyman's profile URL</span></div>
+          <div class="feat"><span class="feat-icon">&#x2713;</span><span data-i18n="feat_client_reg">Client registration &amp; review system</span></div>
+          <div class="feat"><span class="feat-icon">&#x2713;</span><span data-i18n="feat_order_tracking">Order tracking &amp; history</span></div>
+          <div class="feat"><span class="feat-icon">&#x2713;</span><span data-i18n="feat_dashboard">Company dashboard access</span></div>
         </div>
       </div>
       <div class="actions">
-        <button class="btn-back" onclick="prevStep()">&#x2190; Back</button>
-        <button class="btn-next" onclick="nextStep()"><span>Next</span> &#x2192;</button>
+        <button class="btn-back" onclick="prevStep()">&#x2190; <span data-i18n="btn_back">Back</span></button>
+        <button class="btn-next" onclick="nextStep()"><span data-i18n="btn_next">Next</span> &#x2192;</button>
       </div>
     </div>
 
     <!-- STEP 4 -->
     <div class="ss" id="step-4">
       <div class="step-icon" style="background:#f3edff">&#x1F6E1;</div>
-      <div class="step-title">Licensing &amp; insurance</div>
-      <div class="step-sub">This helps us verify your legitimacy and build trust with clients.</div>
+      <div class="step-title" data-i18n="step4_title">Licensing &amp; insurance</div>
+      <div class="step-sub" data-i18n="step4_sub">This helps us verify your legitimacy and build trust with clients.</div>
       <div class="fgr">
-        <div class="fg"><label>Business License Number *</label><input id="f-license" placeholder="LIC-XXXXXXXX"/></div>
-        <div class="fg"><label>Years in Business *</label><input id="f-years" type="number" min="0" placeholder="5"/></div>
+        <div class="fg"><label data-i18n="label_license_number">Business License Number *</label><input id="f-license" data-i18n-ph="ph_license_number" placeholder="LIC-XXXXXXXX"/></div>
+        <div class="fg"><label data-i18n="label_years_business">Years in Business *</label><input id="f-years" type="number" min="0" placeholder="5"/></div>
       </div>
-      <div class="fg"><label>Insurance Provider *</label><input id="f-insurance" placeholder="e.g. State Farm, Allstate..."/></div>
-      <div class="fg"><label>Additional Notes <span style="color:#aaa;font-weight:400">(optional)</span></label><textarea id="f-notes" placeholder="Any additional information about your company, certifications, or anything else you'd like us to know..."></textarea></div>
+      <div class="fg"><label data-i18n="label_insurance_provider">Insurance Provider *</label><input id="f-insurance" data-i18n-ph="ph_insurance_provider" placeholder="e.g. State Farm, Allstate..."/></div>
+      <div class="fg"><label><span data-i18n="label_additional_notes">Additional Notes</span> <span style="color:#aaa;font-weight:400" data-i18n="optional">(optional)</span></label><textarea id="f-notes" data-i18n-ph="ph_additional_notes" placeholder="Any additional information about your company, certifications, or anything else you'd like us to know..."></textarea></div>
       <div class="actions">
-        <button class="btn-back" onclick="prevStep()">&#x2190; Back</button>
-        <button class="btn-back" onclick="submitApplication(true)" style="color:#4f00df;font-weight:600">Skip for now</button>
+        <button class="btn-back" onclick="prevStep()">&#x2190; <span data-i18n="btn_back">Back</span></button>
+        <button class="btn-back" onclick="submitApplication(true)" style="color:#4f00df;font-weight:600" data-i18n="btn_skip_for_now">Skip for now</button>
         <button class="btn-next" id="submitBtn" onclick="submitApplication(false)">
-          <span class="ld"></span><span>Submit Application</span>
+          <span class="ld"></span><span data-i18n="btn_submit_application">Submit Application</span>
         </button>
       </div>
     </div>
@@ -257,13 +258,13 @@
       <div style="flex:1;display:flex;align-items:center;justify-content:center">
         <div style="text-align:center">
           <div style="font-size:56px;margin-bottom:16px">&#x1F63A;</div>
-          <div style="font-size:24px;font-weight:700;color:#111;margin-bottom:10px">Application submitted!</div>
-          <div style="font-size:15px;color:#666;line-height:1.6;max-width:400px;margin:0 auto 20px">We've received your application and will review it within 1–2 business days. Check your email for confirmation.</div>
+          <div style="font-size:24px;font-weight:700;color:#111;margin-bottom:10px" data-i18n="success_title">Application submitted!</div>
+          <div style="font-size:15px;color:#666;line-height:1.6;max-width:400px;margin:0 auto 20px" data-i18n="success_body">We've received your application and will review it within 1–2 business days. Check your email for confirmation.</div>
           <div style="display:inline-flex;align-items:center;gap:8px;background:#f5f5f7;border-radius:10px;padding:10px 16px;font-size:14px;color:#555;margin-bottom:12px">
-            Application ID: <strong id="appIdDisplay" style="font-family:monospace;color:#111"></strong>
-            <button onclick="copyAppId()" style="background:#185FA5;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer">Copy</button>
+            <span data-i18n="application_id_label">Application ID:</span> <strong id="appIdDisplay" style="font-family:monospace;color:#111"></strong>
+            <button onclick="copyAppId()" style="background:#185FA5;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer" data-i18n="btn_copy">Copy</button>
           </div>
-          <div style="font-size:13px;color:#aaa">Confirmation sent to <strong id="emailDisplay"></strong></div>
+          <div style="font-size:13px;color:#aaa"><span data-i18n="confirmation_sent_to">Confirmation sent to</span> <strong id="emailDisplay"></strong></div>
         </div>
       </div>
     </div>
@@ -271,9 +272,10 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="lang-switcher" id="langSwitcher" onclick="cycleLang()">🌐 EN</div>
 
 <script>
-var STEP_LABELS=["Contact Info","Business Details","NFC Cards","License & Insurance"];
+function STEP_LABELS(){ return [t("step_label_1"),t("step_label_2"),t("step_label_3"),t("step_label_4")]; }
 var currentStep=1,totalSteps=4,cardCount=10;
 
 // Tiered per-card pricing (base $5/card, discount unlocks at higher volumes).
@@ -295,11 +297,11 @@ function buildPackages(){
   var html=CARD_PACKAGES.map(function(qty){
     var rate=tieredRate(qty),total=qty*rate;
     return '<div class="pkg-card" data-qty="'+qty+'" onclick="selectPackage('+qty+')">'+
-      '<div class="pkg-qty">'+qty+'</div><div class="pkg-label">cards</div>'+
+      '<div class="pkg-qty">'+qty+'</div><div class="pkg-label">'+t("pkg_cards_label")+'</div>'+
       '<div class="pkg-price">'+fmtMoney(total)+'</div><div class="pkg-rate">'+fmtMoney(rate)+'/card</div></div>';
   }).join("");
   html+='<div class="pkg-card" data-qty="custom" onclick="selectPackage(\'custom\')">'+
-    '<div class="pkg-qty">Custom</div><div class="pkg-label">any amount</div>'+
+    '<div class="pkg-qty">'+t("pkg_custom_label")+'</div><div class="pkg-label">'+t("pkg_custom_sub")+'</div>'+
     '<div class="pkg-price" id="pkgCustomPrice">&mdash;</div><div class="pkg-rate">'+fmtMoney(CUSTOM_RATE)+'/card</div></div>';
   document.getElementById("pkgGrid").innerHTML=html;
   selectPackage(selectedPackage);
@@ -328,6 +330,412 @@ function updateCustomQty(){
 var PID="handycat-98416",AKEY="AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
 var APP_ID="1:299592863157:web:1762bf7633443ae2c89dfc";
 var RECAPTCHA_KEY="6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD";
+var I18N = {
+ "en": {
+  "logo_sub": "Company registration",
+  "preview_default_name": "Your Handyman",
+  "preview_default_title": "Service professional",
+  "preview_default_loc": "Your service area",
+  "preview_more": "+ more",
+  "step1_title": "Let's start with your details",
+  "step1_sub": "Tell us about your company and how we can reach you.",
+  "label_company_name": "Company Name *",
+  "ph_company_name": "FixPro Services",
+  "label_contact_person": "Contact Person *",
+  "ph_contact_person": "John Smith",
+  "label_email_address": "Email Address *",
+  "ph_email_address": "john@fixpro.com",
+  "label_phone_number": "Phone Number *",
+  "ph_phone_number": "+1 (555) 000-0000",
+  "label_business_address": "Business Address *",
+  "ph_business_address": "123 Main St, New York, NY",
+  "label_service_region": "Service Region *",
+  "ph_service_region": "New York metropolitan area",
+  "btn_back": "Back",
+  "btn_next": "Next",
+  "step2_title": "About your business",
+  "step2_sub": "Help us understand your company better.",
+  "label_business_type": "Business Type *",
+  "select_type_placeholder": "Select type...",
+  "biztype_home_services": "Home Services Company",
+  "biztype_facility_mgmt": "Facility Management",
+  "biztype_property_mgmt": "Property Management",
+  "biztype_construction": "Construction Company",
+  "biztype_cleaning": "Cleaning Services",
+  "biztype_hvac_plumbing": "HVAC & Plumbing",
+  "biztype_electrical": "Electrical Services",
+  "biztype_general_contracting": "General Contracting",
+  "biztype_other": "Other",
+  "label_team_size": "Team Size *",
+  "select_size_placeholder": "Select size...",
+  "teamsize_1_5": "1–5 people",
+  "teamsize_6_15": "6–15 people",
+  "teamsize_16_50": "16–50 people",
+  "teamsize_51_100": "51–100 people",
+  "teamsize_100_plus": "100+ people",
+  "label_services_offered": "Services Offered *",
+  "ph_custom_service": "Add your own skill/service...",
+  "btn_add": "+ Add",
+  "label_website": "Website or Social Media",
+  "ph_website": "https://yourwebsite.com",
+  "step3_title": "How many NFC cards do you need?",
+  "step3_sub": "Each card is assigned to one handyman. We'll prepare your order after approval.",
+  "label_num_cards": "Number of cards",
+  "ph_custom_qty": "e.g. 750",
+  "pkg_cards_label": "cards",
+  "pkg_custom_label": "Custom",
+  "pkg_custom_sub": "any amount",
+  "whats_included": "What's included with each card:",
+  "feat_nfc_chip": "NFC chip pre-programmed with handyman's profile URL",
+  "feat_client_reg": "Client registration & review system",
+  "feat_order_tracking": "Order tracking & history",
+  "feat_dashboard": "Company dashboard access",
+  "step4_title": "Licensing & insurance",
+  "step4_sub": "This helps us verify your legitimacy and build trust with clients.",
+  "label_license_number": "Business License Number *",
+  "ph_license_number": "LIC-XXXXXXXX",
+  "label_years_business": "Years in Business *",
+  "label_insurance_provider": "Insurance Provider *",
+  "ph_insurance_provider": "e.g. State Farm, Allstate...",
+  "label_additional_notes": "Additional Notes",
+  "ph_additional_notes": "Any additional information about your company, certifications, or anything else you'd like us to know...",
+  "btn_skip_for_now": "Skip for now",
+  "btn_submit_application": "Submit Application",
+  "success_title": "Application submitted!",
+  "success_body": "We've received your application and will review it within 1–2 business days. Check your email for confirmation.",
+  "application_id_label": "Application ID:",
+  "btn_copy": "Copy",
+  "confirmation_sent_to": "Confirmation sent to",
+  "optional": "(optional)",
+  "step_label_1": "Contact Info",
+  "step_label_2": "Business Details",
+  "step_label_3": "NFC Cards",
+  "step_label_4": "License & Insurance",
+  "toast_already_added": "Already added",
+  "toast_enter_company_name": "Please enter your company name",
+  "toast_enter_contact": "Please enter contact person name",
+  "toast_valid_email": "Please enter a valid email address",
+  "toast_enter_phone": "Please enter your phone number",
+  "toast_enter_address": "Please enter your business address",
+  "toast_enter_region": "Please enter your service region",
+  "toast_select_biztype": "Please select your business type",
+  "toast_select_teamsize": "Please select your team size",
+  "toast_select_one_service": "Please select at least one service",
+  "toast_valid_custom_qty": "Please enter a valid custom quantity (min 5 cards)",
+  "toast_select_package": "Please select a card package",
+  "toast_enter_license": "Please enter your license number",
+  "toast_enter_years": "Please enter years in business",
+  "toast_enter_insurance": "Please enter your insurance provider",
+  "toast_something_wrong": "Something went wrong. Please try again.",
+  "toast_appid_copied": "Application ID copied!",
+  "email_subject": "We received your HandyCat application — {company}",
+  "email_greeting": "Hi {contact},",
+  "email_thanks": "Thank you for applying to join HandyCat as a company partner.",
+  "email_received": "We've received your application for {company} and our team will review it within 1–2 business days.",
+  "email_cards_requested_label": "Cards requested:",
+  "email_cards_requested_value": "{count} ({rate}/card, {total} total)",
+  "email_submitted_label": "Submitted:",
+  "email_will_notify": "You'll receive an email once a decision has been made.",
+  "email_regards": "Best regards,",
+  "email_team_sign": "The HandyCat Team",
+  "cat_plumbing": "Plumbing",
+  "cat_electrical": "Electrical",
+  "cat_painting": "Painting",
+  "cat_hvac": "HVAC",
+  "cat_carpentry": "Carpentry",
+  "cat_flooring": "Flooring",
+  "cat_cleaning": "Cleaning",
+  "cat_appliances": "Appliances",
+  "cat_tiling": "Tiling",
+  "cat_landscaping": "Landscaping",
+  "cat_moving": "Moving",
+  "cat_drywall": "Drywall"
+ },
+ "uk": {
+  "logo_sub": "Реєстрація компанії",
+  "preview_default_name": "Ваш майстер",
+  "preview_default_title": "Спеціаліст з обслуговування",
+  "preview_default_loc": "Ваш район обслуговування",
+  "preview_more": "+ ще",
+  "step1_title": "Почнемо з ваших даних",
+  "step1_sub": "Розкажіть про вашу компанію і як з вами зв'язатися.",
+  "label_company_name": "Назва компанії *",
+  "ph_company_name": "FixPro Services",
+  "label_contact_person": "Контактна особа *",
+  "ph_contact_person": "Іван Петренко",
+  "label_email_address": "Email адреса *",
+  "ph_email_address": "ivan@fixpro.com",
+  "label_phone_number": "Номер телефону *",
+  "ph_phone_number": "+380 (00) 000-0000",
+  "label_business_address": "Адреса компанії *",
+  "ph_business_address": "вул. Головна 123, Київ",
+  "label_service_region": "Регіон обслуговування *",
+  "ph_service_region": "Київ та область",
+  "btn_back": "Назад",
+  "btn_next": "Далі",
+  "step2_title": "Про ваш бізнес",
+  "step2_sub": "Допоможіть нам краще зрозуміти вашу компанію.",
+  "label_business_type": "Тип бізнесу *",
+  "select_type_placeholder": "Оберіть тип...",
+  "biztype_home_services": "Компанія побутових послуг",
+  "biztype_facility_mgmt": "Управління об'єктами",
+  "biztype_property_mgmt": "Управління нерухомістю",
+  "biztype_construction": "Будівельна компанія",
+  "biztype_cleaning": "Клінінгові послуги",
+  "biztype_hvac_plumbing": "Опалення та сантехніка",
+  "biztype_electrical": "Електротехнічні послуги",
+  "biztype_general_contracting": "Генеральний підряд",
+  "biztype_other": "Інше",
+  "label_team_size": "Розмір команди *",
+  "select_size_placeholder": "Оберіть розмір...",
+  "teamsize_1_5": "1–5 осіб",
+  "teamsize_6_15": "6–15 осіб",
+  "teamsize_16_50": "16–50 осіб",
+  "teamsize_51_100": "51–100 осіб",
+  "teamsize_100_plus": "100+ осіб",
+  "label_services_offered": "Пропоновані послуги *",
+  "ph_custom_service": "Додайте власну навичку/послугу...",
+  "btn_add": "+ Додати",
+  "label_website": "Вебсайт або соцмережі",
+  "ph_website": "https://yourwebsite.com",
+  "step3_title": "Скільки NFC-карток вам потрібно?",
+  "step3_sub": "Кожна картка призначається одному майстру. Ми підготуємо ваше замовлення після схвалення.",
+  "label_num_cards": "Кількість карток",
+  "ph_custom_qty": "напр. 750",
+  "pkg_cards_label": "карток",
+  "pkg_custom_label": "Свій варіант",
+  "pkg_custom_sub": "будь-яка кількість",
+  "whats_included": "Що включено в кожну картку:",
+  "feat_nfc_chip": "NFC-чіп, попередньо запрограмований на профіль майстра",
+  "feat_client_reg": "Реєстрація клієнтів та система відгуків",
+  "feat_order_tracking": "Відстеження заявок та історія",
+  "feat_dashboard": "Доступ до панелі компанії",
+  "step4_title": "Ліцензування та страхування",
+  "step4_sub": "Це допомагає нам підтвердити вашу легітимність і зміцнити довіру клієнтів.",
+  "label_license_number": "Номер бізнес-ліцензії *",
+  "ph_license_number": "LIC-XXXXXXXX",
+  "label_years_business": "Років у бізнесі *",
+  "label_insurance_provider": "Страхова компанія *",
+  "ph_insurance_provider": "напр. Страхова компанія X",
+  "label_additional_notes": "Додаткові примітки",
+  "ph_additional_notes": "Будь-яка додаткова інформація про вашу компанію, сертифікати або що завгодно, що варто знати...",
+  "btn_skip_for_now": "Пропустити",
+  "btn_submit_application": "Надіслати заявку",
+  "success_title": "Заявку надіслано!",
+  "success_body": "Ми отримали вашу заявку і розглянемо її протягом 1–2 робочих днів. Перевірте email для підтвердження.",
+  "application_id_label": "Номер заявки:",
+  "btn_copy": "Копіювати",
+  "confirmation_sent_to": "Підтвердження надіслано на",
+  "optional": "(необов'язково)",
+  "step_label_1": "Контактні дані",
+  "step_label_2": "Про бізнес",
+  "step_label_3": "NFC-картки",
+  "step_label_4": "Ліцензія та страхування",
+  "toast_already_added": "Вже додано",
+  "toast_enter_company_name": "Будь ласка, введіть назву компанії",
+  "toast_enter_contact": "Будь ласка, введіть ім'я контактної особи",
+  "toast_valid_email": "Будь ласка, введіть коректну email адресу",
+  "toast_enter_phone": "Будь ласка, введіть номер телефону",
+  "toast_enter_address": "Будь ласка, введіть адресу компанії",
+  "toast_enter_region": "Будь ласка, введіть регіон обслуговування",
+  "toast_select_biztype": "Будь ласка, оберіть тип бізнесу",
+  "toast_select_teamsize": "Будь ласка, оберіть розмір команди",
+  "toast_select_one_service": "Будь ласка, оберіть принаймні одну послугу",
+  "toast_valid_custom_qty": "Будь ласка, введіть коректну кількість (мінімум 5 карток)",
+  "toast_select_package": "Будь ласка, оберіть пакет карток",
+  "toast_enter_license": "Будь ласка, введіть номер ліцензії",
+  "toast_enter_years": "Будь ласка, введіть кількість років у бізнесі",
+  "toast_enter_insurance": "Будь ласка, введіть страхову компанію",
+  "toast_something_wrong": "Щось пішло не так. Спробуйте ще раз.",
+  "toast_appid_copied": "Номер заявки скопійовано!",
+  "email_subject": "Ми отримали вашу заявку HandyCat — {company}",
+  "email_greeting": "Вітаємо, {contact},",
+  "email_thanks": "Дякуємо за подання заявки на партнерство з HandyCat.",
+  "email_received": "Ми отримали вашу заявку для {company}, наша команда розгляне її протягом 1–2 робочих днів.",
+  "email_cards_requested_label": "Кількість карток:",
+  "email_cards_requested_value": "{count} ({rate}/картка, {total} загалом)",
+  "email_submitted_label": "Надіслано:",
+  "email_will_notify": "Ви отримаєте email, щойно рішення буде прийнято.",
+  "email_regards": "З повагою,",
+  "email_team_sign": "Команда HandyCat",
+  "cat_plumbing": "Сантехніка",
+  "cat_electrical": "Електрика",
+  "cat_painting": "Малярні роботи",
+  "cat_hvac": "Опалення та кондиціонування",
+  "cat_carpentry": "Столярні роботи",
+  "cat_flooring": "Підлогові роботи",
+  "cat_cleaning": "Прибирання",
+  "cat_appliances": "Побутова техніка",
+  "cat_tiling": "Кахельні роботи",
+  "cat_landscaping": "Ландшафтний дизайн",
+  "cat_moving": "Переїзд",
+  "cat_drywall": "Гіпсокартон"
+ },
+ "es": {
+  "logo_sub": "Registro de empresa",
+  "preview_default_name": "Tu técnico",
+  "preview_default_title": "Profesional de servicio",
+  "preview_default_loc": "Tu área de servicio",
+  "preview_more": "+ más",
+  "step1_title": "Comencemos con tus datos",
+  "step1_sub": "Cuéntanos sobre tu empresa y cómo podemos contactarte.",
+  "label_company_name": "Nombre de la empresa *",
+  "ph_company_name": "FixPro Services",
+  "label_contact_person": "Persona de contacto *",
+  "ph_contact_person": "Juan Pérez",
+  "label_email_address": "Correo electrónico *",
+  "ph_email_address": "juan@fixpro.com",
+  "label_phone_number": "Número de teléfono *",
+  "ph_phone_number": "+1 (555) 000-0000",
+  "label_business_address": "Dirección de la empresa *",
+  "ph_business_address": "Calle Principal 123, Madrid",
+  "label_service_region": "Región de servicio *",
+  "ph_service_region": "Área metropolitana de Madrid",
+  "btn_back": "Atrás",
+  "btn_next": "Siguiente",
+  "step2_title": "Sobre tu empresa",
+  "step2_sub": "Ayúdanos a entender mejor tu empresa.",
+  "label_business_type": "Tipo de negocio *",
+  "select_type_placeholder": "Selecciona un tipo...",
+  "biztype_home_services": "Empresa de servicios del hogar",
+  "biztype_facility_mgmt": "Gestión de instalaciones",
+  "biztype_property_mgmt": "Gestión de propiedades",
+  "biztype_construction": "Empresa de construcción",
+  "biztype_cleaning": "Servicios de limpieza",
+  "biztype_hvac_plumbing": "Climatización y plomería",
+  "biztype_electrical": "Servicios eléctricos",
+  "biztype_general_contracting": "Contratación general",
+  "biztype_other": "Otro",
+  "label_team_size": "Tamaño del equipo *",
+  "select_size_placeholder": "Selecciona un tamaño...",
+  "teamsize_1_5": "1–5 personas",
+  "teamsize_6_15": "6–15 personas",
+  "teamsize_16_50": "16–50 personas",
+  "teamsize_51_100": "51–100 personas",
+  "teamsize_100_plus": "100+ personas",
+  "label_services_offered": "Servicios ofrecidos *",
+  "ph_custom_service": "Añade tu propia habilidad/servicio...",
+  "btn_add": "+ Añadir",
+  "label_website": "Sitio web o redes sociales",
+  "ph_website": "https://tusitio.com",
+  "step3_title": "¿Cuántas tarjetas NFC necesitas?",
+  "step3_sub": "Cada tarjeta se asigna a un técnico. Prepararemos tu pedido después de la aprobación.",
+  "label_num_cards": "Número de tarjetas",
+  "ph_custom_qty": "ej. 750",
+  "pkg_cards_label": "tarjetas",
+  "pkg_custom_label": "Personalizado",
+  "pkg_custom_sub": "cualquier cantidad",
+  "whats_included": "Qué incluye cada tarjeta:",
+  "feat_nfc_chip": "Chip NFC preprogramado con la URL del perfil del técnico",
+  "feat_client_reg": "Registro de clientes y sistema de reseñas",
+  "feat_order_tracking": "Seguimiento de solicitudes e historial",
+  "feat_dashboard": "Acceso al panel de la empresa",
+  "step4_title": "Licencias y seguro",
+  "step4_sub": "Esto nos ayuda a verificar tu legitimidad y generar confianza con los clientes.",
+  "label_license_number": "Número de licencia comercial *",
+  "ph_license_number": "LIC-XXXXXXXX",
+  "label_years_business": "Años en el negocio *",
+  "label_insurance_provider": "Compañía de seguros *",
+  "ph_insurance_provider": "ej. Compañía de seguros X",
+  "label_additional_notes": "Notas adicionales",
+  "ph_additional_notes": "Cualquier información adicional sobre tu empresa, certificaciones, o cualquier otra cosa que quieras que sepamos...",
+  "btn_skip_for_now": "Omitir por ahora",
+  "btn_submit_application": "Enviar solicitud",
+  "success_title": "¡Solicitud enviada!",
+  "success_body": "Hemos recibido tu solicitud y la revisaremos en 1 a 2 días hábiles. Revisa tu correo para la confirmación.",
+  "application_id_label": "ID de solicitud:",
+  "btn_copy": "Copiar",
+  "confirmation_sent_to": "Confirmación enviada a",
+  "optional": "(opcional)",
+  "step_label_1": "Información de contacto",
+  "step_label_2": "Detalles de la empresa",
+  "step_label_3": "Tarjetas NFC",
+  "step_label_4": "Licencia y seguro",
+  "toast_already_added": "Ya añadido",
+  "toast_enter_company_name": "Por favor ingresa el nombre de tu empresa",
+  "toast_enter_contact": "Por favor ingresa el nombre de la persona de contacto",
+  "toast_valid_email": "Por favor ingresa un correo electrónico válido",
+  "toast_enter_phone": "Por favor ingresa tu número de teléfono",
+  "toast_enter_address": "Por favor ingresa la dirección de tu empresa",
+  "toast_enter_region": "Por favor ingresa tu región de servicio",
+  "toast_select_biztype": "Por favor selecciona el tipo de negocio",
+  "toast_select_teamsize": "Por favor selecciona el tamaño del equipo",
+  "toast_select_one_service": "Por favor selecciona al menos un servicio",
+  "toast_valid_custom_qty": "Por favor ingresa una cantidad válida (mínimo 5 tarjetas)",
+  "toast_select_package": "Por favor selecciona un paquete de tarjetas",
+  "toast_enter_license": "Por favor ingresa tu número de licencia",
+  "toast_enter_years": "Por favor ingresa los años en el negocio",
+  "toast_enter_insurance": "Por favor ingresa tu compañía de seguros",
+  "toast_something_wrong": "Algo salió mal. Inténtalo de nuevo.",
+  "toast_appid_copied": "¡ID de solicitud copiado!",
+  "email_subject": "Recibimos tu solicitud de HandyCat — {company}",
+  "email_greeting": "Hola {contact},",
+  "email_thanks": "Gracias por postularte para unirte a HandyCat como empresa asociada.",
+  "email_received": "Hemos recibido tu solicitud para {company} y nuestro equipo la revisará en 1 a 2 días hábiles.",
+  "email_cards_requested_label": "Tarjetas solicitadas:",
+  "email_cards_requested_value": "{count} ({rate}/tarjeta, {total} en total)",
+  "email_submitted_label": "Enviado:",
+  "email_will_notify": "Recibirás un correo una vez que se haya tomado una decisión.",
+  "email_regards": "Saludos cordiales,",
+  "email_team_sign": "El equipo de HandyCat",
+  "cat_plumbing": "Plomería",
+  "cat_electrical": "Electricidad",
+  "cat_painting": "Pintura",
+  "cat_hvac": "Climatización",
+  "cat_carpentry": "Carpintería",
+  "cat_flooring": "Pisos",
+  "cat_cleaning": "Limpieza",
+  "cat_appliances": "Electrodomésticos",
+  "cat_tiling": "Azulejos",
+  "cat_landscaping": "Jardinería",
+  "cat_moving": "Mudanza",
+  "cat_drywall": "Tabiquería"
+ }
+};
+
+var LANG = localStorage.getItem("hc_lang") || "en";
+var LOCALE_MAP = {en:"en-US", uk:"uk-UA", es:"es-ES"};
+function t(key){
+  return (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key;
+}
+function tf(key, params){
+  var s = t(key);
+  Object.keys(params||{}).forEach(function(k){ s = s.replace("{"+k+"}", params[k]); });
+  return s;
+}
+
+function applyStaticTranslations(){
+  document.querySelectorAll("[data-i18n]").forEach(function(el){
+    el.textContent = t(el.getAttribute("data-i18n"));
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(function(el){
+    el.setAttribute("placeholder", t(el.getAttribute("data-i18n-ph")));
+  });
+}
+
+function renderLangSwitcher(){
+  var el = document.getElementById("langSwitcher");
+  if (!el) return;
+  var labels = {en:"EN", uk:"UA", es:"ES"};
+  el.textContent = "🌐 " + labels[LANG];
+}
+
+function setLang(lang){
+  LANG = lang;
+  localStorage.setItem("hc_lang", lang);
+  applyStaticTranslations();
+  renderLangSwitcher();
+  buildSteps();
+  buildPackages();
+  updatePreviewCard();
+}
+
+function cycleLang(){
+  var order = ["en","uk","es"];
+  var next = order[(order.indexOf(LANG)+1) % order.length];
+  setLang(next);
+}
+
 var FS="https://firestore.googleapis.com/v1/projects/"+PID+"/databases/(default)/documents";
 var _appCheckToken=null,_appCheckExpiry=0;
 
@@ -389,7 +797,7 @@ function sendEmail(to,subject,html){
 
 function buildSteps(){
   var el=document.getElementById("sideSteps");
-  el.innerHTML=STEP_LABELS.map(function(l,i){
+  el.innerHTML=STEP_LABELS().map(function(l,i){
     var n=i+1,cls=n<currentStep?"done":n===currentStep?"active":"";
     return'<div class="si"><div class="sd '+cls+'"></div><div class="sl '+cls+'">'+l+'</div></div>';
   }).join("");
@@ -419,19 +827,21 @@ function updatePreviewCard(){
   var region=document.getElementById("f-region").value.trim();
   var address=document.getElementById("f-address").value.trim();
 
-  document.getElementById("prevName").textContent = contact || "Your Handyman";
-  document.getElementById("prevTitle").textContent = company || "Service professional";
+  document.getElementById("prevName").textContent = contact || t("preview_default_name");
+  document.getElementById("prevTitle").textContent = company || t("preview_default_title");
   document.getElementById("prevAvatarText").textContent = contact ? initialsOf(contact) : "JL";
-  document.getElementById("prevLoc").innerHTML = "&#x1F3E0; " + esc(region || address || "Your service area");
+  document.getElementById("prevLoc").innerHTML = "&#x1F3E0; " + esc(region || address || t("preview_default_loc"));
 
-  var selChips = Array.from(document.querySelectorAll("#serviceChips .chip.sel")).map(function(c){return c.dataset.label||c.textContent.trim();});
+  // Preview card is cosmetic only, so show whatever label is currently displayed
+  // (translated) rather than the canonical English value used for storage.
+  var selChips = Array.from(document.querySelectorAll("#serviceChips .chip.sel")).map(function(c){return c.textContent.trim();});
   var catsEl = document.getElementById("prevCats");
   if(!selChips.length){
-    catsEl.innerHTML = '<span class="cat">Plumbing</span><span class="cat">Electrical</span><span class="cat">HVAC</span><span class="cat">+ more</span>';
+    catsEl.innerHTML = '<span class="cat">'+esc(t("cat_plumbing"))+'</span><span class="cat">'+esc(t("cat_electrical"))+'</span><span class="cat">'+esc(t("cat_hvac"))+'</span><span class="cat">'+esc(t("preview_more"))+'</span>';
   } else {
     var shown = selChips.slice(0,3);
     var html = shown.map(function(s){return '<span class="cat">'+esc(s)+'</span>';}).join("");
-    if (selChips.length > 3) html += '<span class="cat">+ ' + (selChips.length - 3) + ' more</span>';
+    if (selChips.length > 3) html += '<span class="cat">+ ' + (selChips.length - 3) + ' '+esc(t("preview_more").replace(/^\+\s*/,""))+'</span>';
     catsEl.innerHTML = html;
   }
 }
@@ -443,7 +853,7 @@ function addCustomService(){
   var val=inp.value.trim();
   if(!val)return;
   var exists=Array.from(document.querySelectorAll("#serviceChips .chip")).some(function(c){return (c.dataset.label||c.textContent).trim().toLowerCase()===val.toLowerCase();});
-  if(exists){toast("Already added");inp.value="";return;}
+  if(exists){toast(t("toast_already_added"));inp.value="";return;}
   var chip=document.createElement("span");
   chip.className="chip sel chip-custom";
   chip.dataset.label=val;
@@ -464,30 +874,30 @@ function addCustomService(){
 }
 function validate(step,skip){
   if(step===1){
-    if(!document.getElementById("f-company").value.trim()){toast("Please enter your company name");return false;}
-    if(!document.getElementById("f-contact").value.trim()){toast("Please enter contact person name");return false;}
+    if(!document.getElementById("f-company").value.trim()){toast(t("toast_enter_company_name"));return false;}
+    if(!document.getElementById("f-contact").value.trim()){toast(t("toast_enter_contact"));return false;}
     var em=document.getElementById("f-email").value.trim();
-    if(!em||!em.includes("@")){toast("Please enter a valid email address");return false;}
-    if(!document.getElementById("f-phone").value.trim()){toast("Please enter your phone number");return false;}
-    if(!document.getElementById("f-address").value.trim()){toast("Please enter your business address");return false;}
-    if(!document.getElementById("f-region").value.trim()){toast("Please enter your service region");return false;}
+    if(!em||!em.includes("@")){toast(t("toast_valid_email"));return false;}
+    if(!document.getElementById("f-phone").value.trim()){toast(t("toast_enter_phone"));return false;}
+    if(!document.getElementById("f-address").value.trim()){toast(t("toast_enter_address"));return false;}
+    if(!document.getElementById("f-region").value.trim()){toast(t("toast_enter_region"));return false;}
   }
   if(step===2){
-    if(!document.getElementById("f-biztype").value){toast("Please select your business type");return false;}
-    if(!document.getElementById("f-teamsize").value){toast("Please select your team size");return false;}
-    if(!document.querySelectorAll("#serviceChips .chip.sel").length){toast("Please select at least one service");return false;}
+    if(!document.getElementById("f-biztype").value){toast(t("toast_select_biztype"));return false;}
+    if(!document.getElementById("f-teamsize").value){toast(t("toast_select_teamsize"));return false;}
+    if(!document.querySelectorAll("#serviceChips .chip.sel").length){toast(t("toast_select_one_service"));return false;}
   }
   if(step===3){
     if(selectedPackage==="custom"){
-      if(!customQty||customQty<5){toast("Please enter a valid custom quantity (min 5 cards)");return false;}
+      if(!customQty||customQty<5){toast(t("toast_valid_custom_qty"));return false;}
     }else if(!cardCount||cardCount<1){
-      toast("Please select a card package");return false;
+      toast(t("toast_select_package"));return false;
     }
   }
   if(step===4 && !skip){
-    if(!document.getElementById("f-license").value.trim()){toast("Please enter your license number");return false;}
-    if(!document.getElementById("f-years").value){toast("Please enter years in business");return false;}
-    if(!document.getElementById("f-insurance").value.trim()){toast("Please enter your insurance provider");return false;}
+    if(!document.getElementById("f-license").value.trim()){toast(t("toast_enter_license"));return false;}
+    if(!document.getElementById("f-years").value){toast(t("toast_enter_years"));return false;}
+    if(!document.getElementById("f-insurance").value.trim()){toast(t("toast_enter_insurance"));return false;}
   }
   return true;
 }
@@ -551,19 +961,19 @@ async function submitApplication(skip){
 
     // Send confirmation email
     await sendEmail(email,
-      "We received your HandyCat application — "+company,
+      tf("email_subject",{company:company}),
       "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>"+
       "<h2 style='color:#185FA5'>HandyCat</h2>"+
-      "<p>Hi "+contact+",</p>"+
-      "<p>Thank you for applying to join HandyCat as a company partner.</p>"+
-      "<p>We've received your application for <strong>"+company+"</strong> and our team will review it within 1–2 business days.</p>"+
+      "<p>"+tf("email_greeting",{contact:contact})+"</p>"+
+      "<p>"+t("email_thanks")+"</p>"+
+      "<p>"+tf("email_received",{company:"<strong>"+company+"</strong>"})+"</p>"+
       "<div style='background:#f5f5f7;border-radius:12px;padding:16px;margin:20px 0'>"+
-      "<p style='margin:4px 0'><strong>Application ID:</strong> "+appId+"</p>"+
-      "<p style='margin:4px 0'><strong>Cards requested:</strong> "+cardCount+" ("+fmtMoney(pricePerCard)+"/card, "+fmtMoney(totalPrice)+" total)</p>"+
-      "<p style='margin:4px 0'><strong>Submitted:</strong> "+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+"</p>"+
+      "<p style='margin:4px 0'><strong>"+t("application_id_label")+"</strong> "+appId+"</p>"+
+      "<p style='margin:4px 0'><strong>"+t("email_cards_requested_label")+"</strong> "+tf("email_cards_requested_value",{count:cardCount,rate:fmtMoney(pricePerCard),total:fmtMoney(totalPrice)})+"</p>"+
+      "<p style='margin:4px 0'><strong>"+t("email_submitted_label")+"</strong> "+new Date().toLocaleDateString(LOCALE_MAP[LANG]||'en-US',{month:'long',day:'numeric',year:'numeric'})+"</p>"+
       "</div>"+
-      "<p>You'll receive an email once a decision has been made.</p>"+
-      "<p>Best regards,<br><strong>The HandyCat Team</strong></p>"+
+      "<p>"+t("email_will_notify")+"</p>"+
+      "<p>"+t("email_regards")+"<br><strong>"+t("email_team_sign")+"</strong></p>"+
       "</div>"
     );
 
@@ -575,16 +985,18 @@ async function submitApplication(skip){
     document.getElementById("progPct").textContent="100%";
   }catch(e){
     console.error(e);
-    toast("Something went wrong. Please try again.");
+    toast(t("toast_something_wrong"));
     btn.disabled=false;btn.classList.remove("loading");
   }
 }
 
 function copyAppId(){
   navigator.clipboard.writeText(document.getElementById("appIdDisplay").textContent);
-  toast("Application ID copied!");
+  toast(t("toast_appid_copied"));
 }
 
+applyStaticTranslations();
+renderLangSwitcher();
 buildPackages();
 updateProgress();
 updatePreviewCard();
