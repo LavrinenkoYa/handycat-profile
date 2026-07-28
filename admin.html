@@ -3060,7 +3060,9 @@ async function fsL(c, ps) {
   if (!r.ok) return [];
   var d = await r.json();
   if (!d.documents) return [];
-  return d.documents.map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
+  var _out = d.documents.map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
+  if (c === "orders") _out = _out.filter(function(o) { return !o.isOnboarding; });
+  return _out;
 }
 async function fsQ(c, filters, lim) {
   var body = { structuredQuery: { from: [{ collectionId: c }], limit: lim || 500 } };
@@ -3070,7 +3072,9 @@ async function fsQ(c, filters, lim) {
   var r = await fetch(FS + ":runQuery?key=" + AKEY, await addAppCheck({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }));
   if (!r.ok) return [];
   var rows = await r.json();
-  return rows.filter(function(x) { return x.document; }).map(function(x) { return { id: x.document.name.split("/").pop(), ...pf(x.document.fields) }; });
+  var _out = rows.filter(function(x) { return x.document; }).map(function(x) { return { id: x.document.name.split("/").pop(), ...pf(x.document.fields) }; });
+  if (c === "orders") _out = _out.filter(function(o) { return !o.isOnboarding; });
+  return _out;
 }
 async function fsP(c, id, fields) {
   var opts = await addAppCheck({ method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields }) });

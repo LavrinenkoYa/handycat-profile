@@ -230,6 +230,19 @@
   </div>
 </div>
 
+<div class="screen" id="s-demo-intro">
+  <div class="reg-top">
+    <div class="reg-logo">🧪</div>
+    <div class="reg-title" data-i18n="demo_intro_title">Quick Test Run</div>
+    <div class="reg-sub" data-i18n="demo_intro_body">Before you start using your profile, let's do a quick test together with your handyman — place a sample request so you both see exactly how it works. This won't be saved as a real request.</div>
+  </div>
+  <div style="padding:0 16px 32px">
+    <button class="btn btn-primary" id="startDemoBtn" onclick="startDemoOrder()">
+      <span class="btn-label" data-i18n="btn_start_demo">Start Test Run →</span>
+    </button>
+  </div>
+</div>
+
 <div class="screen" id="s-profile">
   <div class="pf-header-row">
     <div class="pf-av" id="profAv"></div>
@@ -260,9 +273,10 @@
 
 <div class="screen" id="s-new-order">
   <div class="topbar">
-    <div class="back-btn" onclick="showProfile()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></div>
+    <div class="back-btn" id="newOrderBackBtn" onclick="showProfile()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></div>
     <h1 data-i18n="btn_new_request">New Request</h1>
   </div>
+  <div id="demoBanner" style="display:none;margin:12px 16px 0;background:#fff4e5;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;color:#92400E;text-align:center" data-i18n="demo_banner">🧪 Test Run — this won't be saved as a real request</div>
   <div style="padding:16px 0 24px;text-align:center">
     <div style="width:72px;height:72px;border-radius:50%;background:#bff5ff;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px">&#x1F43E;</div>
     <div style="font-size:22px;font-weight:700;color:#4f00df;font-family:'Albert Sans',sans-serif;margin-bottom:6px" data-i18n="new_order_title">What can we help you with?</div>
@@ -462,7 +476,12 @@ var I18N = {
   "toast_upload_failed": "Upload failed. Please try again.",
   "toast_could_not_save_photo": "Could not save photo. Please try again.",
   "looking_for_handyman": "Looking for an available handyman",
-  "will_notify": "We will notify you when someone accepts"
+  "will_notify": "We will notify you when someone accepts",
+  "demo_intro_title": "Quick Test Run",
+  "demo_intro_body": "Before you start using your profile, let's do a quick test together with your handyman — place a sample request so you both see exactly how it works. This won't be saved as a real request.",
+  "btn_start_demo": "Start Test Run →",
+  "demo_banner": "🧪 Test Run — this won't be saved as a real request",
+  "toast_demo_complete": "🎉 That's exactly how it works! Here's your real profile."
  },
  "uk": {
   "loading_profile": "Завантаження вашого профілю...",
@@ -568,7 +587,12 @@ var I18N = {
   "toast_upload_failed": "Не вдалося завантажити. Спробуйте ще раз.",
   "toast_could_not_save_photo": "Не вдалося зберегти фото. Спробуйте ще раз.",
   "looking_for_handyman": "Пошук доступного майстра",
-  "will_notify": "Ми повідомимо вас, коли хтось відгукнеться"
+  "will_notify": "Ми повідомимо вас, коли хтось відгукнеться",
+  "demo_intro_title": "Швидкий тест",
+  "demo_intro_body": "Перш ніж ви почнете користуватися профілем, давайте разом з вашим майстром зробимо тестову заявку — щоб ви обидва побачили, як це працює. Це не збережеться як справжня заявка.",
+  "btn_start_demo": "Почати тест →",
+  "demo_banner": "🧪 Тестовий режим — це не збережеться як справжня заявка",
+  "toast_demo_complete": "🎉 Отак саме це і працює! Ось ваш справжній профіль."
  },
  "es": {
   "loading_profile": "Cargando tu perfil...",
@@ -674,7 +698,12 @@ var I18N = {
   "toast_upload_failed": "Error al subir. Inténtalo de nuevo.",
   "toast_could_not_save_photo": "No se pudo guardar la foto. Inténtalo de nuevo.",
   "looking_for_handyman": "Buscando un técnico disponible",
-  "will_notify": "Te avisaremos cuando alguien acepte"
+  "will_notify": "Te avisaremos cuando alguien acepte",
+  "demo_intro_title": "Prueba rápida",
+  "demo_intro_body": "Antes de usar tu perfil, hagamos una prueba rápida junto a tu técnico — crea una solicitud de ejemplo para ver exactamente cómo funciona. Esto no se guardará como una solicitud real.",
+  "btn_start_demo": "Iniciar prueba →",
+  "demo_banner": "🧪 Prueba — esto no se guardará como una solicitud real",
+  "toast_demo_complete": "🎉 ¡Exacto, así funciona! Aquí está tu perfil real."
  }
 };
 
@@ -903,13 +932,20 @@ async function registerClient(){
     if(!ok){setLoading(btn,false);toast(t("toast_something_wrong"));return;}
     await fsMerge("nfc_cards",S.token,{clientId:sv(cid),status:sv("active"),activatedAt:sv(now)});
     S.client={id:cid,name:name,phone:phone,ratingAvg:0,reviewCount:0,ordersCount:0};
+    S.orders=[];
     toast(t("toast_welcome"));
-    await loadProfile();
+    show("s-demo-intro");
   } catch(e) {
     console.error("Register error:",e);
     setLoading(btn,false);
     toast(t("toast_connection_error"));
   }
+}
+
+// ── DEMO / TEST RUN (shown once, right after first activation) ──
+function startDemoOrder(){
+  S.isDemoOrder=true;
+  showNewOrder();
 }
 
 // ── PROFILE ───────────────────────────────────────────────────
@@ -1135,6 +1171,8 @@ async function showNewOrder(){
   document.getElementById("otherCat").value="";
   document.getElementById("photoPreviews").innerHTML="";
   document.getElementById("otherWrap").style.display="none";
+  document.getElementById("newOrderBackBtn").style.display=S.isDemoOrder?"none":"";
+  document.getElementById("demoBanner").style.display=S.isDemoOrder?"block":"none";
   // Build categories (recomputed each time so labels follow the current language)
   CATS=getCats();
   var grid=document.getElementById("catGrid");
@@ -1257,6 +1295,7 @@ async function submitOrder(){
       if(url)photoUrls.push(url);
     }
   }
+  var isDemo=!!S.isDemoOrder;
   var ok=await fsP("orders",orderId,{
     clientId:sv(S.client.id),
     handymanId:sv(hmId),
@@ -1267,13 +1306,19 @@ async function submitOrder(){
     status:sv("new"),
     isPublic:bv(isPublic),
     photos:av(photoUrls),
+    isOnboarding:bv(isDemo),
     createdAt:sv(now)
   });
   if(ok){
-    var newCount=(S.client.ordersCount||0)+1;
-    await fsMerge("clients",S.client.id,{ordersCount:nv(newCount)});
-    S.client.ordersCount=newCount;
-    toast(isPublic?t("toast_request_posted"):tf("toast_request_sent_to",{name:(hm||{}).name||t("your_handyman_lower")}));
+    if(isDemo){
+      S.isDemoOrder=false;
+      toast(t("toast_demo_complete"));
+    } else {
+      var newCount=(S.client.ordersCount||0)+1;
+      await fsMerge("clients",S.client.id,{ordersCount:nv(newCount)});
+      S.client.ordersCount=newCount;
+      toast(isPublic?t("toast_request_posted"):tf("toast_request_sent_to",{name:(hm||{}).name||t("your_handyman_lower")}));
+    }
     await loadProfile();
   } else {
     setLoading(btn,false);
