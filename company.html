@@ -539,6 +539,22 @@
         </div>
       </div>
 
+      <!-- Request More Leads -->
+      <div class="pg-card" style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:48px;height:48px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" fill="#92400E"/></svg>
+            </div>
+            <div>
+              <div style="font-size:16px;font-weight:600;color:#111;font-family:'Inter',sans-serif" data-i18n="request_more_leads_title">Request More Bonus Leads</div>
+              <div style="font-size:14px;color:#858585;font-family:'Inter',sans-serif;margin-top:2px" data-i18n="request_more_leads_sub">Running low on free leads? Ask HandyCat admin for more.</div>
+            </div>
+          </div>
+          <button class="cd-add-cards-btn" onclick="openRequestLeads()" style="flex-shrink:0;background:#fb6305;border-color:#c94f04"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> <span data-i18n="request_leads_btn">Request Leads</span></button>
+        </div>
+      </div>
+
       <div class="pg-table-wrap">
         <div class="pg-table-toolbar">
           <button class="pg-pill active" onclick="filterCards('all',this)" data-i18n="pill_all">All</button>
@@ -638,6 +654,21 @@
       <button class="dbtn-save" id="reqCardsBtn" onclick="submitCardRequest()"><span class="ld"></span><span data-i18n="btn_send_request">Send Request</span></button>
     </div>
   </div>
+</div>
+
+<!-- REQUEST LEADS MODAL — center -->
+<div class="gen-overlay" id="mReqLeads" onclick="if(event.target===this)closeModal('mReqLeads')">
+  <div class="gen-modal">
+    <button class="gen-close" onclick="closeModal('mReqLeads')"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.207 0.707031L10.3105 9.60352L19.207 18.5L18.5 19.207L9.60352 10.3105L0.707031 19.207L0 18.5L8.89648 9.60352L0 0.707031L0.707031 0L9.60352 8.89648L18.5 0L19.207 0.707031Z" fill="black"/></svg></button>
+    <div class="gen-title" data-i18n="modal_request_leads_title">Request More Bonus Leads</div>
+    <div class="gen-sub" data-i18n="modal_request_leads_sub">We'll review your request and get back to you within 2-3 business days.</div>
+    <div class="dfg" style="margin-bottom:18px"><label data-i18n="label_num_leads">Number of Leads Needed</label><input id="reqLeadsCount" type="number" min="1" max="500" value="5" placeholder="5"/></div>
+    <div class="dfg" style="margin-bottom:24px"><label data-i18n="label_notes_optional">Notes (optional)</label><input id="reqLeadsNotes" placeholder="Any special requirements..." data-i18n-ph="ph_notes"/></div>
+    <div style="display:flex;gap:18px;justify-content:flex-end">
+      <button class="dbtn-cancel" onclick="closeModal('mReqLeads')" data-i18n="btn_cancel">Cancel</button>
+      <button class="dbtn-save" id="reqLeadsBtn" onclick="submitLeadRequest()"><span class="ld"></span><span data-i18n="btn_send_request">Send Request</span></button>
+    </div>
+  </div>
   </main><!-- /sb-main -->
 </div><!-- /app-layout -->
 
@@ -701,6 +732,15 @@ var I18N = {
   "empty_no_cards": "No cards found",
   "pending_req_banner": "{count} card request(s) pending admin approval",
   "pending_req_sub": "You'll receive an email once your cards are generated",
+  "stat_bonus_leads": "Bonus Leads",
+  "request_more_leads_title": "Request More Bonus Leads",
+  "request_more_leads_sub": "Running low on free leads? Ask HandyCat admin for more.",
+  "request_leads_btn": "Request Leads",
+  "modal_request_leads_title": "Request More Bonus Leads",
+  "modal_request_leads_sub": "We'll review your request and get back to you within 2-3 business days.",
+  "label_num_leads": "Number of Leads Needed",
+  "toast_min_leads": "Minimum 1 lead per request",
+  "toast_leads_request_sent": "✓ Request sent! We'll follow up by email.",
   "orders_title": "Orders",
   "orders_sub": "All service requests from your clients",
   "pill_new": "New",
@@ -857,6 +897,15 @@ var I18N = {
   "empty_no_cards": "Карток не знайдено",
   "pending_req_banner": "{count} запит(и) на картки очікують підтвердження адміністратора",
   "pending_req_sub": "Ви отримаєте email, щойно ваші картки буде згенеровано",
+  "stat_bonus_leads": "Бонусні ліди",
+  "request_more_leads_title": "Замовити більше бонусних лідів",
+  "request_more_leads_sub": "Закінчуються безкоштовні ліди? Запитайте адміністратора HandyCat.",
+  "request_leads_btn": "Замовити ліди",
+  "modal_request_leads_title": "Замовити більше бонусних лідів",
+  "modal_request_leads_sub": "Ми розглянемо ваш запит і зв'яжемося з вами протягом 2-3 робочих днів.",
+  "label_num_leads": "Кількість необхідних лідів",
+  "toast_min_leads": "Мінімум 1 лід на запит",
+  "toast_leads_request_sent": "✓ Запит надіслано! Ми зв'яжемося з вами по email.",
   "orders_title": "Замовлення",
   "orders_sub": "Усі заявки на обслуговування від ваших клієнтів",
   "pill_new": "Нові",
@@ -1013,6 +1062,15 @@ var I18N = {
   "empty_no_cards": "No se encontraron tarjetas",
   "pending_req_banner": "{count} solicitud(es) de tarjetas pendientes de aprobación del administrador",
   "pending_req_sub": "Recibirás un correo cuando tus tarjetas estén generadas",
+  "stat_bonus_leads": "Leads de bonificación",
+  "request_more_leads_title": "Solicitar más leads de bonificación",
+  "request_more_leads_sub": "¿Se te están agotando los leads gratuitos? Pídele más al administrador de HandyCat.",
+  "request_leads_btn": "Solicitar leads",
+  "modal_request_leads_title": "Solicitar más leads de bonificación",
+  "modal_request_leads_sub": "Revisaremos tu solicitud y te contactaremos en 2-3 días hábiles.",
+  "label_num_leads": "Cantidad de leads necesarios",
+  "toast_min_leads": "Mínimo 1 lead por solicitud",
+  "toast_leads_request_sent": "✓ ¡Solicitud enviada! Te contactaremos por correo.",
   "orders_title": "Pedidos",
   "orders_sub": "Todas las solicitudes de servicio de tus clientes",
   "pill_new": "Nuevos",
@@ -1583,11 +1641,13 @@ function loadCards(){
   }
   document.getElementById("cardsInfo").innerHTML=pendingReqHtml;
 
+  var bonusLeadsCount=Number(S.company.bonusLeads||0);
   document.getElementById("cardsStatsRow").innerHTML=
     '<div class="cd-stat"><div class="cd-stat-num">'+S.cards.length+'</div><div class="cd-stat-label">'+t("stat_total_cards")+'</div></div>'+
     '<div class="cd-stat"><div class="cd-stat-num">'+freeCount+'</div><div class="cd-stat-label">'+t("pill_available")+'</div></div>'+
     '<div class="cd-stat"><div class="cd-stat-num">'+withHMCount+'</div><div class="cd-stat-label">'+t("pill_with_hm")+'</div></div>'+
-    '<div class="cd-stat"><div class="cd-stat-num">'+activeCount+'</div><div class="cd-stat-label">'+t("pill_activated")+'</div></div>';
+    '<div class="cd-stat"><div class="cd-stat-num">'+activeCount+'</div><div class="cd-stat-label">'+t("pill_activated")+'</div></div>'+
+    '<div class="cd-stat"><div class="cd-stat-num">'+bonusLeadsCount+'</div><div class="cd-stat-label">'+t("stat_bonus_leads")+'</div></div>';
 
   renderCards(hmByToken);
 }
@@ -1679,6 +1739,56 @@ async function submitCardRequest(){
     setLoading(btn,false);
     closeModal("mReqCards");
     toast(t("toast_request_sent"));
+  } catch(e) {
+    console.error(e);
+    setLoading(btn,false);
+    toast(t("toast_request_error"));
+  }
+}
+
+function openRequestLeads(){openModal("mReqLeads");}
+
+async function submitLeadRequest(){
+  var count=document.getElementById("reqLeadsCount").value;
+  var notes=document.getElementById("reqLeadsNotes").value.trim();
+  if(!count||Number(count)<1){toast(t("toast_min_leads"));return;}
+  var btn=document.getElementById("reqLeadsBtn");setLoading(btn,true);
+  try {
+    var reqId="leadreq-"+Date.now().toString(36);
+    await fsP("lead_requests",reqId,{
+      companyId:sv(S.companyId),
+      companyName:sv(esc(S.company.name) || ""),
+      email:sv(S.company.email||""),
+      count:{integerValue:String(Number(count))},
+      notes:sv(notes),
+      status:sv("pending"),
+      createdAt:sv(new Date().toISOString())
+    });
+    // Email admin
+    var mailId="mail-"+Date.now().toString(36);
+    await fetch(FS+"/mail/"+mailId+"?key="+AKEY, Object.assign(await addAppCheck({}),{
+      method:"PATCH",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({fields:{
+        to:sv("designlavrinenko@gmail.com"),
+        message:{mapValue:{fields:{
+          subject:sv("&#x1F3AF; Lead request: "+(esc(S.company.name) || "")+" needs "+count+" leads"),
+          html:sv(
+            "<div style='font-family:sans-serif;max-width:600px;padding:24px'>"+
+            "<h2 style='color:#185FA5'>HandyCat — New Bonus Leads Request</h2>"+
+            "<table style='width:100%;border-collapse:collapse'>"+
+            "<tr><td style='padding:8px 0;color:#888'>Company</td><td style='font-weight:600'>"+(esc(S.company.name) || "")+"</td></tr>"+
+            "<tr><td style='padding:8px 0;color:#888'>Leads needed</td><td style='font-weight:700;font-size:18px;color:#185FA5'>"+count+"</td></tr>"+
+            "<tr><td style='padding:8px 0;color:#888'>Notes</td><td>"+(notes||"—")+"</td></tr>"+
+            "</table>"+
+            "<div style='margin-top:20px'><a href='https://app.handycat.us/admin.html' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600'>Review in Admin &#x2192;</a></div>"+
+            "</div>"
+          )
+        }}}
+      }})
+    }));
+    setLoading(btn,false);
+    closeModal("mReqLeads");
+    toast(t("toast_leads_request_sent"));
   } catch(e) {
     console.error(e);
     setLoading(btn,false);

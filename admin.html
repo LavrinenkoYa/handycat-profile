@@ -1690,6 +1690,13 @@ var I18N = {
   "toast_assigned_from_stock": "✓ Assigned {count} card(s) from stock",
   "toast_free_leads_suffix": " ({count} free lead(s){paid})",
   "toast_paid_suffix": ", {count} standard",
+  "toast_no_stock_request_recorded": "No cards in stock. Recorded a request for {count} — the company will see it as pending until you generate more cards.",
+  "toast_shortfall_suffix": "— {count} more requested (out of stock)",
+  "note_auto_shortfall": "Auto-created: not enough stock to fully assign an admin card request.",
+  "btn_add_leads": "Add leads",
+  "prompt_add_leads_count": "How many leads to add? (use a negative number to remove)",
+  "toast_invalid_number": "Please enter a valid non-zero number",
+  "toast_leads_updated": "Bonus leads updated — now {count}",
   "toast_cleaning": "Cleaning...",
   "toast_deleted_cards_handymen": "✓ Deleted {cards} cards and {handymen} handymen",
   "toast_deleted_clients": "Deleted {count} clients",
@@ -2147,6 +2154,13 @@ var I18N = {
   "toast_assigned_from_stock": "✓ Призначено карток(и) зі складу: {count}",
   "toast_free_leads_suffix": " (безкоштовних лідів: {count}{paid})",
   "toast_paid_suffix": ", стандартних: {count}",
+  "toast_no_stock_request_recorded": "На складі немає карток. Записано запит на {count} — компанія побачить його як очікуючий, поки ви не згенеруєте більше карток.",
+  "toast_shortfall_suffix": "— ще {count} запитано (немає в наявності)",
+  "note_auto_shortfall": "Створено автоматично: недостатньо карток на складі, щоб повністю виконати запит адміністратора.",
+  "btn_add_leads": "Додати ліди",
+  "prompt_add_leads_count": "Скільки лідів додати? (від'ємне число, щоб забрати)",
+  "toast_invalid_number": "Будь ласка, введіть дійсне ненульове число",
+  "toast_leads_updated": "Бонусні ліди оновлено — тепер {count}",
   "toast_cleaning": "Очищення...",
   "toast_deleted_cards_handymen": "✓ Видалено карток: {cards}, майстрів: {handymen}",
   "toast_deleted_clients": "Видалено клієнтів: {count}",
@@ -2604,6 +2618,13 @@ var I18N = {
   "toast_assigned_from_stock": "✓ {count} tarjeta(s) asignada(s) del stock",
   "toast_free_leads_suffix": " ({count} lead(s) gratis{paid})",
   "toast_paid_suffix": ", {count} estándar",
+  "toast_no_stock_request_recorded": "No hay tarjetas en stock. Se registró una solicitud de {count} — la empresa la verá como pendiente hasta que generes más tarjetas.",
+  "toast_shortfall_suffix": "— {count} más solicitadas (sin stock)",
+  "note_auto_shortfall": "Creado automáticamente: no hay suficiente stock para completar una solicitud de tarjetas del administrador.",
+  "btn_add_leads": "Añadir leads",
+  "prompt_add_leads_count": "¿Cuántos leads añadir? (usa un número negativo para quitar)",
+  "toast_invalid_number": "Por favor, introduce un número válido distinto de cero",
+  "toast_leads_updated": "Leads de bonificación actualizados — ahora {count}",
   "toast_cleaning": "Limpiando...",
   "toast_deleted_cards_handymen": "✓ Eliminadas {cards} tarjetas y {handymen} profesionales",
   "toast_deleted_clients": "{count} clientes eliminados",
@@ -3395,6 +3416,24 @@ async function coToggleActive(id, currentStatus, evt) {
   }
 }
 
+async function promptAddLeads() {
+  if (!cdId) return;
+  var input = prompt(t("prompt_add_leads_count"), "2");
+  if (input === null) return;
+  var n = parseInt(input, 10);
+  if (isNaN(n) || n === 0) { toast(t("toast_invalid_number")); return; }
+  var current = (CC.cos[cdId] || {}).bonusLeads || 0;
+  var newVal = Math.max(0, current + n);
+  var ok = await fsPatchFields("companies", cdId, { bonusLeads: nv(newVal) });
+  if (ok) {
+    if (CC.cos[cdId]) CC.cos[cdId].bonusLeads = newVal;
+    toast(tf("toast_leads_updated", { count: newVal }));
+    loadCDCards();
+  } else {
+    toast(t("toast_error_updating_status"));
+  }
+}
+
 async function cdToggleActive() {
   if (!cdId) return;
   var status = (CC.cos[cdId] || {}).status || "active";
@@ -3801,7 +3840,12 @@ async function loadCDCards() {
     '<div class="cd-stat"><div class="cd-stat-num">' + s.u + '</div><div class="cd-stat-label">' + t("status_available") + '</div></div>' +
     '<div class="cd-stat"><div class="cd-stat-num">' + s.wh + '</div><div class="cd-stat-label">' + t("stat_with_handymen") + '</div></div>' +
     '<div class="cd-stat"><div class="cd-stat-num">' + s.a + '</div><div class="cd-stat-label">' + t("stat_activated_by_clients") + '</div></div>' +
-    '<div class="cd-stat"><div class="cd-stat-num">' + bonusLeadsLeft + '</div><div class="cd-stat-label">' + t("stat_bonus_leads_left") + '</div></div>';
+    '<div class="cd-stat" style="position:relative">' +
+      '<div class="cd-stat-num">' + bonusLeadsLeft + '</div><div class="cd-stat-label">' + t("stat_bonus_leads_left") + '</div>' +
+      '<button class="cd-action-btn" onclick="promptAddLeads()" title="' + t("btn_add_leads") + '" style="position:absolute;top:8px;right:8px;width:26px;height:26px;border:1px solid #eceae6;border-radius:50%">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#164e23" stroke-width="2" stroke-linecap="round"/></svg>' +
+      '</button>' +
+    '</div>';
   CC._hmByToken = hmByToken;
   CC._hmById = hmById;
   renderCDCards();
@@ -4175,6 +4219,20 @@ async function openAssignCardsModal() {
   }
 }
 
+async function createShortfallRequest(count) {
+  var co = CC.cos[cdId] || {};
+  var reqId = "cardreq-admin-" + Date.now().toString(36);
+  await fsP("card_requests", reqId, {
+    companyId: sv(cdId),
+    companyName: sv(co.name || cdId),
+    email: sv(co.email || ""),
+    count: { integerValue: String(count) },
+    notes: sv(t("note_auto_shortfall")),
+    status: sv("pending"),
+    createdAt: sv(new Date().toISOString())
+  });
+}
+
 async function assignStockCards() {
   var cnt = parseInt(document.getElementById("genCnt").value);
   if (!cnt || cnt < 1) { toast(t("toast_enter_number_of_cards")); return; }
@@ -4183,25 +4241,31 @@ async function assignStockCards() {
   prog.textContent = t("toast_checking_stock");
 
   var stock = await fsQ("nfc_cards", [{field:"companyId", value:""}]);
-  if (stock.length < cnt) {
+  var toAssignCount = Math.min(cnt, stock.length);
+  var shortfall = cnt - toAssignCount;
+
+  if (toAssignCount === 0) {
     prog.textContent = "";
-    toast(tf("toast_only_x_in_stock_order_more", {count: stock.length}));
+    await createShortfallRequest(cnt);
     btn.disabled = false; btn.classList.remove("loading");
+    closeModal("mGenCards");
+    toast(tf("toast_no_stock_request_recorded", {count: cnt}));
+    await loadCDCards();
     return;
   }
 
   // Consume bonus leads first (free), remainder is a standard/paid assignment
   var coFresh = await fsGet("companies", cdId);
   var bonusLeads = (coFresh && coFresh.bonusLeads) || 0;
-  var freeCount = Math.min(cnt, bonusLeads);
-  var paidCount = cnt - freeCount;
+  var freeCount = Math.min(toAssignCount, bonusLeads);
+  var paidCount = toAssignCount - freeCount;
 
-  var toAssign = stock.slice(0, cnt);
+  var toAssign = stock.slice(0, toAssignCount);
   var saved = 0;
   for (var i = 0; i < toAssign.length; i++) {
-    prog.textContent = tf("label_assigning_progress", {i: i+1, total: cnt});
+    prog.textContent = tf("label_assigning_progress", {i: i+1, total: toAssignCount});
     var isFree = i < freeCount;
-    var ok = await fsMerge("nfc_cards", toAssign[i].id, { companyId: sv(cdId), source: sv(isFree ? "lead" : "paid") });
+    var ok = await fsMerge("nfc_cards", toAssign[i].id, { companyId: sv(cdId), status: sv("unassigned"), source: sv(isFree ? "lead" : "paid") });
     if (ok) saved++;
   }
   if (freeCount > 0) {
@@ -4209,10 +4273,12 @@ async function assignStockCards() {
     await fsMerge("companies", cdId, { bonusLeads: nv(newBonusLeads) });
     if (CC.cos[cdId]) CC.cos[cdId].bonusLeads = newBonusLeads;
   }
+  if (shortfall > 0) await createShortfallRequest(shortfall);
   btn.disabled = false; btn.classList.remove("loading");
   closeModal("mGenCards");
   var msg = tf("toast_assigned_from_stock", {count: saved});
   if (freeCount > 0) msg += tf("toast_free_leads_suffix", {count: freeCount, paid: paidCount > 0 ? tf("toast_paid_suffix", {count: paidCount}) : ""});
+  if (shortfall > 0) msg += " " + tf("toast_shortfall_suffix", {count: shortfall});
   toast(msg);
   await loadCDCards();
 }
