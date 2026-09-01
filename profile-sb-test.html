@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+  <title>HandyCat</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/LavrinenkoYa/handycat-profile/main/favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://raw.githubusercontent.com/LavrinenkoYa/handycat-profile/main/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/LavrinenkoYa/handycat-profile/main/favicon-180.png">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;min-height:100vh;max-width:480px;margin:0 auto}
+    .screen{display:none !important;min-height:100vh}
+    .screen.active{display:block !important}
+    #s-loading.active{display:flex !important;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#fff;min-height:100vh}
+    .spinner{width:36px;height:36px;border:3px solid #e8e8e8;border-top-color:#185FA5;border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .topbar{background:#fff;padding:16px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10}
+    .topbar h1{font-size:20px;font-weight:700;color:#4f00df;font-family:'Albert Sans',sans-serif}
+    .back-btn{width:40px;height:40px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:18px;color:#0d0c19}
+    .btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;border-radius:310px;font-size:17px;font-weight:400;cursor:pointer;border:none;width:100%;transition:background .2s,color .2s;position:relative;font-family:'Work Sans',sans-serif}
+    .btn:active{transform:scale(.99)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn-primary{background:#32e682;color:#0d0c19}
+    .btn-primary:hover{background:#164e23;color:#fff}
+    .btn-secondary{background:#f0f0f0;color:#333}
+    .btn-outline{background:#fff;color:#185FA5;border:1.5px solid #185FA5}
+    .btn-danger{background:#FEE2E2;color:#D93025}
+    .btn-success{background:#D1FAE5;color:#065F46}
+    .btn-sm{padding:8px 14px;font-size:13px;border-radius:9px;width:auto}
+    .btn .ld{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+    .btn.loading .ld{display:block}
+    .btn.loading .btn-label{opacity:0}
+    .section{background:#fff;border-radius:20px;padding:18px;margin:10px 16px}
+    .section-title{font-size:14px;font-weight:600;color:#0d0c19;margin-bottom:12px;font-family:'Albert Sans',sans-serif}
+    input,textarea,select{width:100%;padding:16px 18px;border:2px solid #f1eeee;border-radius:18px;font-size:14px;color:#0d0c19;background:#fef9f9;outline:none;font-family:'Work Sans',sans-serif;-webkit-appearance:none;appearance:none;transition:border-color .2s,box-shadow .2s}
+    input:focus,textarea:focus,select:focus{border-color:#4f00df;background:#fff;box-shadow:0 0 0 3px rgba(79,0,223,.06)}
+    select{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 22 22" fill="none"><path d="M18.2392 8.61433L11.3642 15.4893C11.2675 15.5859 11.1365 15.6401 10.9998 15.6401C10.8632 15.6401 10.7321 15.5859 10.6355 15.4893L3.76046 8.61433C3.66938 8.51659 3.61979 8.3873 3.62215 8.25372C3.62451 8.12014 3.67862 7.99269 3.77309 7.89822C3.86756 7.80374 3.99502 7.74963 4.1286 7.74727C4.26218 7.74492 4.39146 7.7945 4.48921 7.88558L10.9998 14.3953L17.5105 7.88558C17.6082 7.7945 17.7375 7.74492 17.8711 7.74727C18.0047 7.74963 18.1321 7.80374 18.2266 7.89822C18.321 7.99269 18.3752 8.12014 18.3775 8.25372C18.3799 8.3873 18.3303 8.51659 18.2392 8.61433Z" fill="%23343330"/></svg>');background-repeat:no-repeat;background-position:right 16px center;background-size:18px;padding-right:44px}
+    textarea{resize:vertical;min-height:120px}
+    .fg{margin-bottom:16px}
+    .fg label{display:block;font-size:13px;color:#0d0c19;margin-bottom:6px;font-family:'Work Sans',sans-serif}
+    .fg .hint{font-size:12px;color:#9b9d9d;margin-top:4px}
+
+    /* REGISTER */
+    #s-register{background:#fff}
+    .reg-top{padding:32px 20px 20px;text-align:center}
+    .reg-logo{font-size:36px;margin-bottom:10px}
+    .reg-title{font-size:22px;font-weight:700;color:#111;margin-bottom:6px}
+    .reg-sub{font-size:14px;color:#666;line-height:1.5}
+    .hm-banner{background:#EFF6FF;border-radius:12px;padding:12px 14px;margin:0 16px 20px;display:flex;align-items:center;gap:10px}
+    .hm-av-sm{width:36px;height:36px;border-radius:50%;background:#B5D4F4;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0C447C;flex-shrink:0}
+
+    /* PROFILE HEADER */
+    .profile-header{background:#fff;padding:20px 16px 16px}
+    .profile-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+    .profile-av{width:58px;height:58px;border-radius:50%;background:#B5D4F4;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#0C447C;flex-shrink:0}
+    .profile-name{font-size:19px;font-weight:700;color:#111}
+    .profile-phone{font-size:13px;color:#888;margin-top:1px}
+    .profile-rating-row{display:flex;align-items:center;gap:6px;margin-top:5px}
+    .stars-yellow{color:#EF9F27;font-size:14px;letter-spacing:1px}
+    .rating-n{font-size:14px;font-weight:700;color:#111}
+    .rating-c{font-size:12px;color:#aaa}
+    .stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .stat-box{background:#f8f8f8;border-radius:10px;padding:10px 8px;text-align:center}
+    .stat-n{font-size:20px;font-weight:700;color:#111}
+    .stat-l{font-size:11px;color:#888;margin-top:1px}
+
+    /* ORDER CARDS */
+    .order-card{background:#fff;border-radius:14px;padding:14px;margin:0 0 8px;border:1.5px solid #eee;cursor:pointer;transition:border-color .15s}
+    .order-card:active{background:#f8f8f8}
+    .order-card.active-o{border-color:#185FA5;background:#EFF6FF}
+    .order-card.pending-r{border-color:#F59E0B;background:#FFFBEB}
+    .oc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .oc-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+    .b-new{background:#FEF3C7;color:#92400E}
+    .b-progress{background:#DBEAFE;color:#1E40AF}
+    .b-done{background:#D1FAE5;color:#065F46}
+    .b-review{background:#FEF3C7;color:#92400E}
+    .oc-date{font-size:11px;color:#aaa}
+    .oc-cat{font-size:15px;font-weight:600;color:#111;margin-bottom:3px}
+    .oc-desc{font-size:13px;color:#666;margin-bottom:8px}
+    .oc-hm-row{display:flex;align-items:center;justify-content:space-between}
+    .oc-hm{display:flex;align-items:center;gap:7px}
+    .av-xs{width:26px;height:26px;border-radius:50%;background:#B5D4F4;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#0C447C;flex-shrink:0}
+    .oc-hm-name{font-size:13px;color:#555}
+    .oc-stars{font-size:12px;color:#EF9F27}
+
+    /* CATEGORY GRID */
+    .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+    .cat-btn{padding:14px 8px;border-radius:14px;border:2px solid #f1eeee;background:#fef9f9;font-size:13px;font-weight:500;color:#0d0c19;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Work Sans',sans-serif}
+    .cat-btn.sel{border-color:#4f00df;background:#f3edff;color:#4f00df}
+    .cat-icon{font-size:22px}
+
+    /* HM PICKER */
+    .hm-opt{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #f1eeee;border-radius:18px;cursor:pointer;margin-bottom:8px;background:#fef9f9;transition:all .15s}
+    .hm-opt.sel{border-color:#4f00df;background:#f3edff}
+    .hm-av{width:40px;height:40px;border-radius:50%;background:#33dfff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0d0c19;flex-shrink:0}
+    .hm-av.purple{background:#c5b5ff;color:#0d0c19}
+    .hm-info{flex:1}
+    .hm-name{font-size:14px;font-weight:600;color:#111}
+    .hm-meta{font-size:12px;color:#888;margin-top:1px}
+    .hm-rating{font-size:12px;color:#EF9F27}
+    .pill{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;display:inline-block;margin-left:4px}
+    .pill-green{background:#D1FAE5;color:#065F46}
+    .pill-purple{background:#EDE9FE;color:#6D28D9}
+
+    /* PHOTO UPLOAD */
+    .photo-upload-area{border:2px solid #f1eeee;border-radius:18px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s;background:#fef9f9}
+    .photo-upload-area:hover{border-color:#4f00df}
+    .photo-upload-area input{display:none}
+    .photo-previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .photo-preview{position:relative;width:80px;height:80px;border-radius:14px;overflow:hidden;flex-shrink:0}
+    .photo-preview img{width:100%;height:100%;object-fit:cover}
+    .photo-preview .remove-photo{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+    /* ORDER DETAIL */
+    .detail-section{background:#fff;border-radius:14px;padding:14px;margin:10px 12px}
+    .detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5}
+    .detail-row:last-child{border-bottom:none}
+    .detail-label{font-size:12px;color:#999}
+    .detail-value{font-size:14px;color:#111;font-weight:500;text-align:right;max-width:60%}
+    .status-timeline{display:flex;flex-direction:column;gap:12px;padding:4px 0}
+    .tl-item{display:flex;gap:12px;align-items:flex-start}
+    .tl-dot{width:10px;height:10px;border-radius:50%;background:#ddd;flex-shrink:0;margin-top:3px}
+    .tl-dot.done{background:#185FA5}
+    .tl-dot.active{background:#185FA5;box-shadow:0 0 0 3px rgba(24,95,165,.2)}
+    .tl-label{font-size:13px;color:#666}
+    .tl-label.done{color:#111;font-weight:500}
+    .photo-gallery{display:flex;gap:8px;flex-wrap:wrap}
+    .gallery-img{width:80px;height:80px;border-radius:14px;object-fit:cover;cursor:pointer}
+    .photo-add-tile{width:80px;height:80px;border-radius:14px;border:2px dashed #f1eeee;background:#fef9f9;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#4f00df;transition:border-color .15s}
+    .photo-add-tile:hover{border-color:#4f00df}
+
+    /* STAR PICKER */
+    .star-row{display:flex;gap:8px;margin:8px 0 14px}
+    .sp{font-size:38px;cursor:pointer;color:#ddd;line-height:1;transition:color .1s;user-select:none}
+    .sp.lit{color:#EF9F27}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;max-width:88vw;text-align:center;white-space:pre-wrap}
+    .lang-switcher{position:fixed;top:10px;right:10px;z-index:998;font-family:sans-serif;user-select:none}
+    .lang-switcher-btn{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #eee;border-radius:100px;padding:7px 14px;font-size:12px;font-weight:600;color:#333;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .lang-switcher-caret{font-size:8px;color:#999;margin-left:1px}
+    .lang-switcher-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #eee;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;min-width:150px}
+    .lang-switcher.open .lang-switcher-menu{display:block}
+    .lang-switcher-opt{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:9px;font-size:13px;font-weight:600;color:#333;cursor:pointer;white-space:nowrap}
+    .lang-switcher-opt:hover{background:#f6f6f6}
+    .lang-switcher-opt.active{background:#eef4fb;color:#185FA5}
+    .toast.show{opacity:1}
+    .empty-state{text-align:center;padding:36px 20px;color:#bbb}
+    .empty-state .ei{font-size:36px;margin-bottom:8px}
+    .pad{padding:0 12px}
+    .divider{height:8px;background:#f5f5f7}
+
+    /* ── Profile screen — Figma redesign ── */
+    .pf-topbar{display:flex;align-items:center;justify-content:space-between;padding:16px}
+    .pf-icon-btn{width:37px;height:37px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+    .pf-icon-btn.notif{background:#fff}
+    .pf-header-row{display:flex;align-items:center;gap:16px;padding:0 16px 16px}
+    .pf-av{width:69px;height:69px;border-radius:20px;background:#86c0ff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#0d0c19;flex-shrink:0}
+    .pf-name{font-size:26px;font-weight:700;color:#164e23;font-family:'Albert Sans',sans-serif;line-height:1.1}
+    .pf-loc{font-size:16px;color:#0d0c19;text-decoration:underline;margin-top:2px}
+    .pf-rating-pill{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
+    .pf-rating-pill .spark{color:#4f86ff;font-size:16px}
+    .pf-rating-pill .val{font-size:14px;color:#164e23;font-weight:500}
+    .pf-send-btn{background:#32e682;border:none;border-radius:310px;height:52px;width:calc(100% - 32px);margin:0 16px 24px;display:flex;align-items:center;justify-content:center;font-size:17px;color:#111;cursor:pointer;transition:background .2s}
+    .pf-send-btn:hover{background:#164e23;color:#fff}
+    .pf-orders-wrap{background:#ecf4ff;border-radius:40px 40px 0 0;padding:20px 16px;min-height:calc(100vh - 240px)}
+    .pf-filter-row{display:flex;gap:10px;background:#fff;border-radius:20px;padding:8px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+    .pf-filter{flex:1;text-align:center;padding:7px 4px;border-radius:20px;font-size:14px;color:#111;cursor:pointer;background:transparent;border:none;font-family:inherit;transition:all .15s}
+    .pf-filter.active{background:#164e23;color:#fff}
+    .pf-order-card{background:#fff;border-radius:20px;padding:14px;margin-bottom:12px;cursor:pointer;transition:transform .1s}
+    .pf-order-card:active{transform:scale(.99)}
+    .pf-order-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .pf-order-av{width:45px;height:45px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#0d0c19;flex-shrink:0}
+    .pf-order-hm-name{font-size:18px;font-weight:700;color:#0d0c19;font-family:'Albert Sans',sans-serif}
+    .pf-order-hm-loc{font-size:14px;color:#000;text-decoration:underline}
+    .pf-order-meta-row{display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+    .pf-order-rating{display:flex;align-items:center;gap:5px;font-size:14px;color:#164e23}
+    .pf-order-rating .spark{color:#4f86ff}
+    .pf-order-chat{display:flex;align-items:center;gap:5px;font-size:14px;color:#164e23}
+    .pf-order-date{font-size:14px;color:#908f98;margin-left:auto}
+    .pf-order-desc{font-size:14px;color:#2f2b60;line-height:1.5}
+    .pf-order-desc .more{font-weight:700;text-decoration:underline;cursor:pointer;color:#2f2b60}
+    .pf-order-photo{width:100%;height:160px;border-radius:14px;object-fit:cover;margin-top:10px}
+    .pf-status-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;flex-shrink:0}
+    .pf-load-more{background:#32e682;border:none;border-radius:310px;height:52px;width:100%;font-size:17px;color:#111;cursor:pointer;margin-top:8px;transition:background .2s}
+    .pf-load-more:hover{background:#164e23;color:#fff}
+    .pf-empty{text-align:center;padding:40px 16px;color:#908f98;font-size:14px}
+  .grecaptcha-badge{visibility:hidden !important}
+    </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+
+<div class="screen active" id="s-loading">
+  <div class="spinner"></div>
+  <div style="font-size:14px;color:#888" data-i18n="loading_profile">Loading your profile...</div>
+</div>
+
+<div class="screen" id="s-error">
+  <div style="padding:60px 24px;text-align:center">
+    <div style="font-size:48px;margin-bottom:16px">🪪</div>
+    <div style="font-size:20px;font-weight:700;color:#111;margin-bottom:8px" data-i18n="error_title">Card Not Found</div>
+    <div style="font-size:14px;color:#888;line-height:1.6" data-i18n="error_body">This card is not activated or has been deactivated. Contact your handyman for help.</div>
+  </div>
+</div>
+
+<div class="screen" id="s-register">
+  <div class="reg-top">
+    <div class="reg-logo">🪪</div>
+    <div class="reg-title" data-i18n="welcome_title">Welcome to HandyCat</div>
+    <div class="reg-sub" data-i18n="welcome_sub">Your handyman left this card for you. Register once to track all your service requests and reviews.</div>
+  </div>
+  <div class="hm-banner" id="regHMBanner" style="display:none">
+    <div class="hm-av-sm" id="regHMAv"></div>
+    <div>
+      <div style="font-size:13px;font-weight:600;color:#111" id="regHMName"></div>
+      <div style="font-size:12px;color:#888" id="regHMSkills"></div>
+    </div>
+  </div>
+  <div style="padding:0 16px 32px">
+    <div class="fg"><label data-i18n="label_full_name">Full Name *</label><input id="regName" data-i18n-ph="ph_full_name" placeholder="John Smith" autocomplete="name"/></div>
+    <div class="fg"><label data-i18n="label_phone">Phone Number *</label><input id="regPhone" type="tel" data-i18n-ph="ph_phone" placeholder="+1 (555) 000-0000" autocomplete="tel"/></div>
+    <div class="fg"><label><span data-i18n="label_email">Email</span> <span style="color:#aaa;font-weight:400" data-i18n="optional">(optional)</span></label><input id="regEmail" type="email" data-i18n-ph="ph_email" placeholder="john@email.com" autocomplete="email"/></div>
+    <div class="fg"><label><span data-i18n="label_address">Address</span> <span style="color:#aaa;font-weight:400" data-i18n="optional">(optional)</span></label><input id="regAddress" data-i18n-ph="ph_address" placeholder="123 Main St, New York" autocomplete="street-address"/></div>
+    <button class="btn btn-primary" id="regBtn" onclick="registerClient()">
+      <span class="ld"></span><span class="btn-label" data-i18n="btn_get_started">Get Started →</span>
+    </button>
+  </div>
+</div>
+
+<div class="screen" id="s-demo-intro">
+  <div class="reg-top">
+    <div class="reg-logo">🧪</div>
+    <div class="reg-title" data-i18n="demo_intro_title">Quick Test Run</div>
+    <div class="reg-sub" data-i18n="demo_intro_body">Before you start using your profile, let's do a quick test together with your handyman — place a sample request so you both see exactly how it works. This won't be saved as a real request.</div>
+  </div>
+  <div style="padding:0 16px 32px">
+    <button class="btn btn-primary" id="startDemoBtn" onclick="startDemoOrder()">
+      <span class="btn-label" data-i18n="btn_start_demo">Start Test Run →</span>
+    </button>
+  </div>
+</div>
+
+<div class="screen" id="s-profile">
+  <div class="pf-header-row">
+    <div class="pf-av" id="profAv"></div>
+    <div style="flex:1;min-width:0">
+      <div class="pf-name" id="profName"></div>
+      <div class="pf-loc" id="profPhone"></div>
+    </div>
+    <div class="pf-rating-pill">
+      <span class="spark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" fill="#4f86ff"/></svg></span>
+      <span class="val" id="profRatingPillText">— (0)</span>
+    </div>
+  </div>
+
+  <button class="pf-send-btn" onclick="showNewOrder()" data-i18n="btn_new_request">New Request</button>
+
+  <div class="pf-orders-wrap">
+    <div class="pf-filter-row" id="pfFilterRow">
+      <button class="pf-filter active" data-f="all" onclick="setOrderFilter('all',this)" data-i18n="filter_all">All Orders</button>
+      <button class="pf-filter" data-f="active" onclick="setOrderFilter('active',this)" data-i18n="filter_active">Active</button>
+      <button class="pf-filter" data-f="reviews" onclick="setOrderFilter('reviews',this)" data-i18n="filter_reviews">Reviews</button>
+    </div>
+    <div id="pendingSection"></div>
+    <div id="activeSection"></div>
+    <div id="historyList"></div>
+    <button class="pf-load-more" id="pfLoadMoreBtn" style="display:none" onclick="loadMoreOrders()" data-i18n="btn_load_more">Load more</button>
+  </div>
+</div>
+
+<div class="screen" id="s-new-order">
+  <div class="topbar">
+    <div class="back-btn" id="newOrderBackBtn" onclick="showProfile()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></div>
+    <h1 data-i18n="btn_new_request">New Request</h1>
+  </div>
+  <div id="demoBanner" style="display:none;margin:12px 16px 0;background:#fff4e5;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;color:#92400E;text-align:center" data-i18n="demo_banner">🧪 Test Run — this won't be saved as a real request</div>
+  <div style="padding:16px 0 24px;text-align:center">
+    <div style="width:72px;height:72px;border-radius:50%;background:#bff5ff;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px">&#x1F43E;</div>
+    <div style="font-size:22px;font-weight:700;color:#4f00df;font-family:'Albert Sans',sans-serif;margin-bottom:6px" data-i18n="new_order_title">What can we help you with?</div>
+    <div style="font-size:14px;color:#908f98;padding:0 24px" data-i18n="new_order_sub">Tell us what happened and what kind of help you need.</div>
+  </div>
+  <div style="padding:0 0 24px">
+    <div class="section" style="margin:0 16px 10px">
+      <div class="section-title" data-i18n="section_category">Category</div>
+      <div class="cat-grid" id="catGrid"></div>
+      <div id="otherWrap" style="display:none"><input id="otherCat" data-i18n-ph="ph_describe_other" placeholder="Describe the type of work..."/></div>
+    </div>
+    <div class="section" style="margin:0 16px 10px">
+      <div class="section-title" data-i18n="section_description">Description *</div>
+      <textarea id="ordDesc" data-i18n-ph="ph_description" placeholder="Describe the problem in detail so your handyman can come prepared. What's broken? Where is it? Any relevant history?"></textarea>
+    </div>
+    <div class="section" style="margin:0 16px 10px">
+      <div class="section-title"><span data-i18n="section_photos">Photos</span> <span style="font-weight:400;color:#9b9d9d;font-size:12px" data-i18n="optional">(optional)</span></div>
+      <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
+        <div style="font-size:28px;margin-bottom:6px">📷</div>
+        <div style="font-size:14px;font-weight:500;color:#0d0c19" data-i18n="tap_add_photos">Tap to add photos</div>
+        <div style="font-size:12px;color:#9b9d9d;margin-top:3px" data-i18n="photos_hint">Up to 4 photos, 5MB each</div>
+        <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotos(this)"/>
+      </div>
+      <div class="photo-previews" id="photoPreviews"></div>
+    </div>
+    <div class="section" style="margin:0 16px 10px">
+      <div class="section-title" data-i18n="section_handyman">Handyman</div>
+      <div id="hmPickerList"></div>
+    </div>
+    <div style="padding:0 16px">
+      <button class="btn btn-primary" id="submitOrderBtn" onclick="submitOrder()">
+        <span class="ld"></span><span class="btn-label" data-i18n="btn_submit_request">Submit Request</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="s-order-detail">
+  <div class="topbar">
+    <div class="back-btn" onclick="showProfile()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></div>
+    <h1 data-i18n="h1_order_details">Order Details</h1>
+  </div>
+  <div id="orderDetailContent" style="padding-bottom:24px"></div>
+</div>
+
+<div class="screen" id="s-rate">
+  <div class="topbar">
+    <div class="back-btn" onclick="showProfile()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="none"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></div>
+    <h1 data-i18n="h1_rate">Rate Your Experience</h1>
+  </div>
+  <div style="padding:10px 12px 24px">
+    <div class="section" style="text-align:center;margin:0 0 10px">
+      <div style="font-size:13px;color:#888;margin-bottom:4px" data-i18n="job_completed_by">Job completed by</div>
+      <div style="font-size:18px;font-weight:700;color:#111;margin-bottom:3px" id="rateHMName"></div>
+      <div style="font-size:13px;color:#888" id="rateOrdCat"></div>
+    </div>
+    <div class="section" style="margin:0 0 10px">
+      <div class="section-title" data-i18n="section_your_rating">Your Rating *</div>
+      <div class="star-row" id="starRow">
+        <span class="sp" onclick="setStar(1)">★</span>
+        <span class="sp" onclick="setStar(2)">★</span>
+        <span class="sp" onclick="setStar(3)">★</span>
+        <span class="sp" onclick="setStar(4)">★</span>
+        <span class="sp" onclick="setStar(5)">★</span>
+      </div>
+      <div id="starLabel" style="font-size:13px;color:#888"></div>
+    </div>
+    <div class="section" style="margin:0 0 10px">
+      <div class="section-title"><span data-i18n="section_write_review">Write a Review</span> <span style="font-weight:400;text-transform:none;font-size:11px" data-i18n="optional">(optional)</span></div>
+      <textarea id="reviewText" data-i18n-ph="ph_review" placeholder="How was the service? Was the handyman professional, on time, and did a good job?"></textarea>
+    </div>
+    <button class="btn btn-primary" id="submitReviewBtn" style="margin-bottom:10px" onclick="submitReview()">
+      <span class="ld"></span><span class="btn-label" data-i18n="btn_submit_review">Submit Review</span>
+    </button>
+    <button class="btn btn-secondary" onclick="showProfile()" data-i18n="btn_skip_for_now">Skip for Now</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="lang-switcher" id="langSwitcher">
+  <div class="lang-switcher-btn" onclick="toggleLangMenu(event)"><span id="langSwitcherLabel">🌐 EN</span><span class="lang-switcher-caret">▾</span></div>
+  <div class="lang-switcher-menu" id="langSwitcherMenu">
+    <div class="lang-switcher-opt" data-lang="en" onclick="setLang('en')">🇬🇧 English</div>
+    <div class="lang-switcher-opt" data-lang="uk" onclick="setLang('uk')">🇺🇦 Українська</div>
+    <div class="lang-switcher-opt" data-lang="es" onclick="setLang('es')">🇪🇸 Español</div>
+  </div>
+</div>
+
+<script>
+var SB_URL="https://leiztsecokpeombovobc.supabase.co";
+var SB_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s";
+var sb=window.supabase.createClient(SB_URL,SB_ANON_KEY);
+var STORAGE_BUCKET="photos";
+var I18N = {
+ "en": {
+  "loading_profile": "Loading your profile...",
+  "error_title": "Card Not Found",
+  "error_body": "This card is not activated or has been deactivated. Contact your handyman for help.",
+  "welcome_title": "Welcome to HandyCat",
+  "welcome_sub": "Your handyman left this card for you. Register once to track all your service requests and reviews.",
+  "label_full_name": "Full Name *",
+  "ph_full_name": "John Smith",
+  "label_phone": "Phone Number *",
+  "ph_phone": "+1 (555) 000-0000",
+  "label_email": "Email",
+  "optional": "(optional)",
+  "ph_email": "john@email.com",
+  "label_address": "Address",
+  "ph_address": "123 Main St, New York",
+  "btn_get_started": "Get Started →",
+  "btn_new_request": "New Request",
+  "filter_all": "All Orders",
+  "filter_active": "Active",
+  "filter_reviews": "Reviews",
+  "btn_load_more": "Load more",
+  "h1_order_details": "Order Details",
+  "new_order_title": "What can we help you with?",
+  "new_order_sub": "Tell us what happened and what kind of help you need.",
+  "section_category": "Category",
+  "ph_describe_other": "Describe the type of work...",
+  "section_description": "Description *",
+  "ph_description": "Describe the problem in detail so your handyman can come prepared. What's broken? Where is it? Any relevant history?",
+  "section_photos": "Photos",
+  "tap_add_photos": "Tap to add photos",
+  "photos_hint": "Up to 4 photos, 5MB each",
+  "section_handyman": "Handyman",
+  "btn_submit_request": "Submit Request",
+  "h1_rate": "Rate Your Experience",
+  "job_completed_by": "Job completed by",
+  "section_your_rating": "Your Rating *",
+  "section_write_review": "Write a Review",
+  "ph_review": "How was the service? Was the handyman professional, on time, and did a good job?",
+  "btn_submit_review": "Submit Review",
+  "btn_skip_for_now": "Skip for Now",
+  "toast_name_phone_required": "Please enter your name and phone number",
+  "toast_something_wrong": "Something went wrong. Please try again.",
+  "toast_connection_error": "Connection error. Please try again.",
+  "toast_welcome": "Welcome to HandyCat! 🎉",
+  "guest": "Guest",
+  "finding_handyman": "Finding a handyman...",
+  "pending_assignment": "Pending assignment",
+  "status_new": "New",
+  "status_in_progress": "In Progress",
+  "status_completed": "Completed",
+  "status_cancelled": "Cancelled",
+  "read_more": "READ MORE",
+  "no_orders_yet": "No orders yet. Tap Send above to create one.",
+  "order_not_found": "Order not found",
+  "tl_label_submitted": "Request submitted",
+  "tl_label_assigned": "Handyman assigned",
+  "tl_label_in_progress": "In progress",
+  "section_status": "Status",
+  "section_your_review": "Your Review",
+  "btn_mark_completed": "✓ Mark as Completed",
+  "btn_leave_review": "⭐ Leave a Review",
+  "toast_order_completed": "Order marked as completed ✓",
+  "quick_search": "Quick Search",
+  "recommended": "Recommended",
+  "quick_search_meta": "Post to all available handymen — fastest response",
+  "worked_before": "Worked before",
+  "toast_max_photos": "Max 4 photos allowed",
+  "toast_photo_too_large": "Photo too large (max 5MB)",
+  "photo_added": "Photo added!",
+  "photos_added": "Photos added!",
+  "toast_select_category": "Please select a category",
+  "toast_select_handyman": "Please choose a handyman or Quick Search",
+  "toast_describe_work": "Please describe the work needed",
+  "toast_uploading_photos": "Uploading photos...",
+  "toast_request_posted": "Request posted! Handymen will be notified. 🔍",
+  "toast_request_sent_to": "Request sent to {name}! 🛠️",
+  "your_handyman_cap": "Your Handyman",
+  "your_handyman_lower": "your handyman",
+  "tap_star_to_rate": "Tap a star to rate",
+  "toast_select_rating": "Please select a rating",
+  "toast_review_thanks": "Thank you for your review! ⭐",
+  "star_poor": "Poor",
+  "star_fair": "Fair",
+  "star_good": "Good",
+  "star_very_good": "Very Good",
+  "star_excellent": "Excellent!",
+  "cat_plumbing": "Plumbing",
+  "cat_electrical": "Electrical",
+  "cat_painting": "Painting",
+  "cat_hvac": "HVAC",
+  "cat_carpentry": "Carpentry",
+  "cat_flooring": "Flooring",
+  "cat_cleaning": "Cleaning",
+  "cat_appliances": "Appliances",
+  "cat_tiling": "Tiling",
+  "cat_landscaping": "Landscaping",
+  "cat_moving": "Moving",
+  "cat_drywall": "Drywall",
+  "cat_other": "Other",
+  "toast_max_photos_per_request": "Max 4 photos per request",
+  "toast_uploading": "Uploading...",
+  "toast_upload_failed": "Upload failed. Please try again.",
+  "toast_could_not_save_photo": "Could not save photo. Please try again.",
+  "looking_for_handyman": "Looking for an available handyman",
+  "will_notify": "We will notify you when someone accepts",
+  "demo_intro_title": "Quick Test Run",
+  "demo_intro_body": "Before you start using your profile, let's do a quick test together with your handyman — place a sample request so you both see exactly how it works. This won't be saved as a real request.",
+  "btn_start_demo": "Start Test Run →",
+  "demo_banner": "🧪 Test Run — this won't be saved as a real request",
+  "toast_demo_complete": "🎉 That's exactly how it works! Here's your real profile."
+ },
+ "uk": {
+  "loading_profile": "Завантаження вашого профілю...",
+  "error_title": "Картку не знайдено",
+  "error_body": "Ця картка не активована або була деактивована. Зверніться до свого майстра за допомогою.",
+  "welcome_title": "Ласкаво просимо до HandyCat",
+  "welcome_sub": "Ваш майстер залишив цю картку для вас. Зареєструйтеся один раз, щоб відстежувати всі свої заявки та відгуки.",
+  "label_full_name": "Повне ім'я *",
+  "ph_full_name": "Іван Петренко",
+  "label_phone": "Номер телефону *",
+  "ph_phone": "+380 (00) 000-0000",
+  "label_email": "Email",
+  "optional": "(необов'язково)",
+  "ph_email": "ivan@email.com",
+  "label_address": "Адреса",
+  "ph_address": "вул. Головна 123, Київ",
+  "btn_get_started": "Почати →",
+  "btn_new_request": "Нова заявка",
+  "filter_all": "Усі заявки",
+  "filter_active": "Активні",
+  "filter_reviews": "Відгуки",
+  "btn_load_more": "Показати ще",
+  "h1_order_details": "Деталі заявки",
+  "new_order_title": "Чим ми можемо допомогти?",
+  "new_order_sub": "Розкажіть, що сталося і яка допомога вам потрібна.",
+  "section_category": "Категорія",
+  "ph_describe_other": "Опишіть тип робіт...",
+  "section_description": "Опис *",
+  "ph_description": "Детально опишіть проблему, щоб майстер міг підготуватися. Що зламано? Де саме? Чи була відповідна історія?",
+  "section_photos": "Фото",
+  "tap_add_photos": "Натисніть, щоб додати фото",
+  "photos_hint": "До 4 фото, до 5 МБ кожне",
+  "section_handyman": "Майстер",
+  "btn_submit_request": "Надіслати заявку",
+  "h1_rate": "Оцініть якість роботи",
+  "job_completed_by": "Роботу виконав(ла)",
+  "section_your_rating": "Ваша оцінка *",
+  "section_write_review": "Написати відгук",
+  "ph_review": "Як пройшло обслуговування? Чи був майстер професійним, пунктуальним і чи добре виконав роботу?",
+  "btn_submit_review": "Надіслати відгук",
+  "btn_skip_for_now": "Пропустити",
+  "toast_name_phone_required": "Будь ласка, введіть ім'я та номер телефону",
+  "toast_something_wrong": "Щось пішло не так. Спробуйте ще раз.",
+  "toast_connection_error": "Помилка з'єднання. Спробуйте ще раз.",
+  "toast_welcome": "Ласкаво просимо до HandyCat! 🎉",
+  "guest": "Гість",
+  "finding_handyman": "Пошук майстра...",
+  "pending_assignment": "Очікує призначення",
+  "status_new": "Нова",
+  "status_in_progress": "В роботі",
+  "status_completed": "Виконано",
+  "status_cancelled": "Скасовано",
+  "read_more": "ЧИТАТИ ДАЛІ",
+  "no_orders_yet": "Поки що немає заявок. Натисніть кнопку вище, щоб створити нову.",
+  "order_not_found": "Заявку не знайдено",
+  "tl_label_submitted": "Заявку надіслано",
+  "tl_label_assigned": "Майстра призначено",
+  "tl_label_in_progress": "В процесі",
+  "section_status": "Статус",
+  "section_your_review": "Ваш відгук",
+  "btn_mark_completed": "✓ Позначити як виконано",
+  "btn_leave_review": "⭐ Залишити відгук",
+  "toast_order_completed": "Заявку позначено як виконану ✓",
+  "quick_search": "Швидкий пошук",
+  "recommended": "Рекомендовано",
+  "quick_search_meta": "Опублікувати для всіх доступних майстрів — найшвидша відповідь",
+  "worked_before": "Вже працювали",
+  "toast_max_photos": "Максимум 4 фото",
+  "toast_photo_too_large": "Фото завелике (макс. 5 МБ)",
+  "photo_added": "Фото додано!",
+  "photos_added": "Фото додано!",
+  "toast_select_category": "Будь ласка, оберіть категорію",
+  "toast_select_handyman": "Будь ласка, оберіть майстра або швидкий пошук",
+  "toast_describe_work": "Будь ласка, опишіть потрібну роботу",
+  "toast_uploading_photos": "Завантаження фото...",
+  "toast_request_posted": "Заявку опубліковано! Майстрів буде повідомлено. 🔍",
+  "toast_request_sent_to": "Заявку надіслано {name}! 🛠️",
+  "your_handyman_cap": "Ваш майстер",
+  "your_handyman_lower": "вашого майстра",
+  "tap_star_to_rate": "Торкніться зірки, щоб оцінити",
+  "toast_select_rating": "Будь ласка, оберіть оцінку",
+  "toast_review_thanks": "Дякуємо за ваш відгук! ⭐",
+  "star_poor": "Погано",
+  "star_fair": "Задовільно",
+  "star_good": "Добре",
+  "star_very_good": "Дуже добре",
+  "star_excellent": "Відмінно!",
+  "cat_plumbing": "Сантехніка",
+  "cat_electrical": "Електрика",
+  "cat_painting": "Малярні роботи",
+  "cat_hvac": "Опалення та кондиціонування",
+  "cat_carpentry": "Столярні роботи",
+  "cat_flooring": "Підлогові роботи",
+  "cat_cleaning": "Прибирання",
+  "cat_appliances": "Побутова техніка",
+  "cat_tiling": "Кахельні роботи",
+  "cat_landscaping": "Ландшафтний дизайн",
+  "cat_moving": "Переїзд",
+  "cat_drywall": "Гіпсокартон",
+  "cat_other": "Інше",
+  "toast_max_photos_per_request": "Максимум 4 фото на заявку",
+  "toast_uploading": "Завантаження...",
+  "toast_upload_failed": "Не вдалося завантажити. Спробуйте ще раз.",
+  "toast_could_not_save_photo": "Не вдалося зберегти фото. Спробуйте ще раз.",
+  "looking_for_handyman": "Пошук доступного майстра",
+  "will_notify": "Ми повідомимо вас, коли хтось відгукнеться",
+  "demo_intro_title": "Швидкий тест",
+  "demo_intro_body": "Перш ніж ви почнете користуватися профілем, давайте разом з вашим майстром зробимо тестову заявку — щоб ви обидва побачили, як це працює. Це не збережеться як справжня заявка.",
+  "btn_start_demo": "Почати тест →",
+  "demo_banner": "🧪 Тестовий режим — це не збережеться як справжня заявка",
+  "toast_demo_complete": "🎉 Отак саме це і працює! Ось ваш справжній профіль."
+ },
+ "es": {
+  "loading_profile": "Cargando tu perfil...",
+  "error_title": "Tarjeta no encontrada",
+  "error_body": "Esta tarjeta no está activada o ha sido desactivada. Contacta a tu técnico para obtener ayuda.",
+  "welcome_title": "Bienvenido a HandyCat",
+  "welcome_sub": "Tu técnico dejó esta tarjeta para ti. Regístrate una vez para hacer seguimiento de todas tus solicitudes y reseñas.",
+  "label_full_name": "Nombre completo *",
+  "ph_full_name": "Juan Pérez",
+  "label_phone": "Número de teléfono *",
+  "ph_phone": "+1 (555) 000-0000",
+  "label_email": "Correo electrónico",
+  "optional": "(opcional)",
+  "ph_email": "juan@email.com",
+  "label_address": "Dirección",
+  "ph_address": "Calle Principal 123, Madrid",
+  "btn_get_started": "Comenzar →",
+  "btn_new_request": "Nueva solicitud",
+  "filter_all": "Todas las solicitudes",
+  "filter_active": "Activas",
+  "filter_reviews": "Reseñas",
+  "btn_load_more": "Cargar más",
+  "h1_order_details": "Detalles de la solicitud",
+  "new_order_title": "¿En qué podemos ayudarte?",
+  "new_order_sub": "Cuéntanos qué pasó y qué tipo de ayuda necesitas.",
+  "section_category": "Categoría",
+  "ph_describe_other": "Describe el tipo de trabajo...",
+  "section_description": "Descripción *",
+  "ph_description": "Describe el problema en detalle para que tu técnico pueda venir preparado. ¿Qué está roto? ¿Dónde está? ¿Algún antecedente relevante?",
+  "section_photos": "Fotos",
+  "tap_add_photos": "Toca para añadir fotos",
+  "photos_hint": "Hasta 4 fotos, 5 MB cada una",
+  "section_handyman": "Técnico",
+  "btn_submit_request": "Enviar solicitud",
+  "h1_rate": "Califica tu experiencia",
+  "job_completed_by": "Trabajo realizado por",
+  "section_your_rating": "Tu calificación *",
+  "section_write_review": "Escribir una reseña",
+  "ph_review": "¿Cómo fue el servicio? ¿El técnico fue profesional, puntual e hizo un buen trabajo?",
+  "btn_submit_review": "Enviar reseña",
+  "btn_skip_for_now": "Omitir por ahora",
+  "toast_name_phone_required": "Por favor ingresa tu nombre y número de teléfono",
+  "toast_something_wrong": "Algo salió mal. Inténtalo de nuevo.",
+  "toast_connection_error": "Error de conexión. Inténtalo de nuevo.",
+  "toast_welcome": "¡Bienvenido a HandyCat! 🎉",
+  "guest": "Invitado",
+  "finding_handyman": "Buscando un técnico...",
+  "pending_assignment": "Asignación pendiente",
+  "status_new": "Nueva",
+  "status_in_progress": "En progreso",
+  "status_completed": "Completada",
+  "status_cancelled": "Cancelada",
+  "read_more": "LEER MÁS",
+  "no_orders_yet": "Aún no hay solicitudes. Toca el botón de arriba para crear una.",
+  "order_not_found": "Solicitud no encontrada",
+  "tl_label_submitted": "Solicitud enviada",
+  "tl_label_assigned": "Técnico asignado",
+  "tl_label_in_progress": "En progreso",
+  "section_status": "Estado",
+  "section_your_review": "Tu reseña",
+  "btn_mark_completed": "✓ Marcar como completado",
+  "btn_leave_review": "⭐ Dejar una reseña",
+  "toast_order_completed": "Solicitud marcada como completada ✓",
+  "quick_search": "Búsqueda rápida",
+  "recommended": "Recomendado",
+  "quick_search_meta": "Publicar a todos los técnicos disponibles — respuesta más rápida",
+  "worked_before": "Trabajó antes",
+  "toast_max_photos": "Máximo 4 fotos permitidas",
+  "toast_photo_too_large": "Foto demasiado grande (máx. 5 MB)",
+  "photo_added": "¡Foto añadida!",
+  "photos_added": "¡Fotos añadidas!",
+  "toast_select_category": "Por favor selecciona una categoría",
+  "toast_select_handyman": "Por favor elige un técnico o búsqueda rápida",
+  "toast_describe_work": "Por favor describe el trabajo necesario",
+  "toast_uploading_photos": "Subiendo fotos...",
+  "toast_request_posted": "¡Solicitud publicada! Se notificará a los técnicos. 🔍",
+  "toast_request_sent_to": "¡Solicitud enviada a {name}! 🛠️",
+  "your_handyman_cap": "Tu técnico",
+  "your_handyman_lower": "tu técnico",
+  "tap_star_to_rate": "Toca una estrella para calificar",
+  "toast_select_rating": "Por favor selecciona una calificación",
+  "toast_review_thanks": "¡Gracias por tu reseña! ⭐",
+  "star_poor": "Malo",
+  "star_fair": "Regular",
+  "star_good": "Bueno",
+  "star_very_good": "Muy bueno",
+  "star_excellent": "¡Excelente!",
+  "cat_plumbing": "Plomería",
+  "cat_electrical": "Electricidad",
+  "cat_painting": "Pintura",
+  "cat_hvac": "Climatización",
+  "cat_carpentry": "Carpintería",
+  "cat_flooring": "Pisos",
+  "cat_cleaning": "Limpieza",
+  "cat_appliances": "Electrodomésticos",
+  "cat_tiling": "Azulejos",
+  "cat_landscaping": "Jardinería",
+  "cat_moving": "Mudanza",
+  "cat_drywall": "Tabiquería",
+  "cat_other": "Otro",
+  "toast_max_photos_per_request": "Máximo 4 fotos por solicitud",
+  "toast_uploading": "Subiendo...",
+  "toast_upload_failed": "Error al subir. Inténtalo de nuevo.",
+  "toast_could_not_save_photo": "No se pudo guardar la foto. Inténtalo de nuevo.",
+  "looking_for_handyman": "Buscando un técnico disponible",
+  "will_notify": "Te avisaremos cuando alguien acepte",
+  "demo_intro_title": "Prueba rápida",
+  "demo_intro_body": "Antes de usar tu perfil, hagamos una prueba rápida junto a tu técnico — crea una solicitud de ejemplo para ver exactamente cómo funciona. Esto no se guardará como una solicitud real.",
+  "btn_start_demo": "Iniciar prueba →",
+  "demo_banner": "🧪 Prueba — esto no se guardará como una solicitud real",
+  "toast_demo_complete": "🎉 ¡Exacto, así funciona! Aquí está tu perfil real."
+ }
+};
+
+var LANG = localStorage.getItem("hc_lang") || "en";
+var LOCALE_MAP = {en:"en-US", uk:"uk-UA", es:"es-ES"};
+function t(key){
+  return (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key;
+}
+function tf(key, params){
+  var s = t(key);
+  Object.keys(params||{}).forEach(function(k){ s = s.replace("{"+k+"}", params[k]); });
+  return s;
+}
+
+var CAT_ICONS = {
+  plumbing:"🔧", electrical:"⚡", painting:"🖌️", hvac:"❄️", carpentry:"🪚",
+  flooring:"🏠", cleaning:"🧹", appliances:"🔌", tiling:"🔲", landscaping:"🌿",
+  moving:"📦", drywall:"🏗️", other:"✏️"
+};
+var CAT_ORDER = ["plumbing","electrical","painting","hvac","carpentry","flooring","cleaning","appliances","tiling","landscaping","moving","drywall","other"];
+function getCats(){
+  return CAT_ORDER.map(function(id){ return {id:id, icon:CAT_ICONS[id], label:t("cat_"+id)}; });
+}
+// Categories are stored on orders as the canonical English label (unchanged, so
+// admin.html/company.html keep reading the same value). This maps that stored
+// English label back to a localized display string; free-text "Other" categories
+// pass through unchanged since there's nothing to translate.
+var EN_LABEL_TO_CAT_ID = {};
+CAT_ORDER.forEach(function(id){ EN_LABEL_TO_CAT_ID[I18N.en["cat_"+id]] = id; });
+function displayCategory(label){
+  var id = EN_LABEL_TO_CAT_ID[label];
+  return id ? t("cat_"+id) : (label || "");
+}
+
+function setLang(lang){
+  LANG = lang;
+  localStorage.setItem("hc_lang", lang);
+  applyStaticTranslations();
+  renderLangSwitcher();
+  // Re-render whatever dynamic content is currently on screen so it picks up the new language
+  if (typeof S !== "undefined" && S.client) {
+    if (document.getElementById("s-new-order").classList.contains("active")) showNewOrder();
+    else if (document.getElementById("s-order-detail").classList.contains("active") && S.currentOrderId) showOrderDetail(S.currentOrderId);
+    else if (document.getElementById("s-rate").classList.contains("active") && S.ratingOrderId) showRate(S.ratingOrderId);
+    else renderOrderFeed(S._curOrderFilter||"all");
+  } else if (typeof S !== "undefined" && S.handyman) {
+    showRegister();
+  }
+}
+
+function renderLangSwitcher(){
+  var labels = {en:"EN", uk:"UA", es:"ES"};
+  var lbl = document.getElementById("langSwitcherLabel");
+  if (lbl) lbl.textContent = "🌐" + " " + labels[LANG];
+  document.querySelectorAll(".lang-switcher-opt").forEach(function(o){
+    o.classList.toggle("active", o.getAttribute("data-lang") === LANG);
+  });
+  var sw = document.getElementById("langSwitcher");
+  if (sw) sw.classList.remove("open");
+}
+
+function toggleLangMenu(e){
+  if (e) e.stopPropagation();
+  var sw = document.getElementById("langSwitcher");
+  if (sw) sw.classList.toggle("open");
+}
+
+document.addEventListener("click", function(e){
+  var sw = document.getElementById("langSwitcher");
+  if (sw && sw.classList.contains("open") && !sw.contains(e.target)) sw.classList.remove("open");
+});
+
+function applyStaticTranslations(){
+  document.querySelectorAll("[data-i18n]").forEach(function(el){
+    el.textContent = t(el.getAttribute("data-i18n"));
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(function(el){
+    el.setAttribute("placeholder", t(el.getAttribute("data-i18n-ph")));
+  });
+}
+
+
+// CATS is now computed live from getCats() so labels follow the current language;
+// kept as a var (not const) for compatibility with existing references below.
+var CATS=getCats();
+function STAR_LABELS(){ return ["",t("star_poor"),t("star_fair"),t("star_good"),t("star_very_good"),t("star_excellent")]; }
+
+var S={
+  token:null,card:null,client:null,handyman:null,
+  orders:[],allHM:[],hmMap:{},
+  selCat:null,selHMId:null,selStar:0,
+  ratingOrderId:null,photoFiles:[],
+  currentOrderId:null
+};
+
+// ── FIRESTORE ─────────────────────────────────────────────────
+function toSnake(s){return s.replace(/[A-Z]/g,function(m){return "_"+m.toLowerCase();});}
+function toCamel(s){return s.replace(/_([a-z0-9])/g,function(_,c){return c.toUpperCase();});}
+function rowToCamel(row){if(!row)return null;var out={};Object.keys(row).forEach(function(k){out[toCamel(k)]=row[k];});return out;}
+function fieldsToSnake(obj){var out={};Object.keys(obj).forEach(function(k){out[toSnake(k)]=obj[k];});return out;}
+async function fsGet(c,id){var res=await sb.from(c).select("*").eq("id",id).maybeSingle();if(res.error||!res.data)return null;return rowToCamel(res.data);}
+async function fsQ(c,filters,lim){var q=sb.from(c).select("*").limit(lim||100);(filters||[]).forEach(function(f){var col=f.field==="companyIds"?"company_id":toSnake(f.field);q=q.eq(col,f.value);});var res=await q;if(res.error||!res.data)return[];return res.data.map(rowToCamel);}
+async function fsP(c,id,fields){var row=fieldsToSnake(fields);row.id=id;var res=await sb.from(c).upsert(row);return!res.error;}
+async function fsMerge(c,id,nf){var row=fieldsToSnake(nf);row.id=id;var res=await sb.from(c).upsert(row);return!res.error;}
+function sv(v){return v==null?"":String(v);}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");}
+function nv(v){return Number(v||0);}
+function bv(v){return!!v;}
+function av(arr){return arr||[];}
+
+// ── STORAGE ───────────────────────────────────────────────────
+async function uploadPhoto(file, path) {
+  try {
+    var res = await sb.storage.from(STORAGE_BUCKET).upload(path, file, {contentType: file.type, upsert: true});
+    if (res.error) return null;
+    var pub = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    return pub.data.publicUrl;
+  } catch(e) { return null; }
+}
+
+async function handleDetailPhotos(input,orderId){
+  var files=Array.from(input.files);
+  var order=S.orders.find(function(o){return o.id===orderId;});
+  if(!order)return;
+  var existing=order.photos||[];
+  var remaining=4-existing.length;
+  files=files.slice(0,Math.max(0,remaining));
+  if(!files.length){toast(t("toast_max_photos_per_request"));input.value="";return;}
+  toast(t("toast_uploading"));
+  var newUrls=[];
+  for(var i=0;i<files.length;i++){
+    var file=files[i];
+    if(file.size>5*1024*1024)continue;
+    var url=await uploadPhoto(file,"orders/"+orderId+"/photo-"+Date.now()+"-"+i);
+    if(url)newUrls.push(url);
+  }
+  if(!newUrls.length){toast(t("toast_upload_failed"));input.value="";return;}
+  var allPhotos=existing.concat(newUrls);
+  var ok=await fsMerge("orders",orderId,{photos:av(allPhotos)});
+  if(ok){
+    order.photos=allPhotos;
+    toast(newUrls.length>1?t("photos_added"):t("photo_added"));
+    showOrderDetail(orderId);
+  } else {
+    toast(t("toast_could_not_save_photo"));
+  }
+  input.value="";
+}
+
+// ── UI HELPERS ────────────────────────────────────────────────
+function show(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});document.getElementById(id).classList.add("active");window.scrollTo(0,0);}
+function toast(m){var e=document.getElementById("toast");e.textContent=m;e.classList.add("show");setTimeout(function(){e.classList.remove("show");},3000);}
+function ini(n){return(n||"?").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase();}
+function fd(iso){if(!iso)return"";return new Date(iso).toLocaleDateString(LOCALE_MAP[LANG]||"en-US",{month:"short",day:"numeric",year:"numeric"});}
+function starsHtml(n,sz){sz=sz||14;var f=Math.round(n||0);return'<span style="color:#EF9F27;font-size:'+sz+'px">'+"★".repeat(f)+'<span style="color:#ddd">'+"★".repeat(5-f)+"</span></span>";}
+function setLoading(btn, on){btn.disabled=on;btn.classList.toggle("loading",on);}
+
+// ── INIT ──────────────────────────────────────────────────────
+async function init(){
+  var token=window.location.pathname.split("/").pop();
+  S.token=token;
+  var card=await fsGet("nfc_cards",token);
+  if(!card){show("s-error");return;}
+  S.card=card;
+  if(card.handymanId){S.handyman=await fsGet("handymen",card.handymanId);}
+  if(!card.clientId){showRegister();}
+  else{S.client=await fsGet("clients",card.clientId);if(!S.client){show("s-error");return;}await loadProfile();}
+}
+
+// ── REGISTER ──────────────────────────────────────────────────
+function showRegister(){
+  var hm=S.handyman;
+  if(hm){
+    document.getElementById("regHMBanner").style.display="flex";
+    document.getElementById("regHMAv").textContent=ini(hm.name);
+    document.getElementById("regHMName").textContent=hm.name;
+    document.getElementById("regHMSkills").textContent=(hm.skills||[]).slice(0,2).join(" · ")||t("section_handyman");
+  }
+  show("s-register");
+}
+
+async function registerClient(){
+  var name=document.getElementById("regName").value.trim();
+  var phone=document.getElementById("regPhone").value.trim();
+  if(!name||!phone){toast(t("toast_name_phone_required"));return;}
+  var btn=document.getElementById("regBtn");setLoading(btn,true);
+  try {
+    var cid="client-"+Date.now().toString(36);
+    var now=new Date().toISOString();
+    var ok=await fsP("clients",cid,{name:sv(name),phone:sv(phone),email:sv(document.getElementById("regEmail").value),address:sv(document.getElementById("regAddress").value),ratingAvg:nv(0),reviewCount:nv(0),ordersCount:nv(0),createdAt:sv(now)});
+    if(!ok){setLoading(btn,false);toast(t("toast_something_wrong"));return;}
+    await fsMerge("nfc_cards",S.token,{clientId:sv(cid),status:sv("active"),activatedAt:sv(now)});
+    S.client={id:cid,name:name,phone:phone,ratingAvg:0,reviewCount:0,ordersCount:0};
+    S.orders=[];
+    toast(t("toast_welcome"));
+    show("s-demo-intro");
+  } catch(e) {
+    console.error("Register error:",e);
+    setLoading(btn,false);
+    toast(t("toast_connection_error"));
+  }
+}
+
+// ── DEMO / TEST RUN (shown once, right after first activation) ──
+function startDemoOrder(){
+  S.isDemoOrder=true;
+  showNewOrder();
+}
+
+// ── PROFILE ───────────────────────────────────────────────────
+var AV_COLORS=["#86c0ff","#ecbaec","#bcffe9","#ffd9a0","#c5b5ff"];
+function avColor(seed){var h=0;for(var i=0;i<(seed||"").length;i++)h+=seed.charCodeAt(i);return AV_COLORS[h%AV_COLORS.length];}
+
+async function loadProfile(){
+  try {
+    var c=S.client;
+    var orders=await fsQ("orders",[{field:"clientId",value:c.id}]);
+    orders.sort(function(a,b){return(b.createdAt||"").localeCompare(a.createdAt||"");});
+    S.orders=orders;
+    var hmIds={};
+    orders.forEach(function(o){if(o.handymanId&&o.handymanId!=="any")hmIds[o.handymanId]=true;});
+    var hmMap={};
+    await Promise.all(Object.keys(hmIds).map(async function(id){var h=await fsGet("handymen",id);if(h)hmMap[id]=h;}));
+    S.hmMap=hmMap;
+
+    document.getElementById("profAv").textContent=ini(c.name);
+    document.getElementById("profAv").style.background=avColor(c.name||c.id);
+    document.getElementById("profName").textContent=c.name||t("guest");
+    document.getElementById("profPhone").textContent=c.address||c.phone||"";
+
+    var rat=c.ratingAvg||0,cnt=c.reviewCount||0;
+    document.getElementById("profRatingPillText").textContent=(cnt>0?rat.toFixed(1):"—")+" ("+cnt+")";
+
+    S._pendingOrders=orders.filter(function(o){return o.status==="completed"&&!o.clientRating&&!o.isOnboarding;});
+    S._activeOrders=orders.filter(function(o){return(o.status==="new"||o.status==="in_progress")&&!o.isOnboarding;});
+    S._historyOrders=orders.filter(function(o){return o.status==="completed"&&!o.isOnboarding;});
+    S._allRealOrders=orders.filter(function(o){return!o.isOnboarding;});
+    S._reviewedOrders=orders.filter(function(o){return o.clientRating&&!o.isOnboarding;});
+
+    renderOrderFeed(S._curOrderFilter||"all");
+    show("s-profile");
+  } catch(e) {
+    console.error("loadProfile error:",e);
+    show("s-profile");
+  }
+}
+
+function setOrderFilter(f,btn){
+  S._curOrderFilter=f;
+  document.querySelectorAll("#pfFilterRow .pf-filter").forEach(function(b){b.classList.remove("active");});
+  btn.classList.add("active");
+  renderOrderFeed(f);
+}
+
+function pfOrderCard(o,hmMap){
+  var hm=hmMap[o.handymanId]||{};
+  var hmName=hm.name||(o.isPublic?t("finding_handyman"):t("pending_assignment"));
+  var seed=hm.name||o.id;
+  var statusMap={new:["#FEF3C7","#92400E",t("status_new")],in_progress:["#DBEAFE","#1E40AF",t("status_in_progress")],completed:["#D1FAE5","#065F46",t("status_completed")]};
+  var st=statusMap[o.status]||["#f5f5f5","#888",o.status];
+  var desc=o.description||"";
+  var descShort=desc.length>90?desc.slice(0,90)+"..":desc;
+  var photo=(o.photos&&o.photos.length)?o.photos[0]:null;
+  return '<div class="pf-order-card" onclick="'+(o.status==="completed"&&!o.clientRating?'showRate(\''+o.id+'\')':'showOrderDetail(\''+o.id+'\')')+'">'+
+    '<div class="pf-order-top">'+
+      '<div class="pf-order-av" style="background:'+avColor(seed)+'">'+ini(hmName)+'</div>'+
+      '<div style="flex:1;min-width:0"><div class="pf-order-hm-name">'+esc(hmName)+'</div>'+
+      (hm.companyIds?'<div class="pf-order-hm-loc">Montana</div>':'')+'</div>'+
+      '<span class="pf-status-badge" style="background:'+st[0]+';color:'+st[1]+'">'+st[2]+'</span>'+
+    '</div>'+
+    '<div class="pf-order-meta-row">'+
+      (hm.ratingAvg?'<span class="pf-order-rating"><span class="spark">&#10022;</span>'+Number(hm.ratingAvg).toFixed(1)+' ('+(hm.reviewCount||0)+')</span>':'')+
+      '<span class="pf-order-chat">&#128172; '+(o.messageCount||0)+'</span>'+
+      '<span class="pf-order-date">'+fd(o.createdAt)+'</span>'+
+    '</div>'+
+    '<div class="pf-order-desc">'+esc(displayCategory(o.category)||"")+(desc?': '+esc(descShort):"")+(desc.length>90?' <span class="more" onclick="event.stopPropagation();showOrderDetail(\''+o.id+'\')">'+t("read_more")+'</span>':'')+'</div>'+
+    (photo?'<img src="'+photo+'" class="pf-order-photo"/>':'')+
+  '</div>';
+}
+
+function renderOrderFeed(filter){
+  var hmMap=S.hmMap||{};
+  var pendingHtml="";
+  if((S._pendingOrders||[]).length){
+    pendingHtml=pfOrderCard(S._pendingOrders[0],hmMap);
+  }
+  document.getElementById("pendingSection").innerHTML="";
+  document.getElementById("activeSection").innerHTML="";
+
+  var list;
+  if(filter==="active")list=S._activeOrders||[];
+  else if(filter==="reviews")list=S._reviewedOrders||[];
+  else list=(S._allRealOrders||[]).slice();
+
+  document.getElementById("pfLoadMoreBtn").style.display=list.length>10?"block":"none";
+
+  var hl=document.getElementById("historyList");
+  var shown=list.slice(0,10);
+  if(!shown.length&&!pendingHtml){
+    hl.innerHTML='<div class="pf-empty">'+t("no_orders_yet")+'</div>';
+    return;
+  }
+  hl.innerHTML=pendingHtml+shown.map(function(o){return pfOrderCard(o,hmMap);}).join("");
+}
+
+function loadMoreOrders(){
+  var filter=S._curOrderFilter||"all";
+  var list;
+  if(filter==="active")list=S._activeOrders||[];
+  else if(filter==="reviews")list=S._reviewedOrders||[];
+  else list=(S._allRealOrders||[]).slice();
+  var hl=document.getElementById("historyList");
+  var currentCount=hl.querySelectorAll(".pf-order-card").length;
+  var nextBatch=list.slice(currentCount,currentCount+10);
+  hl.insertAdjacentHTML("beforeend",nextBatch.map(function(o){return pfOrderCard(o,S.hmMap);}).join(""));
+  if(currentCount+nextBatch.length>=list.length)document.getElementById("pfLoadMoreBtn").style.display="none";
+}
+
+function showProfile(){show("s-profile");}
+
+// ── ORDER DETAIL ──────────────────────────────────────────────
+async function showOrderDetail(orderId){
+  S.currentOrderId=orderId;
+  show("s-order-detail");
+  var content=document.getElementById("orderDetailContent");
+  content.innerHTML='<div style="padding:60px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>';
+  var order=S.orders.find(function(o){return o.id===orderId;});
+  if(!order){content.innerHTML='<div style="padding:24px;text-align:center;color:#aaa">'+t("order_not_found")+'</div>';return;}
+  var hm=order.handymanId&&order.handymanId!=="any"?await fsGet("handymen",order.handymanId):null;
+  var statusMap={new:t("status_new"),in_progress:t("status_in_progress"),completed:t("status_completed"),cancelled:t("status_cancelled")};
+  var badgeMap={new:"b-new",in_progress:"b-progress",completed:"b-done",cancelled:"b-done"};
+  var tl=[
+    {label:t("tl_label_submitted"),done:true},
+    {label:t("tl_label_assigned"),done:!!(hm||!order.isPublic)},
+    {label:t("tl_label_in_progress"),done:order.status==="in_progress"||order.status==="completed"},
+    {label:t("status_completed"),done:order.status==="completed"}
+  ];
+  var canAddPhotos=(order.status==="new"||order.status==="in_progress");
+  var photosHtml='<div class="detail-section" style="margin:0 12px 10px">'+
+      '<div class="section-title">Photos</div>'+
+      '<div class="photo-gallery" id="detailPhotoGallery">'+
+        (order.photos&&order.photos.length?order.photos.map(function(url){return'<img class="gallery-img" src="'+url+'" onclick="window.open(\''+url+'\',\'_blank\')">';}).join(""):'')+
+        (canAddPhotos?'<div class="photo-add-tile" onclick="document.getElementById(\'detailPhotoInput\').click()"><div style="font-size:22px">+</div><div style="font-size:11px">Add</div></div>':'')+
+      '</div>'+
+      (canAddPhotos?'<input type="file" id="detailPhotoInput" accept="image/*" multiple style="display:none" onchange="handleDetailPhotos(this,\''+orderId+'\')"/>':'')+
+    '</div>';
+  if(!order.photos||!order.photos.length){
+    if(!canAddPhotos)photosHtml="";
+  }
+  var reviewHtml="";
+  if(order.clientRating){
+    reviewHtml='<div class="detail-section" style="margin:0 12px 10px">'+
+      '<div class="section-title">'+t("section_your_review")+'</div>'+
+      '<div>'+starsHtml(order.clientRating,18)+'</div>'+
+      (order.clientReview?'<div style="font-size:14px;color:#555;margin-top:8px;line-height:1.5">'+order.clientReview+'</div>':"")+
+    '</div>';
+  }
+  var actionHtml="";
+  if(order.status==="new"||order.status==="in_progress"){
+    actionHtml='<div class="pad"><button class="btn btn-success" id="completeBtn" onclick="markComplete(\''+orderId+'\')">'+
+      '<span class="ld"></span><span class="btn-label">'+t("btn_mark_completed")+'</span></button></div>';
+  } else if(order.status==="completed"&&!order.clientRating){
+    actionHtml='<div class="pad"><button class="btn btn-primary" onclick="showRate(\''+orderId+'\')">'+t("btn_leave_review")+'</button></div>';
+  }
+  content.innerHTML=
+    '<div class="detail-section" style="margin:10px 12px">'+
+      '<div class="oc-head"><span class="oc-badge '+badgeMap[order.status]+'">'+statusMap[order.status]+'</span><span class="oc-date">'+fd(order.createdAt)+'</span></div>'+
+      '<div style="font-size:18px;font-weight:700;color:#111;margin:8px 0 6px">'+esc(displayCategory(order.category))+'</div>'+
+      (order.description?'<div style="font-size:14px;color:#555;line-height:1.6;margin-bottom:8px">'+order.description+'</div>':"")+
+    '</div>';
+
+  if(hm){
+    content.innerHTML+=
+      '<div class="detail-section" style="margin:0 12px 10px">'+
+        '<div class="section-title">'+t("section_handyman")+'</div>'+
+        '<div style="display:flex;align-items:center;gap:12px">'+
+          '<div class="hm-av">'+ini(hm.name)+'</div>'+
+          '<div>'+
+            '<div style="font-size:15px;font-weight:600;color:#111">'+hm.name+'</div>'+
+            '<div style="font-size:13px;color:#888;margin-top:2px">'+(hm.skills||[]).slice(0,2).join(" · ")+'</div>'+
+            (hm.ratingAvg?'<div>'+starsHtml(hm.ratingAvg,13)+' <span style="font-size:12px;color:#888">'+Number(hm.ratingAvg).toFixed(1)+' ('+(hm.reviewCount||0)+' reviews)</span></div>':"")+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  } else if(order.isPublic){
+    content.innerHTML+=
+      '<div class="detail-section" style="margin:0 12px 10px;text-align:center">'+
+        '<div style="font-size:28px;margin-bottom:6px">&#x1F50D;</div>'+
+        '<div style="font-size:14px;color:#8B5CF6;font-weight:500">'+t("looking_for_handyman")+'</div>'+
+        '<div style="font-size:12px;color:#aaa;margin-top:4px">'+t("will_notify")+'</div>'+
+      '</div>';
+  }
+
+  content.innerHTML+=
+    '<div class="detail-section" style="margin:0 12px 10px">'+
+      '<div class="section-title">'+t("section_status")+'</div>'+
+      '<div class="status-timeline">'+
+        tl.map(function(t,i){
+          var isActive=!t.done&&(i===0||(i>0&&tl[i-1]&&tl[i-1].done));
+          return '<div class="tl-item">'+
+            '<div class="tl-dot'+(t.done?" done":isActive?" active":"")+'"></div>'+
+            '<div class="tl-label'+(t.done?" done":"")+'">'+t.label+'</div>'+
+          '</div>';
+        }).join("")+
+      '</div>'+
+    '</div>';
+
+  content.innerHTML+=photosHtml+reviewHtml+'<div style="height:10px"></div>'+actionHtml;
+}
+
+async function markComplete(orderId){
+  var btn=document.getElementById("completeBtn");
+  if(btn)setLoading(btn,true);
+  var ok=await fsMerge("orders",orderId,{status:sv("completed"),completedAt:sv(new Date().toISOString())});
+  if(ok){
+    var ord=S.orders.find(function(o){return o.id===orderId;});
+    if(ord){ord.status="completed";ord.completedAt=new Date().toISOString();}
+    toast(t("toast_order_completed"));
+    showRate(orderId);
+  } else {
+    if(btn)setLoading(btn,false);
+    toast(t("toast_something_wrong"));
+  }
+}
+
+// ── NEW ORDER ─────────────────────────────────────────────────
+async function showNewOrder(){
+  S.selCat=null;S.selHMId=null;S.photoFiles=[];
+  document.getElementById("ordDesc").value="";
+  document.getElementById("otherCat").value="";
+  document.getElementById("photoPreviews").innerHTML="";
+  document.getElementById("otherWrap").style.display="none";
+  document.getElementById("newOrderBackBtn").style.display=S.isDemoOrder?"none":"";
+  document.getElementById("demoBanner").style.display=S.isDemoOrder?"block":"none";
+  // Build categories (recomputed each time so labels follow the current language)
+  CATS=getCats();
+  var grid=document.getElementById("catGrid");
+  grid.innerHTML=CATS.map(function(c){
+    return'<button class="cat-btn" id="cat-'+c.id+'" onclick="selCat(\''+c.id+'\')">'+
+      '<span class="cat-icon">'+c.icon+'</span>'+c.label+'</button>';
+  }).join("");
+  // Build HM picker with loading
+  var list=document.getElementById("hmPickerList");
+  list.innerHTML='<div style="text-align:center;padding:16px;color:#aaa"><div class="spinner" style="margin:0 auto 8px;width:24px;height:24px;border-width:2px"></div>Loading...</div>';
+  var btn2=document.getElementById("submitOrderBtn");setLoading(btn2,false);
+  show("s-new-order");
+  // Load handymen
+  var hmIds={};
+  S.orders.forEach(function(o){if(o.handymanId&&o.handymanId!=="any")hmIds[o.handymanId]=true;});
+  var compHM=[];
+  if(S.card.companyId){compHM=await fsQ("handymen",[{field:"companyIds",value:S.card.companyId,op:"ARRAY_CONTAINS"}]);}
+  var allHM=[];var seen={};
+  // History handymen first
+  await Promise.all(Object.keys(hmIds).map(async function(id){
+    if(seen[id])return;seen[id]=true;
+    var h=S.hmMap[id]||await fsGet("handymen",id);
+    if(h){allHM.push(Object.assign({fromHistory:true},h));}
+  }));
+  compHM.forEach(function(h){if(!seen[h.id]){seen[h.id]=true;allHM.push(h);}});
+  S.allHM=allHM;
+  renderHMPicker(allHM);
+}
+
+function selCat(id){
+  S.selCat=id;
+  document.querySelectorAll(".cat-btn").forEach(function(b){b.classList.remove("sel");});
+  document.getElementById("cat-"+id).classList.add("sel");
+  document.getElementById("otherWrap").style.display=id==="other"?"block":"none";
+}
+
+function renderHMPicker(hms){
+  var list=document.getElementById("hmPickerList");
+  var html='<div class="hm-opt quick'+(S.selHMId==="any"?" sel":"")+'" onclick="selHM(\'any\')" id="hm-any">'+
+    '<div class="hm-av purple">🔍</div>'+
+    '<div class="hm-info">'+
+      '<div class="hm-name">'+t("quick_search")+' <span class="pill pill-purple">'+t("recommended")+'</span></div>'+
+      '<div class="hm-meta">'+t("quick_search_meta")+'</div>'+
+    '</div>'+
+  '</div>';
+  if(hms.length){
+    html+=hms.map(function(h){
+      var badge=h.fromHistory?'<span class="pill pill-green">'+t("worked_before")+'</span>':"";
+      return'<div class="hm-opt'+(S.selHMId===h.id?" sel":"")+'" id="hm-'+h.id+'" onclick="selHM(\''+h.id+'\')">'+
+        '<div class="hm-av">'+ini(h.name)+'</div>'+
+        '<div class="hm-info">'+
+          '<div class="hm-name">'+h.name+badge+'</div>'+
+          '<div class="hm-meta">'+(h.skills||[]).slice(0,2).join(", ")+'</div>'+
+          (h.ratingAvg?'<div class="hm-rating">'+starsHtml(h.ratingAvg,11)+' '+h.ratingAvg.toFixed(1)+'</div>':"")+
+        '</div>'+
+      '</div>';
+    }).join("");
+  }
+  list.innerHTML=html;
+}
+
+function selHM(id){
+  S.selHMId=id;
+  document.querySelectorAll(".hm-opt").forEach(function(el){el.classList.remove("sel");});
+  var el=document.getElementById("hm-"+id)||document.getElementById("hm-any");
+  if(el)el.classList.add("sel");
+}
+
+// Photo handling
+function handlePhotos(input){
+  var files=Array.from(input.files);
+  var remaining=4-S.photoFiles.length;
+  files=files.slice(0,remaining);
+  if(!files.length){toast(t("toast_max_photos"));return;}
+  files.forEach(function(file){
+    if(file.size>5*1024*1024){toast(t("toast_photo_too_large"));return;}
+    S.photoFiles.push(file);
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var idx=S.photoFiles.indexOf(file);
+      var prev=document.getElementById("photoPreviews");
+      var div=document.createElement("div");div.className="photo-preview";div.id="prev-"+idx;
+      div.innerHTML='<img src="'+e.target.result+'"/><button class="remove-photo" onclick="removePhoto('+idx+')">✕</button>';
+      prev.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value="";
+}
+
+function removePhoto(idx){
+  S.photoFiles.splice(idx,1);
+  var prev=document.getElementById("prev-"+idx);
+  if(prev)prev.remove();
+  // Renumber remaining
+  var previews=document.querySelectorAll(".photo-preview");
+  previews.forEach(function(el,i){el.id="prev-"+i;el.querySelector(".remove-photo").setAttribute("onclick","removePhoto("+i+")");});
+}
+
+async function submitOrder(){
+  if(!S.selCat){toast(t("toast_select_category"));return;}
+  if(!S.selHMId){toast(t("toast_select_handyman"));return;}
+  var desc=document.getElementById("ordDesc").value.trim();
+  if(!desc){toast(t("toast_describe_work"));return;}
+  // Store the canonical English category label regardless of UI language, so
+  // admin.html/company.html and displayCategory()'s reverse lookup stay consistent.
+  var catLabel=S.selCat==="other"?(document.getElementById("otherCat").value.trim()||I18N.en.cat_other):(I18N.en["cat_"+S.selCat]||I18N.en.cat_other);
+  var btn=document.getElementById("submitOrderBtn");setLoading(btn,true);
+  var orderId="ord-"+Date.now().toString(36);
+  var isPublic=S.selHMId==="any";
+  var hmId=isPublic?"":S.selHMId;
+  var hm=!isPublic?S.allHM.find(function(h){return h.id===hmId;}):null;
+  var now=new Date().toISOString();
+  // Upload photos first
+  var photoUrls=[];
+  if(S.photoFiles.length){
+    toast(t("toast_uploading_photos"));
+    for(var i=0;i<S.photoFiles.length;i++){
+      var url=await uploadPhoto(S.photoFiles[i],"orders/"+orderId+"/photo-"+i+"-"+Date.now());
+      if(url)photoUrls.push(url);
+    }
+  }
+  var isDemo=!!S.isDemoOrder;
+  var ok=await fsP("orders",orderId,{
+    clientId:sv(S.client.id),
+    handymanId:sv(hmId),
+    companyId:sv(hm&&hm.companyIds?hm.companyIds[0]:S.card.companyId||""),
+    cardToken:sv(S.token),
+    category:sv(catLabel),
+    description:sv(desc),
+    status:sv("new"),
+    isPublic:bv(isPublic),
+    photos:av(photoUrls),
+    isOnboarding:bv(isDemo),
+    createdAt:sv(now)
+  });
+  if(ok){
+    if(isDemo){
+      S.isDemoOrder=false;
+      toast(t("toast_demo_complete"));
+    } else {
+      var newCount=(S.client.ordersCount||0)+1;
+      await fsMerge("clients",S.client.id,{ordersCount:nv(newCount)});
+      S.client.ordersCount=newCount;
+      toast(isPublic?t("toast_request_posted"):tf("toast_request_sent_to",{name:(hm||{}).name||t("your_handyman_lower")}));
+    }
+    await loadProfile();
+  } else {
+    setLoading(btn,false);
+    toast(t("toast_something_wrong"));
+  }
+}
+
+// ── RATE & REVIEW ─────────────────────────────────────────────
+async function showRate(orderId){
+  var order=S.orders.find(function(o){return o.id===orderId;});
+  if(!order)return;
+  S.ratingOrderId=orderId;S.selStar=0;
+  var hm=order.handymanId&&order.handymanId!=="any"?await fsGet("handymen",order.handymanId):null;
+  document.getElementById("rateHMName").textContent=hm?hm.name:t("your_handyman_cap");
+  document.getElementById("rateOrdCat").textContent=displayCategory(order.category)||"";
+  document.getElementById("reviewText").value="";
+  document.querySelectorAll(".sp").forEach(function(s){s.classList.remove("lit");});
+  document.getElementById("starLabel").textContent=t("tap_star_to_rate");
+  // Always reset button state when opening this screen
+  var btn=document.getElementById("submitReviewBtn");
+  setLoading(btn,false);
+  show("s-rate");
+}
+
+function setStar(n){
+  S.selStar=n;
+  document.querySelectorAll(".sp").forEach(function(s,i){s.classList.toggle("lit",i<n);});
+  document.getElementById("starLabel").textContent=STAR_LABELS()[n];
+}
+
+async function submitReview(){
+  if(!S.selStar){toast(t("toast_select_rating"));return;}
+  var btn=document.getElementById("submitReviewBtn");setLoading(btn,true);
+  var review=document.getElementById("reviewText").value.trim();
+  var orderId=S.ratingOrderId;
+  var order=S.orders.find(function(o){return o.id===orderId;});
+  if(!order){setLoading(btn,false);return;}
+  await fsMerge("orders",orderId,{clientRating:nv(S.selStar),clientReview:sv(review),reviewedAt:sv(new Date().toISOString())});
+  if(order.handymanId&&order.handymanId!=="any"){
+    var hm=await fsGet("handymen",order.handymanId);
+    if(hm){var oc=hm.reviewCount||0,oa=hm.ratingAvg||0,nc=oc+1,na=((oa*oc)+S.selStar)/nc;await fsMerge("handymen",order.handymanId,{ratingAvg:nv(na),reviewCount:nv(nc)});}
+  }
+  await fsP("reviews","rev-"+Date.now().toString(36),{orderId:sv(orderId),fromType:sv("client"),fromId:sv(S.client.id),fromName:sv(S.client.name),toType:sv("handyman"),toId:sv(order.handymanId||""),rating:nv(S.selStar),comment:sv(review),createdAt:sv(new Date().toISOString())});
+  toast(t("toast_review_thanks"));
+  await loadProfile();
+}
+
+applyStaticTranslations();
+renderLangSwitcher();
+init().catch(function(e){console.error(e);show("s-error");});
+</script>
+<div style="position:fixed;bottom:4px;left:6px;z-index:1;font-size:8px;line-height:1.3;color:#ccc;opacity:.7;font-family:sans-serif;pointer-events:none;max-width:200px">This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:#ccc;pointer-events:auto">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener" style="color:#ccc;pointer-events:auto">Terms of Service</a> apply.</div>
+</body>
+</html>
