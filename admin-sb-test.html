@@ -5585,13 +5585,18 @@ async function updateAppStatus(appId, newStatus) {
       var leadsInput = document.getElementById("appBonusLeads");
       var bonusLeadsGrant = leadsInput ? parseInt(leadsInput.value, 10) : NaN;
       if (isNaN(bonusLeadsGrant) || bonusLeadsGrant < 0) bonusLeadsGrant = Math.floor((app.requestedCards || 0) / 10) * 2;
-      await fsMerge("companies", companyId, {
+      var companyOk = await fsMerge("companies", companyId, {
         name: sv(app.companyName), email: sv(app.email), phone: sv(app.phone),
-        location: sv(app.region), status: sv("active"), appId: sv(app.id),
+        location: sv(app.region), status: sv("active"), applicationId: sv(app.id),
         requestedCards: app.requestedCards || 0,
         bonusLeads: nv(bonusLeadsGrant),
         createdAt: sv(new Date().toISOString())
       });
+      // Stop here if the company record failed to write — otherwise the
+      // token/card-request inserts below would fail their FK check against
+      // companies(id) with confusing "409 Conflict" errors that mask the
+      // real problem.
+      if (!companyOk) throw new Error("Failed to create company record for " + companyId);
       // Save magic token
       await fsP("company_tokens", token, {
         companyId: sv(companyId), email: sv(app.email),
