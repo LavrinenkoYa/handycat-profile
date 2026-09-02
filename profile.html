@@ -189,7 +189,7 @@
     .pf-empty{text-align:center;padding:40px 16px;color:#908f98;font-size:14px}
   .grecaptcha-badge{visibility:hidden !important}
     </style>
-<script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 
@@ -366,11 +366,10 @@
 </div>
 
 <script>
-var PID="handycat-98416",AKEY="AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
-var STORAGE_BUCKET="handycat-98416.firebasestorage.app";
-var FS="https://firestore.googleapis.com/v1/projects/"+PID+"/databases/(default)/documents";
-var APP_ID="1:299592863157:web:1762bf7633443ae2c89dfc";
-var RECAPTCHA_KEY="6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD";
+var SB_URL="https://leiztsecokpeombovobc.supabase.co";
+var SB_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s";
+var sb=window.supabase.createClient(SB_URL,SB_ANON_KEY);
+var STORAGE_BUCKET="photos";
 var I18N = {
  "en": {
   "loading_profile": "Loading your profile...",
@@ -785,40 +784,6 @@ function applyStaticTranslations(){
   });
 }
 
-var _appCheckToken=null,_appCheckExpiry=0;
-async function getAppCheckToken(){
-  if(_appCheckToken&&Date.now()<_appCheckExpiry)return _appCheckToken;
-  try{
-    var waited=0;
-    while(typeof grecaptcha==="undefined"&&waited<50){
-      await new Promise(function(r){setTimeout(r,100);});
-      waited++;
-    }
-    if(typeof grecaptcha==="undefined"){console.warn("AppCheck: timeout");return null;}
-    var rcToken=await new Promise(function(resolve){
-      grecaptcha.ready(function(){
-        grecaptcha.execute(RECAPTCHA_KEY,{action:"firebase"})
-          .then(function(t){resolve(t);})
-          .catch(function(e){console.warn("AppCheck execute failed",e);resolve(null);});
-      });
-    });
-    if(!rcToken)return null;
-    var url="https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+encodeURIComponent(APP_ID)+":exchangeRecaptchaV3Token?key="+AKEY;
-    var r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recaptchaV3Token:rcToken})});
-    if(!r.ok){var e=await r.text();console.error("AppCheck exchange failed "+r.status,e);return null;}
-    var d=await r.json();
-    _appCheckToken=d.token;
-    _appCheckExpiry=Date.now()+(Number((d.ttl||"3600s").replace("s",""))-60)*1000;
-    console.log("AppCheck: success!");
-    return _appCheckToken;
-  }catch(e){console.warn("AppCheck error:",e);return null;}
-}
-async function addAppCheck(options){
-  var token=await getAppCheckToken();
-  if(token){options=options||{};options.headers=options.headers||{};options.headers["X-Firebase-AppCheck"]=token;}
-  return options;
-}
-var STORAGE="https://firebasestorage.googleapis.com/v0/b/"+STORAGE_BUCKET+"/o";
 
 // CATS is now computed live from getCats() so labels follow the current language;
 // kept as a var (not const) for compatibility with existing references below.
@@ -834,28 +799,27 @@ var S={
 };
 
 // ── FIRESTORE ─────────────────────────────────────────────────
-async function fsGet(c,id){var _gopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,_gopts);if(!r.ok)return null;var d=await r.json();return{id:d.name.split("/").pop(),...pf(d.fields)};}
-async function fsQ(c,filters,lim){var body={structuredQuery:{from:[{collectionId:c}],limit:lim||100}};function mkF(f){return{fieldFilter:{field:{fieldPath:f.field},op:f.op||"EQUAL",value:{stringValue:f.value}}};}if(filters&&filters.length===1)body.structuredQuery.where=mkF(filters[0]);else if(filters&&filters.length>1)body.structuredQuery.where={compositeFilter:{op:"AND",filters:filters.map(mkF)}};var _qopts=await addAppCheck({method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});var r=await fetch(FS+":runQuery?key="+AKEY,_qopts);if(!r.ok)return[];var rows=await r.json();return rows.filter(function(x){return x.document;}).map(function(x){return{id:x.document.name.split("/").pop(),...pf(x.document.fields)};});}
-async function fsP(c,id,fields){var opts=await addAppCheck({method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:fields})});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,opts);return r.ok;}
-async function fsMerge(c,id,nf){var _gopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,_gopts);var ex={};if(r.ok){var d=await r.json();ex=d.fields||{};}var m=Object.assign({},ex,nf);var wr=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:m})});return wr.ok;}
-function pf(f){if(!f)return{};var res={};Object.keys(f).forEach(function(k){var v=f[k];if(v.stringValue!==undefined)res[k]=v.stringValue;else if(v.integerValue!==undefined)res[k]=Number(v.integerValue);else if(v.doubleValue!==undefined)res[k]=Number(v.doubleValue);else if(v.booleanValue!==undefined)res[k]=v.booleanValue;else if(v.arrayValue)res[k]=(v.arrayValue.values||[]).map(function(x){return x.stringValue||String(x.integerValue||x.doubleValue||"");});else res[k]=null;});return res;}
-function sv(v){return{stringValue:String(v||"")};}
+function toSnake(s){return s.replace(/[A-Z]/g,function(m){return "_"+m.toLowerCase();});}
+function toCamel(s){return s.replace(/_([a-z0-9])/g,function(_,c){return c.toUpperCase();});}
+function rowToCamel(row){if(!row)return null;var out={};Object.keys(row).forEach(function(k){out[toCamel(k)]=row[k];});return out;}
+function fieldsToSnake(obj){var out={};Object.keys(obj).forEach(function(k){out[toSnake(k)]=obj[k];});return out;}
+async function fsGet(c,id){var res=await sb.from(c).select("*").eq("id",id).maybeSingle();if(res.error||!res.data)return null;return rowToCamel(res.data);}
+async function fsQ(c,filters,lim){var q=sb.from(c).select("*").limit(lim||100);(filters||[]).forEach(function(f){var col=f.field==="companyIds"?"company_id":toSnake(f.field);q=q.eq(col,f.value);});var res=await q;if(res.error||!res.data)return[];return res.data.map(rowToCamel);}
+async function fsP(c,id,fields){var row=fieldsToSnake(fields);row.id=id;var res=await sb.from(c).upsert(row);return!res.error;}
+async function fsMerge(c,id,nf){var row=fieldsToSnake(nf);row.id=id;var res=await sb.from(c).upsert(row);return!res.error;}
+function sv(v){return v==null?"":String(v);}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");}
-function nv(v){return{doubleValue:Number(v||0)};}
-function bv(v){return{booleanValue:!!v};}
-function av(arr){return{arrayValue:{values:(arr||[]).map(function(x){return{stringValue:x};})}};}
+function nv(v){return Number(v||0);}
+function bv(v){return!!v;}
+function av(arr){return arr||[];}
 
 // ── STORAGE ───────────────────────────────────────────────────
 async function uploadPhoto(file, path) {
   try {
-    var encPath = encodeURIComponent(path);
-    var r = await fetch(STORAGE+"?name="+encPath+"&key="+AKEY, {
-      method:"POST",
-      headers:{"Content-Type": file.type},
-      body: file
-    });
-    if (!r.ok) return null;
-    return STORAGE+"/"+encPath+"?alt=media";
+    var res = await sb.storage.from(STORAGE_BUCKET).upload(path, file, {contentType: file.type, upsert: true});
+    if (res.error) return null;
+    var pub = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    return pub.data.publicUrl;
   } catch(e) { return null; }
 }
 

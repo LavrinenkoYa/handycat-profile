@@ -341,7 +341,7 @@
     .lang-switcher-opt:hover{background:#f6f6f6}
     .lang-switcher-opt.active{background:#eef4fb;color:#185FA5}
     </style>
-<script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M2 5h18M2 11h18M2 17h18" stroke="#343330" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -1243,57 +1243,34 @@ function setLang(lang){
     else if (pid==="cp-orders") renderOrders();
   }
 }
-var PID="handycat-98416",AKEY="AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
-var FS="https://firestore.googleapis.com/v1/projects/"+PID+"/databases/(default)/documents";
-var APP_ID="1:299592863157:web:1762bf7633443ae2c89dfc";
-var RECAPTCHA_KEY="6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD";
-var _appCheckToken=null,_appCheckExpiry=0;
-async function getAppCheckToken(){
-  if(_appCheckToken&&Date.now()<_appCheckExpiry)return _appCheckToken;
-  try{
-    var waited=0;
-    while(typeof grecaptcha==="undefined"&&waited<50){
-      await new Promise(function(r){setTimeout(r,100);});
-      waited++;
-    }
-    if(typeof grecaptcha==="undefined"){console.warn("AppCheck: timeout");return null;}
-    var rcToken=await new Promise(function(resolve){
-      grecaptcha.ready(function(){
-        grecaptcha.execute(RECAPTCHA_KEY,{action:"firebase"})
-          .then(function(t){resolve(t);})
-          .catch(function(e){console.warn("AppCheck execute failed",e);resolve(null);});
-      });
-    });
-    if(!rcToken)return null;
-    var url="https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+encodeURIComponent(APP_ID)+":exchangeRecaptchaV3Token?key="+AKEY;
-    var r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recaptchaV3Token:rcToken})});
-    if(!r.ok){var e=await r.text();console.error("AppCheck exchange failed "+r.status,e);return null;}
-    var d=await r.json();
-    _appCheckToken=d.token;
-    _appCheckExpiry=Date.now()+(Number((d.ttl||"3600s").replace("s",""))-60)*1000;
-    console.log("AppCheck: success!");
-    return _appCheckToken;
-  }catch(e){console.warn("AppCheck error:",e);return null;}
+var SB_URL="https://leiztsecokpeombovobc.supabase.co";
+var SB_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s";
+var sb=window.supabase.createClient(SB_URL,SB_ANON_KEY);
+function sendEmail(to,subject,html){
+  return fetch(SB_URL+"/functions/v1/send-email",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Authorization":"Bearer "+SB_ANON_KEY,"apikey":SB_ANON_KEY},
+    body:JSON.stringify({to:to,subject:subject,html:html})
+  }).then(function(r){if(!r.ok)console.warn("sendEmail: request failed",r.status);return r;})
+    .catch(function(e){console.warn("sendEmail: network error",e);});
 }
-async function addAppCheck(options){
-  var token=await getAppCheckToken();
-  if(token){options=options||{};options.headers=options.headers||{};options.headers["X-Firebase-AppCheck"]=token;}
-  return options;
-}
-var AUTH_API="https://identitytoolkit.googleapis.com/v1/accounts";
 
 var S={company:null,companyId:null,handymen:[],cards:[],orders:[],clients:{},cardFilter:"all",ordFilter:"all"};
 
 // ── FIRESTORE ─────────────────────────────────────────────────
-async function fsGet(c,id){var _gopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,_gopts);if(!r.ok)return null;var d=await r.json();return{id:d.name.split("/").pop(),...pf(d.fields)};}
-async function fsL(c,ps){var _lopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"?key="+AKEY+"&pageSize="+(ps||200));if(!r.ok)return[];var d=await r.json();if(!d.documents)return[];var _out=d.documents.map(function(x){return{id:x.name.split("/").pop(),...pf(x.fields)};});if(c==="orders")_out=_out.filter(function(o){return!o.isOnboarding;});return _out;}
-async function fsQ(c,filters,lim){var body={structuredQuery:{from:[{collectionId:c}],limit:lim||200}};function mkF(f){return{fieldFilter:{field:{fieldPath:f.field},op:f.op||"EQUAL",value:{stringValue:f.value}}};}if(filters&&filters.length===1)body.structuredQuery.where=mkF(filters[0]);else if(filters&&filters.length>1)body.structuredQuery.where={compositeFilter:{op:"AND",filters:filters.map(mkF)}};var _qopts=await addAppCheck({method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});var r=await fetch(FS+":runQuery?key="+AKEY,_qopts);if(!r.ok)return[];var rows=await r.json();var _out=rows.filter(function(x){return x.document;}).map(function(x){return{id:x.document.name.split("/").pop(),...pf(x.document.fields)};});if(c==="orders")_out=_out.filter(function(o){return!o.isOnboarding;});return _out;}
-async function fsP(c,id,fields){var opts=await addAppCheck({method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:fields})});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,opts);return r.ok;}
-async function fsMerge(c,id,nf){var _gopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,_gopts);var ex={};if(r.ok){var d=await r.json();ex=d.fields||{};}var m=Object.assign({},ex,nf);var wr=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:m})});return wr.ok;}
-function pf(f){if(!f)return{};var res={};Object.keys(f).forEach(function(k){var v=f[k];if(v.stringValue!==undefined)res[k]=v.stringValue;else if(v.integerValue!==undefined)res[k]=Number(v.integerValue);else if(v.doubleValue!==undefined)res[k]=Number(v.doubleValue);else if(v.booleanValue!==undefined)res[k]=v.booleanValue;else if(v.arrayValue)res[k]=(v.arrayValue.values||[]).map(function(x){return x.stringValue||String(x.integerValue||x.doubleValue||"");});else res[k]=null;});return res;}
-function sv(v){return{stringValue:String(v||"")};}
-function nv(v){return{doubleValue:Number(v||0)};}
-function av(a){return{arrayValue:{values:(a||[]).map(function(x){return{stringValue:x};})}};}
+function toSnake(s){return s.replace(/[A-Z]/g,function(m){return "_"+m.toLowerCase();});}
+function toCamel(s){return s.replace(/_([a-z0-9])/g,function(_,c){return c.toUpperCase();});}
+function rowToCamel(row){if(!row)return null;var out={};Object.keys(row).forEach(function(k){out[toCamel(k)]=row[k];});return out;}
+function fieldsToSnake(obj){var out={};Object.keys(obj).forEach(function(k){out[toSnake(k)]=obj[k];});return out;}
+async function fsGet(c,id){var res=await sb.from(c).select("*").eq("id",id).maybeSingle();if(res.error||!res.data)return null;return rowToCamel(res.data);}
+async function fsL(c,ps){var res=await sb.from(c).select("*").limit(ps||200);if(res.error||!res.data)return[];var _out=res.data.map(rowToCamel);if(c==="orders")_out=_out.filter(function(o){return!o.isOnboarding;});return _out;}
+async function fsQ(c,filters,lim){var q=sb.from(c).select("*").limit(lim||200);(filters||[]).forEach(function(f){var col=f.field==="companyIds"?"company_id":toSnake(f.field);q=q.eq(col,f.value);});var res=await q;if(res.error||!res.data)return[];var _out=res.data.map(rowToCamel);if(c==="orders")_out=_out.filter(function(o){return!o.isOnboarding;});return _out;}
+async function fsP(c,id,fields){var row=fieldsToSnake(fields);row.id=id;var res=await sb.from(c).upsert(row);return!res.error;}
+async function fsMerge(c,id,nf){var row=fieldsToSnake(nf);row.id=id;var res=await sb.from(c).upsert(row);return!res.error;}
+async function fsDel(c,id){var res=await sb.from(c).delete().eq("id",id);return!res.error;}
+function sv(v){return v==null?"":String(v);}
+function nv(v){return Number(v||0);}
+function av(a){return a||[];}
 
 // ── UI ────────────────────────────────────────────────────────
 function show(id){
@@ -1372,7 +1349,7 @@ async function init(){
     if(expiry<new Date()){showError(t("err_link_expired_title"),t("err_link_expired_msg"));return;}
 
     // Mark token as used ONLY after all checks pass
-    await fsMerge("company_tokens",token,{used:{booleanValue:true}});
+    await fsMerge("company_tokens",token,{used:true});
 
     // BUG FIX 2: try exact companyId first, then try without case change
     var companyId=tok.companyId;
@@ -1452,24 +1429,15 @@ async function sendMagicLink(){
   // Generate new magic token
   var token="tok-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
   await fsP("company_tokens",token,{
-    companyId:sv(companyId),email:sv(email),
-    expiresAt:sv(new Date(Date.now()+7*24*60*60*1000).toISOString()),
-    used:{booleanValue:false}
+    companyId:companyId,email:email,
+    expiresAt:new Date(Date.now()+7*24*60*60*1000).toISOString(),
+    used:false
   });
 
-  // Send email via mail collection
+  // Send sign-in email
   var dashLink="https://app.handycat.us/company?token="+token;
-  var mailId="mail-"+Date.now().toString(36);
-  await fetch(FS+"/mail/"+mailId+"?key="+AKEY, Object.assign(await addAppCheck({}),{
-    method:"PATCH",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({fields:{
-      to:sv(email),
-      message:{mapValue:{fields:{
-        subject:sv(t("email_signin_subject")),
-        html:sv("<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'><h2 style='color:#185FA5'>HandyCat</h2><p>"+t("email_signin_greeting")+"</p><p>"+t("email_signin_body")+"</p><div style='margin:24px 0'><a href='"+dashLink+"' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px'>"+t("email_signin_button")+"</a></div><p style='font-size:13px;color:#888'>"+t("email_signin_expiry")+"</p><p>"+t("email_signin_regards")+"<br><strong>"+t("email_signin_team")+"</strong></p></div>")
-      }}}
-    }})
-  }));
+  await sendEmail(email, t("email_signin_subject"),
+    "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'><h2 style='color:#185FA5'>HandyCat</h2><p>"+t("email_signin_greeting")+"</p><p>"+t("email_signin_body")+"</p><div style='margin:24px 0'><a href='"+dashLink+"' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px'>"+t("email_signin_button")+"</a></div><p style='font-size:13px;color:#888'>"+t("email_signin_expiry")+"</p><p>"+t("email_signin_regards")+"<br><strong>"+t("email_signin_team")+"</strong></p></div>");
 
   setLoading(btn,false);
   document.getElementById("magicSent").style.display="block";
@@ -1640,11 +1608,9 @@ async function saveHM(){
 function delHM(id){
   if(!confirm(t("confirm_delete_hm")))return;
   (async function(){
-    var _dd=await addAppCheck({method:"DELETE"});
-    fetch(FS+"/handymen/"+id+"?key="+AKEY,_dd).then(function(){
-      S.handymen=S.handymen.filter(function(h){return h.id!==id;});
-      renderHM();toast(t("toast_hm_deleted"));
-    });
+    await fsDel("handymen",id);
+    S.handymen=S.handymen.filter(function(h){return h.id!==id;});
+    renderHM();toast(t("toast_hm_deleted"));
   })();
 }
 
@@ -1730,36 +1696,26 @@ async function submitCardRequest(){
   try {
     var reqId="cardreq-"+Date.now().toString(36);
     await fsP("card_requests",reqId,{
-      companyId:sv(S.companyId),
-      companyName:sv(esc(S.company.name) || ""),
-      email:sv(S.company.email||""),
-      count:{integerValue:String(Number(count))},
-      notes:sv(notes),
-      status:sv("pending"),
-      createdAt:sv(new Date().toISOString())
+      companyId:S.companyId,
+      companyName:esc(S.company.name) || "",
+      email:S.company.email||"",
+      count:Number(count),
+      notes:notes,
+      status:"pending",
+      createdAt:new Date().toISOString()
     });
     // Email admin
-    var mailId="mail-"+Date.now().toString(36);
-    await fetch(FS+"/mail/"+mailId+"?key="+AKEY, Object.assign(await addAppCheck({}),{
-      method:"PATCH",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({fields:{
-        to:sv("designlavrinenko@gmail.com"),
-        message:{mapValue:{fields:{
-          subject:sv("&#x1F4B3; Card request: "+(esc(S.company.name) || "")+" needs "+count+" cards"),
-          html:sv(
-            "<div style='font-family:sans-serif;max-width:600px;padding:24px'>"+
-            "<h2 style='color:#185FA5'>HandyCat — New Card Request</h2>"+
-            "<table style='width:100%;border-collapse:collapse'>"+
-            "<tr><td style='padding:8px 0;color:#888'>Company</td><td style='font-weight:600'>"+(esc(S.company.name) || "")+"</td></tr>"+
-            "<tr><td style='padding:8px 0;color:#888'>Cards needed</td><td style='font-weight:700;font-size:18px;color:#185FA5'>"+count+"</td></tr>"+
-            "<tr><td style='padding:8px 0;color:#888'>Notes</td><td>"+(notes||"—")+"</td></tr>"+
-            "</table>"+
-            "<div style='margin-top:20px'><a href='https://app.handycat.us/admin.html' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600'>Review in Admin &#x2192;</a></div>"+
-            "</div>"
-          )
-        }}}
-      }})
-    }));
+    await sendEmail("designlavrinenko@gmail.com",
+      "\u{1F4B3} Card request: "+(esc(S.company.name) || "")+" needs "+count+" cards",
+      "<div style='font-family:sans-serif;max-width:600px;padding:24px'>"+
+      "<h2 style='color:#185FA5'>HandyCat — New Card Request</h2>"+
+      "<table style='width:100%;border-collapse:collapse'>"+
+      "<tr><td style='padding:8px 0;color:#888'>Company</td><td style='font-weight:600'>"+(esc(S.company.name) || "")+"</td></tr>"+
+      "<tr><td style='padding:8px 0;color:#888'>Cards needed</td><td style='font-weight:700;font-size:18px;color:#185FA5'>"+count+"</td></tr>"+
+      "<tr><td style='padding:8px 0;color:#888'>Notes</td><td>"+(notes||"—")+"</td></tr>"+
+      "</table>"+
+      "<div style='margin-top:20px'><a href='https://app.handycat.us/admin.html' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600'>Review in Admin &#x2192;</a></div>"+
+      "</div>");
     setLoading(btn,false);
     closeModal("mReqCards");
     toast(t("toast_request_sent"));
@@ -1780,36 +1736,26 @@ async function submitLeadRequest(){
   try {
     var reqId="leadreq-"+Date.now().toString(36);
     await fsP("lead_requests",reqId,{
-      companyId:sv(S.companyId),
-      companyName:sv(esc(S.company.name) || ""),
-      email:sv(S.company.email||""),
-      count:{integerValue:String(Number(count))},
-      notes:sv(notes),
-      status:sv("pending"),
-      createdAt:sv(new Date().toISOString())
+      companyId:S.companyId,
+      companyName:esc(S.company.name) || "",
+      email:S.company.email||"",
+      count:Number(count),
+      notes:notes,
+      status:"pending",
+      createdAt:new Date().toISOString()
     });
     // Email admin
-    var mailId="mail-"+Date.now().toString(36);
-    await fetch(FS+"/mail/"+mailId+"?key="+AKEY, Object.assign(await addAppCheck({}),{
-      method:"PATCH",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({fields:{
-        to:sv("designlavrinenko@gmail.com"),
-        message:{mapValue:{fields:{
-          subject:sv("&#x1F3AF; Lead request: "+(esc(S.company.name) || "")+" needs "+count+" leads"),
-          html:sv(
-            "<div style='font-family:sans-serif;max-width:600px;padding:24px'>"+
-            "<h2 style='color:#185FA5'>HandyCat — New Bonus Leads Request</h2>"+
-            "<table style='width:100%;border-collapse:collapse'>"+
-            "<tr><td style='padding:8px 0;color:#888'>Company</td><td style='font-weight:600'>"+(esc(S.company.name) || "")+"</td></tr>"+
-            "<tr><td style='padding:8px 0;color:#888'>Leads needed</td><td style='font-weight:700;font-size:18px;color:#185FA5'>"+count+"</td></tr>"+
-            "<tr><td style='padding:8px 0;color:#888'>Notes</td><td>"+(notes||"—")+"</td></tr>"+
-            "</table>"+
-            "<div style='margin-top:20px'><a href='https://app.handycat.us/admin.html' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600'>Review in Admin &#x2192;</a></div>"+
-            "</div>"
-          )
-        }}}
-      }})
-    }));
+    await sendEmail("designlavrinenko@gmail.com",
+      "\u{1F3AF} Lead request: "+(esc(S.company.name) || "")+" needs "+count+" leads",
+      "<div style='font-family:sans-serif;max-width:600px;padding:24px'>"+
+      "<h2 style='color:#185FA5'>HandyCat — New Bonus Leads Request</h2>"+
+      "<table style='width:100%;border-collapse:collapse'>"+
+      "<tr><td style='padding:8px 0;color:#888'>Company</td><td style='font-weight:600'>"+(esc(S.company.name) || "")+"</td></tr>"+
+      "<tr><td style='padding:8px 0;color:#888'>Leads needed</td><td style='font-weight:700;font-size:18px;color:#185FA5'>"+count+"</td></tr>"+
+      "<tr><td style='padding:8px 0;color:#888'>Notes</td><td>"+(notes||"—")+"</td></tr>"+
+      "</table>"+
+      "<div style='margin-top:20px'><a href='https://app.handycat.us/admin.html' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600'>Review in Admin &#x2192;</a></div>"+
+      "</div>");
     setLoading(btn,false);
     closeModal("mReqLeads");
     toast(t("toast_leads_request_sent"));

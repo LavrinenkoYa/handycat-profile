@@ -533,7 +533,7 @@
     .lang-switcher-opt:hover{background:#f6f6f6}
     .lang-switcher-opt.active{background:#eef4fb;color:#185FA5}
     </style>
-  <script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 
@@ -2831,55 +2831,12 @@ function setLang(lang){
   else if (pid === "page-co-detail" && typeof cdId !== "undefined" && cdId) { renderCDCards(); renderCDHMTable(cdHM||[]); }
   else if (pid === "page-pool-batch-detail") renderPoolDetail();
 }
-var PID = "handycat-98416";
 var AKEY = "AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
 var BURL = "https://app.handycat.us";
-var FS = "https://firestore.googleapis.com/v1/projects/" + PID + "/databases/(default)/documents";
 var AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
-var APP_ID = "1:299592863157:web:1762bf7633443ae2c89dfc";
-var RECAPTCHA_KEY = "6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD";
-var _appCheckToken = null, _appCheckExpiry = 0;
-
-async function getAppCheckToken() {
-  if (_appCheckToken && Date.now() < _appCheckExpiry) return _appCheckToken;
-  try {
-    // Wait up to 5 seconds for reCAPTCHA to load
-    var waited = 0;
-    while (typeof grecaptcha === "undefined" && waited < 50) {
-      await new Promise(function(r) { setTimeout(r, 100); });
-      waited++;
-    }
-    if (typeof grecaptcha === "undefined") {
-      console.warn("AppCheck: reCAPTCHA not available after 5s");
-      return null;
-    }
-    var rcToken = await new Promise(function(resolve) {
-      grecaptcha.ready(function() {
-        grecaptcha.execute(RECAPTCHA_KEY, {action:"firebase"})
-          .then(function(t) { console.log("AppCheck: reCAPTCHA token ok, length="+t.length); resolve(t); })
-          .catch(function(e) { console.warn("AppCheck: execute failed", e); resolve(null); });
-      });
-    });
-    if (!rcToken) { console.warn("AppCheck: no reCAPTCHA token"); return null; }
-    var url = "https://firebaseappcheck.googleapis.com/v1/projects/" + PID + "/apps/" + encodeURIComponent(APP_ID) + ":exchangeRecaptchaV3Token?key=" + AKEY;
-    var r = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({recaptchaV3Token: rcToken})});
-    if (!r.ok) {
-      var errBody = await r.text();
-      console.error("AppCheck: exchange failed " + r.status, errBody);
-      return null;
-    }
-    var d = await r.json();
-    _appCheckToken = d.token;
-    _appCheckExpiry = Date.now() + (Number((d.ttl||"3600s").replace("s","")) - 60) * 1000;
-    console.log("AppCheck: success!");
-    return _appCheckToken;
-  } catch(e) { console.warn("AppCheck error:", e); return null; }
-}
-async function addAppCheck(options) {
-  var token = await getAppCheckToken();
-  if (token) { options = options||{}; options.headers = options.headers||{}; options.headers["X-Firebase-AppCheck"] = token; }
-  return options;
-}
+var SB_URL = "https://leiztsecokpeombovobc.supabase.co";
+var SB_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s";
+var sb = window.supabase.createClient(SB_URL, SB_ANON_KEY);
 
 // ── AUTH ──────────────────────────────────────────────────────
 var currentIdToken = null;
@@ -3055,77 +3012,71 @@ function logout() {
 })();
 
 // ── FIRESTORE ─────────────────────────────────────────────────
+function toSnake(s) { return s.replace(/[A-Z]/g, function(m) { return "_" + m.toLowerCase(); }); }
+function toCamel(s) { return s.replace(/_([a-z0-9])/g, function(_, c) { return c.toUpperCase(); }); }
+function rowToCamel(row) {
+  var out = {};
+  Object.keys(row || {}).forEach(function(k) { out[toCamel(k)] = row[k]; });
+  return out;
+}
+function fieldsToSnake(obj) {
+  var out = {};
+  Object.keys(obj || {}).forEach(function(k) { out[toSnake(k)] = obj[k]; });
+  return out;
+}
 async function fsGet(c, id) {
-  var _gopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,_gopts);
-  if (!r.ok) return null;
-  var d = await r.json();
-  return { id: d.name.split("/").pop(), ...pf(d.fields) };
+  var res = await sb.from(c).select("*").eq("id", id).maybeSingle();
+  if (res.error || !res.data) return null;
+  return rowToCamel(res.data);
 }
 async function fsL(c, ps) {
-  var _lopts=await addAppCheck({});var r=await fetch(FS+"/"+c+"?key="+AKEY+"&pageSize="+ (ps || 300));
-  if (!r.ok) return [];
-  var d = await r.json();
-  if (!d.documents) return [];
-  var _out = d.documents.map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
+  var res = await sb.from(c).select("*").limit(ps || 300);
+  if (res.error || !res.data) return [];
+  var _out = res.data.map(rowToCamel);
   if (c === "orders") _out = _out.filter(function(o) { return !o.isOnboarding; });
   return _out;
 }
 async function fsQ(c, filters, lim) {
-  var body = { structuredQuery: { from: [{ collectionId: c }], limit: lim || 500 } };
-  function mkF(f) { return { fieldFilter: { field: { fieldPath: f.field }, op: f.op || "EQUAL", value: { stringValue: f.value } } }; }
-  if (filters && filters.length === 1) body.structuredQuery.where = mkF(filters[0]);
-  else if (filters && filters.length > 1) body.structuredQuery.where = { compositeFilter: { op: "AND", filters: filters.map(mkF) } };
-  var r = await fetch(FS + ":runQuery?key=" + AKEY, await addAppCheck({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }));
-  if (!r.ok) return [];
-  var rows = await r.json();
-  var _out = rows.filter(function(x) { return x.document; }).map(function(x) { return { id: x.document.name.split("/").pop(), ...pf(x.document.fields) }; });
+  var q = sb.from(c).select("*").limit(lim || 500);
+  (filters || []).forEach(function(f) {
+    var col = f.field === "companyIds" ? "company_id" : toSnake(f.field);
+    q = q.eq(col, f.value);
+  });
+  var res = await q;
+  if (res.error || !res.data) return [];
+  var _out = res.data.map(rowToCamel);
   if (c === "orders") _out = _out.filter(function(o) { return !o.isOnboarding; });
   return _out;
 }
 async function fsP(c, id, fields) {
-  var opts = await addAppCheck({ method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields }) });
-  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, opts);
-  return r.ok;
+  var row = fieldsToSnake(fields);
+  row.id = id;
+  var res = await sb.from(c).upsert(row);
+  return !res.error;
 }
-// Safe partial update: read existing doc, merge new fields, write back
-async function fsPatchFields(c, id, newFields) {
-  var readOpts = await addAppCheck({});
-  var r = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, readOpts);
-  var existing = {};
-  if (r.ok) {
-    var doc = await r.json();
-    existing = doc.fields || {};
-  }
-  var merged = Object.assign({}, existing, newFields);
-  var wr = await fetch(FS + "/" + c + "/" + id + "?key=" + AKEY, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fields: merged })
-  });
-  return wr.ok;
+async function fsMerge(c, id, newFields) {
+  var row = fieldsToSnake(newFields);
+  // Try a real partial UPDATE first: Postgres validates NOT NULL constraints
+  // against the full proposed row on upsert's INSERT path even when the row
+  // already exists and only DO UPDATE would apply, so a partial upsert can
+  // fail on tables with required columns that aren't part of this patch.
+  // An UPDATE only touches the given columns, matching Firestore merge:true.
+  var upd = await sb.from(c).update(row).eq("id", id).select("id");
+  if (!upd.error && upd.data && upd.data.length > 0) return true;
+  // No existing row (or update failed) — fall back to upsert to create it.
+  row.id = id;
+  var res = await sb.from(c).upsert(row);
+  return !res.error;
 }
-var fsMerge = fsPatchFields;
+var fsPatchFields = fsMerge;
 async function fsDel(c, id) {
-  var _dopts=await addAppCheck({method:"DELETE"});var r=await fetch(FS+"/"+c+"/"+id+"?key="+AKEY,_dopts);
-  return r.ok;
+  var res = await sb.from(c).delete().eq("id", id);
+  return !res.error;
 }
-function pf(f) {
-  if (!f) return {};
-  var res = {};
-  Object.keys(f).forEach(function(k) {
-    var v = f[k];
-    if (v.stringValue !== undefined) res[k] = v.stringValue;
-    else if (v.integerValue !== undefined) res[k] = Number(v.integerValue);
-    else if (v.doubleValue !== undefined) res[k] = Number(v.doubleValue);
-    else if (v.booleanValue !== undefined) res[k] = v.booleanValue;
-    else if (v.arrayValue) res[k] = (v.arrayValue.values || []).map(function(x) { return x.stringValue || String(x.integerValue || x.doubleValue || ""); });
-    else res[k] = null;
-  });
-  return res;
-}
-function sv(v) { return { stringValue: String(v || "") }; }
-function nv(v) { return { doubleValue: Number(v || 0) }; }
-function av(a) { return { arrayValue: { values: (a || []).map(function(x) { return { stringValue: x }; }) } }; }
+function pf(f) { return f || {}; }
+function sv(v) { return v == null ? "" : String(v); }
+function nv(v) { return Number(v || 0); }
+function av(a) { return a || []; }
 // XSS protection — always use esc() when inserting user data into innerHTML
 function esc(s) {
   return String(s || "")
@@ -3666,8 +3617,8 @@ async function deleteCo() {
         company: sv(JSON.stringify(co)),
         cards: sv(JSON.stringify(cards)),
         handymen: sv(JSON.stringify(handymen)),
-        deletedCards: { booleanValue: delCards },
-        deletedHandymen: { booleanValue: delHM }
+        deletedCards: delCards,
+        deletedHandymen: delHM
       };
       var archiveOk = await fsP("archive", archiveId, archiveData);
       if (!archiveOk) {
@@ -4262,7 +4213,7 @@ async function createShortfallRequest(count) {
     companyId: sv(cdId),
     companyName: sv(co.name || cdId),
     email: sv(co.email || ""),
-    count: { integerValue: String(count) },
+    count: count,
     notes: sv(t("note_auto_shortfall")),
     status: sv("pending"),
     createdAt: sv(new Date().toISOString())
@@ -4652,18 +4603,12 @@ function filterOrds(s, btn) {
 
 // ── EMAIL ─────────────────────────────────────────────────────
 async function sendEmail(to, subject, html) {
-  var mailId = "mail-" + Date.now().toString(36);
-  return fetch(FS + "/mail/" + mailId + "?key=" + AKEY, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fields: {
-      to: sv(to),
-      message: { mapValue: { fields: {
-        subject: sv(subject),
-        html: sv(html)
-      }}}
-    }})
-  });
+  return fetch(SB_URL + "/functions/v1/send-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + SB_ANON_KEY, "apikey": SB_ANON_KEY },
+    body: JSON.stringify({ to: to, subject: subject, html: html })
+  }).then(function(r) { if (!r.ok) console.warn("sendEmail: request failed", r.status); return r; })
+    .catch(function(e) { console.warn("sendEmail: network error", e); });
 }
 
 function emailApproved(app, dashLink) {
@@ -4733,10 +4678,7 @@ var APP_ST = {
 async function loadApps() {
   var tb = document.getElementById("appsBody");
   tb.innerHTML = '<tr><td colspan="8" class="empty">' + t("loading_text") + '</td></tr>';
-  var r = await fetch(FS + "/company_applications?key=" + AKEY + "&pageSize=200", await addAppCheck({}));
-  if (!r.ok) { tb.innerHTML = '<tr><td colspan="8" class="empty">' + t("toast_error_loading") + '</td></tr>'; return; }
-  var d = await r.json();
-  allApps = (d.documents || []).map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
+  allApps = await fsL("company_applications", 200);
   allApps.sort(function(a, b) { return (b.createdAt || "").localeCompare(a.createdAt || ""); });
   renderApps();
 }
@@ -4765,10 +4707,7 @@ function cardReqGoPage(p) { cardReqPage = p; renderCardReqs(); }
 async function loadCardRequests() {
   var tb = document.getElementById("cardReqBody");
   tb.innerHTML = '<tr><td colspan="6" class="empty">' + t("loading_text") + '</td></tr>';
-  var r = await fetch(FS + "/card_requests?key=" + AKEY + "&pageSize=200", await addAppCheck({}));
-  if (!r.ok) { tb.innerHTML = '<tr><td colspan="6" class="empty">' + t("empty_no_requests_yet") + '</td></tr>'; return; }
-  var d = await r.json();
-  allCardReqs = (d.documents || []).map(function(x) { return { id: x.name.split("/").pop(), ...pf(x.fields) }; });
+  allCardReqs = await fsL("card_requests", 200);
   allCardReqs.sort(function(a, b) { return (b.createdAt || "").localeCompare(a.createdAt || ""); });
   // Update badge
   var pendingCR = allCardReqs.filter(function(r) { return r.status === "pending"; }).length;
@@ -5314,7 +5253,7 @@ async function doAssignCards() {
     await fsMerge('card_requests', reqId, {
       status:      sv('approved'),
       approvedAt:  sv(now),
-      fulfilledCount: { integerValue: String(count) }
+      fulfilledCount: count
     });
 
     // Update local state
@@ -5344,11 +5283,8 @@ async function approveCardReq(btn, reqId, count, companyId) {
   var chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   var pfx = "hc";
 
-  // Get next printId — try counter doc first, fallback to scanning all cards
-  var counterDoc = await fsGet("counters", "nfc_cards");
-  var lastNum = (counterDoc && counterDoc.lastId) ? Number(counterDoc.lastId) : 0;
-
-  // Always scan for actual max to prevent duplicates (counter may be stale)
+  // Get next printId by scanning all cards for the actual max (no counters table in Supabase)
+  var lastNum = 0;
   try {
     var allCards = await fsL("nfc_cards", 5000);
     allCards.forEach(function(c) {
@@ -5387,22 +5323,19 @@ async function approveCardReq(btn, reqId, count, companyId) {
     var token = pfx + "-";
     for (var j = 0; j < 8; j++) token += chars[Math.floor(Math.random() * chars.length)];
     currentNum++;
-    var printId = String(currentNum).padStart(6, "0");
+    var printId = currentNum;
     var ok = await fsP("nfc_cards", token, {
       companyId: sv(companyId),
       requestId: sv(reqId),
-      printId: sv(printId),
+      printId: printId,
       status: sv("unassigned"),
       clientId: sv(""), handymanId: sv(""),
       createdAt: sv(new Date().toISOString())
     });
     if (ok) {
       saved++;
-      // Update counter and progress
-      await Promise.all([
-        fsMerge("card_requests", reqId, { generatedCount: { integerValue: String(saved) } }),
-        fsP("counters", "nfc_cards", { lastId: { integerValue: String(currentNum) } })
-      ]);
+      // Update progress
+      await fsMerge("card_requests", reqId, { generatedCount: saved });
     }
   }
 
@@ -5410,30 +5343,21 @@ async function approveCardReq(btn, reqId, count, companyId) {
   await fsMerge("card_requests", reqId, {
     status: sv("approved"),
     approvedAt: sv(new Date().toISOString()),
-    generatedCount: { integerValue: String(saved) }
+    generatedCount: saved
   });
 
   // Email company only when all done
   var req = allCardReqs.find(function(r) { return r.id === reqId; });
   if (req && req.email) {
-    var mailId = "mail-" + Date.now().toString(36);
-    await fetch(FS + "/mail/" + mailId + "?key=" + AKEY, Object.assign(await addAppCheck({}), {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fields: {
-        to: sv(req.email),
-        message: { mapValue: { fields: {
-          subject: sv(tf("email_cards_ready_subject", {company: esc(req.companyName || "")})),
-          html: sv(
-            "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>" +
-            "<h2 style='color:#185FA5'>HandyCat</h2>" +
-            "<p>" + tf("email_cards_ready_body1", {count: saved}) + "</p>" +
-            "<p>" + t("email_cards_ready_body2") + "</p>" +
-            "<div style='margin:24px 0'><a href='https://app.handycat.us/company' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600'>" + t("email_open_dashboard_generic") + "</a></div>" +
-            "<p>" + t("email_signature") + "</p></div>"
-          )
-        }}}
-      }})
-    }));
+    await sendEmail(req.email,
+      tf("email_cards_ready_subject", {company: esc(req.companyName || "")}),
+      "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>" +
+      "<h2 style='color:#185FA5'>HandyCat</h2>" +
+      "<p>" + tf("email_cards_ready_body1", {count: saved}) + "</p>" +
+      "<p>" + t("email_cards_ready_body2") + "</p>" +
+      "<div style='margin:24px 0'><a href='https://app.handycat.us/company' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600'>" + t("email_open_dashboard_generic") + "</a></div>" +
+      "<p>" + t("email_signature") + "</p></div>"
+    );
   }
 
   var idx = allCardReqs.findIndex(function(r) { return r.id === reqId; });
@@ -5491,17 +5415,10 @@ async function rejectCardReq(reqId) {
   await fsMerge("card_requests", reqId, { status: sv("rejected"), rejectedAt: sv(new Date().toISOString()) });
   var req = allCardReqs.find(function(r) { return r.id === reqId; });
   if (req && req.email) {
-    var mailId = "mail-" + Date.now().toString(36);
-    await fetch(FS + "/mail/" + mailId + "?key=" + AKEY, {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fields: {
-        to: sv(req.email),
-        message: { mapValue: { fields: {
-          subject: sv(t("email_card_request_update_subject")),
-          html: sv("<div style='font-family:sans-serif;padding:32px'><h2 style='color:#185FA5'>HandyCat</h2><p>" + t("email_card_request_rejected_body") + "</p><p>" + t("email_signature") + "</p></div>")
-        }}}
-      }})
-    });
+    await sendEmail(req.email,
+      t("email_card_request_update_subject"),
+      "<div style='font-family:sans-serif;padding:32px'><h2 style='color:#185FA5'>HandyCat</h2><p>" + t("email_card_request_rejected_body") + "</p><p>" + t("email_signature") + "</p></div>"
+    );
   }
   var idx = allCardReqs.findIndex(function(r) { return r.id === reqId; });
   if (idx >= 0) allCardReqs[idx].status = "rejected";
@@ -5638,20 +5555,13 @@ async function updateAppStatus(appId, newStatus) {
   if (clickedBtn) clickedBtn.textContent = newStatus === "approved" ? t("btn_approving_progress") : t("btn_processing_progress");
   toast(t("toast_processing_request"));
 
-  // Update status in Firestore
-  var r = await fetch(FS + "/company_applications/" + appId + "?key=" + AKEY, await addAppCheck({}));
-  var existing = {};
-  if (r.ok) { var d = await r.json(); existing = d.fields || {}; }
-  var merged = Object.assign({}, existing, {
-    status: sv(newStatus),
-    adminMessage: sv(msg),
-    updatedAt: sv(new Date().toISOString())
+  // Update status in Supabase
+  var wrOk = await fsMerge("company_applications", appId, {
+    status: newStatus,
+    adminMessage: msg,
+    updatedAt: new Date().toISOString()
   });
-  var wr = await fetch(FS + "/company_applications/" + appId + "?key=" + AKEY, {
-    method: "PATCH", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fields: merged })
-  });
-  if (!wr.ok) {
+  if (!wrOk) {
     toast(t("toast_error_updating_status"));
     ["approveBtn", "revisionBtn", "rejectBtn"].forEach(function(id) {
       var b = document.getElementById(id);
@@ -5675,18 +5585,23 @@ async function updateAppStatus(appId, newStatus) {
       var leadsInput = document.getElementById("appBonusLeads");
       var bonusLeadsGrant = leadsInput ? parseInt(leadsInput.value, 10) : NaN;
       if (isNaN(bonusLeadsGrant) || bonusLeadsGrant < 0) bonusLeadsGrant = Math.floor((app.requestedCards || 0) / 10) * 2;
-      await fsMerge("companies", companyId, {
+      var companyOk = await fsMerge("companies", companyId, {
         name: sv(app.companyName), email: sv(app.email), phone: sv(app.phone),
-        location: sv(app.region), status: sv("active"), appId: sv(app.id),
-        requestedCards: { integerValue: String(app.requestedCards || 0) },
+        location: sv(app.region), status: sv("active"), applicationId: sv(app.id),
+        requestedCards: app.requestedCards || 0,
         bonusLeads: nv(bonusLeadsGrant),
         createdAt: sv(new Date().toISOString())
       });
+      // Stop here if the company record failed to write — otherwise the
+      // token/card-request inserts below would fail their FK check against
+      // companies(id) with confusing "409 Conflict" errors that mask the
+      // real problem.
+      if (!companyOk) throw new Error("Failed to create company record for " + companyId);
       // Save magic token
       await fsP("company_tokens", token, {
         companyId: sv(companyId), email: sv(app.email),
         expiresAt: sv(new Date(Date.now() + 7*24*60*60*1000).toISOString()),
-        used: { booleanValue: false }
+        used: false
       });
       // Auto-create a pending card request for the cards they asked for on
       // signup, so it shows up immediately in both the company's own dashboard
@@ -5697,7 +5612,7 @@ async function updateAppStatus(appId, newStatus) {
         await fsP("card_requests", initialReqId, {
           companyId: sv(companyId), companyName: sv(app.companyName || ""),
           email: sv(app.email || ""),
-          count: { integerValue: String(app.requestedCards) },
+          count: app.requestedCards,
           notes: sv(t("note_initial_cards_from_signup")),
           status: sv("pending"),
           createdAt: sv(new Date().toISOString())
@@ -5751,7 +5666,7 @@ async function loadAllCards() {
       _client: c.clientId ? clMap[c.clientId] : null
     });
   });
-  allCardsData.sort(function(a,b) { return (a.printId||"").localeCompare(b.printId||""); });
+  allCardsData.sort(function(a,b) { return String(a.printId||"").localeCompare(String(b.printId||"")); });
 
   // Populate company filter
   var sel = document.getElementById("acCompany");

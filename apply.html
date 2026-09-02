@@ -103,7 +103,7 @@
   .grecaptcha-badge{visibility:hidden !important}
     </style>
 </head>
-<script src="https://www.google.com/recaptcha/api.js?render=6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <body>
 <div class="container">
   <div class="sidebar">
@@ -139,7 +139,7 @@
       <div class="step-title" data-i18n="verify_title">Verify your email</div>
       <div class="step-sub" data-i18n="verify_sub">We'll send a 6-digit code to confirm it's really you before you apply.</div>
       <div class="fg"><label data-i18n="label_email_address">Email Address *</label><input id="verifyEmail" type="email" data-i18n-ph="ph_email_address" placeholder="john@fixpro.com"/></div>
-      <div class="actions">
+      <div class="actions" id="sendCodeActions">
         <button class="btn-back" disabled style="visibility:hidden" data-i18n="btn_back">Back</button>
         <button class="btn-next" id="sendCodeBtn" onclick="sendVerificationCode()"><span class="ld"></span><span data-i18n="btn_send_code">Send Code</span></button>
       </div>
@@ -363,9 +363,9 @@ function updateCustomQty(){
   cardCount=v;
   document.getElementById("pkgCustomPrice").textContent=v?fmtMoney(v*CUSTOM_RATE):"\u2014";
 }
-var PID="handycat-98416",AKEY="AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
-var APP_ID="1:299592863157:web:1762bf7633443ae2c89dfc";
-var RECAPTCHA_KEY="6LenBiUtAAAAAFrBgGqqTGnqtQ9zN2FeqJIc5raD";
+var SB_URL="https://leiztsecokpeombovobc.supabase.co";
+var SB_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s";
+var sb=window.supabase.createClient(SB_URL,SB_ANON_KEY);
 var I18N = {
  "en": {
   "logo_sub": "Company registration",
@@ -847,63 +847,18 @@ function setLang(lang){
   updatePreviewCard();
 }
 
-var FS="https://firestore.googleapis.com/v1/projects/"+PID+"/databases/(default)/documents";
-var _appCheckToken=null,_appCheckExpiry=0;
-
-async function getAppCheckToken(){
-  if(_appCheckToken&&Date.now()<_appCheckExpiry)return _appCheckToken;
-  try{
-    var waited=0;
-    while(typeof grecaptcha==="undefined"&&waited<50){
-      await new Promise(function(r){setTimeout(r,100);});
-      waited++;
-    }
-    if(typeof grecaptcha==="undefined"){console.warn("AppCheck: timeout");return null;}
-    var rcToken=await new Promise(function(resolve){
-      grecaptcha.ready(function(){
-        grecaptcha.execute(RECAPTCHA_KEY,{action:"firebase"})
-          .then(function(t){resolve(t);})
-          .catch(function(e){console.warn("AppCheck execute failed",e);resolve(null);});
-      });
-    });
-    if(!rcToken)return null;
-    var url="https://firebaseappcheck.googleapis.com/v1/projects/"+PID+"/apps/"+encodeURIComponent(APP_ID)+":exchangeRecaptchaV3Token?key="+AKEY;
-    var r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recaptchaV3Token:rcToken})});
-    if(!r.ok){var e=await r.text();console.error("AppCheck exchange failed "+r.status,e);return null;}
-    var d=await r.json();
-    _appCheckToken=d.token;
-    _appCheckExpiry=Date.now()+(Number((d.ttl||"3600s").replace("s",""))-60)*1000;
-    console.log("AppCheck: success!");
-    return _appCheckToken;
-  }catch(e){console.warn("AppCheck error:",e);return null;}
-}
-
-async function fsWithCheck(url,options){
-  var token=await getAppCheckToken();
-  options=options||{};
-  options.headers=options.headers||{};
-  if(token)options.headers["X-Firebase-AppCheck"]=token;
-  return fetch(url,options);
-}
-
 function toast(m){var e=document.getElementById("toast");e.textContent=m;e.classList.add("show");setTimeout(function(){e.classList.remove("show");},3000);}
-function sv(v){return{stringValue:String(v||"")};}
-function nv(v){return{integerValue:String(Number(v||0))};}
-function dv(v){return{doubleValue:Number(v||0)};}
+function sv(v){return v==null?"":String(v);}
+function nv(v){return Number(v||0);}
+function dv(v){return Number(v||0);}
 
 function sendEmail(to,subject,html){
-  var mailId="mail-"+Date.now().toString(36);
-  return fetch(FS+"/mail/"+mailId+"?key="+AKEY,{
-    method:"PATCH",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({fields:{
-      to:sv(to),
-      message:{mapValue:{fields:{
-        subject:sv(subject),
-        html:sv(html)
-      }}}
-    }})
-  });
+  return fetch(SB_URL+"/functions/v1/send-email",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Authorization":"Bearer "+SB_ANON_KEY,"apikey":SB_ANON_KEY},
+    body:JSON.stringify({to:to,subject:subject,html:html})
+  }).then(function(r){if(!r.ok)console.warn("sendEmail: request failed",r.status);return r;})
+    .catch(function(e){console.warn("sendEmail: network error",e);});
 }
 
 // ── EMAIL VERIFICATION (OTP gate before the application form) ──
@@ -912,7 +867,6 @@ var resendCooldownTimer=null;
 
 function isValidEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);}
 
-function verifDocUrl(email){return FS+"/email_verifications/"+encodeURIComponent(email.toLowerCase())+"?key="+AKEY;}
 
 async function sendVerificationCode(isResend){
   var email=document.getElementById("verifyEmail").value.trim();
@@ -921,18 +875,15 @@ async function sendVerificationCode(isResend){
   if(btn){btn.disabled=true;btn.classList.add("loading");}
   var code=String(Math.floor(100000+Math.random()*900000));
   try{
-    var r=await fsWithCheck(verifDocUrl(email),{
-      method:"PATCH",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({fields:{
-        code:sv(code),
-        expiresAt:sv(new Date(Date.now()+10*60*1000).toISOString()),
-        verified:{booleanValue:false},
-        attempts:nv(0),
-        createdAt:sv(new Date().toISOString())
-      }})
+    var res=await sb.from("email_verifications").upsert({
+      email: email.toLowerCase(),
+      code: code,
+      expires_at: new Date(Date.now()+10*60*1000).toISOString(),
+      verified: false,
+      attempts: 0,
+      created_at: new Date().toISOString()
     });
-    if(!r.ok){toast(t("toast_code_invalid"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
+    if(res.error){toast(t("toast_code_invalid"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
     await sendEmail(email,t("email_otp_subject"),
       "<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px'>"+
       "<h2 style='color:#185FA5'>HandyCat</h2>"+
@@ -943,6 +894,7 @@ async function sendVerificationCode(isResend){
       "</div>"
     );
     document.getElementById("codeEntryWrap").style.display="block";
+    document.getElementById("sendCodeActions").style.display="none";
     document.getElementById("verifyEmail").disabled=true;
     toast(isResend?t("toast_code_resent"):t("toast_code_sent"));
     startResendCooldown();
@@ -973,6 +925,7 @@ function startResendCooldown(){
 
 function backToEmailEntry(){
   document.getElementById("codeEntryWrap").style.display="none";
+  document.getElementById("sendCodeActions").style.display="flex";
   document.getElementById("verifyEmail").disabled=false;
   document.getElementById("verifyCode").value="";
   clearInterval(resendCooldownTimer);
@@ -985,28 +938,21 @@ async function verifyEnteredCode(){
   var btn=document.getElementById("verifyCodeBtn");
   if(btn){btn.disabled=true;btn.classList.add("loading");}
   try{
-    var r=await fsWithCheck(verifDocUrl(email),{});
-    if(!r.ok){toast(t("toast_code_expired"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
-    var d=await r.json();
-    var f=d.fields||{};
-    var storedCode=f.code?f.code.stringValue:null;
-    var expiresAt=f.expiresAt?f.expiresAt.stringValue:null;
-    var attempts=f.attempts?Number(f.attempts.integerValue||0):0;
+    var res=await sb.from("email_verifications").select("*").eq("email",email.toLowerCase()).maybeSingle();
+    if(res.error||!res.data){toast(t("toast_code_expired"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
+    var f=res.data;
+    var storedCode=f.code||null;
+    var expiresAt=f.expires_at||null;
+    var attempts=Number(f.attempts||0);
     if(attempts>=5){toast(t("toast_too_many_attempts"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
     if(!storedCode||!expiresAt||new Date(expiresAt)<new Date()){toast(t("toast_code_expired"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
     if(code!==storedCode){
-      await fsWithCheck(verifDocUrl(email),{
-        method:"PATCH",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({fields:Object.assign({},f,{attempts:nv(attempts+1)})})
-      });
+      await sb.from("email_verifications").update({attempts: attempts+1}).eq("email",email.toLowerCase());
       toast(t("toast_code_incorrect"));
       if(btn){btn.disabled=false;btn.classList.remove("loading");}
       return;
     }
-    await fsWithCheck(verifDocUrl(email),{
-      method:"PATCH",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({fields:Object.assign({},f,{verified:{booleanValue:true}})})
-    });
+    await sb.from("email_verifications").update({verified:true}).eq("email",email.toLowerCase());
     verifiedEmail=email;
     clearInterval(resendCooldownTimer);
     unlockForm(email);
@@ -1162,33 +1108,29 @@ async function submitApplication(skip){
   var totalPrice=cardCount*pricePerCard;
 
   try{
-    // Save application to Firestore with App Check
-    var r=await fsWithCheck(FS+"/company_applications/"+appId+"?key="+AKEY,{
-      method:"PATCH",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({fields:{
-        appId:sv(appId),companyName:sv(company),contactPerson:sv(contact),
-        email:sv(email),phone:sv(document.getElementById("f-phone").value.trim()),
-        address:sv(document.getElementById("f-address").value.trim()),
-        region:sv(document.getElementById("f-region").value.trim()),
-        businessType:sv(document.getElementById("f-biztype").value),
-        teamSize:sv(document.getElementById("f-teamsize").value),
-        services:{arrayValue:{values:services.map(function(s){return{stringValue:s};})}},
-        website:sv(document.getElementById("f-website").value.trim()),
-        licenseNumber:sv(document.getElementById("f-license").value.trim()),
-        yearsInBusiness:sv(document.getElementById("f-years").value),
-        insuranceProvider:sv(document.getElementById("f-insurance").value.trim()),
-        notes:sv(document.getElementById("f-notes").value.trim()),
-        licensingSkipped:sv(skip?"true":"false"),
-        requestedCards:nv(cardCount),
-        cardPackage:sv(String(selectedPackage)),
-        pricePerCard:dv(pricePerCard),
-        totalPrice:dv(totalPrice),
-        status:sv("pending"),
-        createdAt:sv(now)
-      }})
+    // Save application to Supabase
+    var res=await sb.from("company_applications").upsert({
+      id: appId, company_name: company, contact_person: contact,
+      email: email, phone: document.getElementById("f-phone").value.trim(),
+      address: document.getElementById("f-address").value.trim(),
+      region: document.getElementById("f-region").value.trim(),
+      business_type: document.getElementById("f-biztype").value,
+      team_size: document.getElementById("f-teamsize").value,
+      services: services,
+      website: document.getElementById("f-website").value.trim(),
+      license_number: document.getElementById("f-license").value.trim(),
+      years_in_business: document.getElementById("f-years").value,
+      insurance_provider: document.getElementById("f-insurance").value.trim(),
+      notes: document.getElementById("f-notes").value.trim(),
+      licensing_skipped: !!skip,
+      requested_cards: cardCount,
+      card_package: String(selectedPackage),
+      price_per_card: pricePerCard,
+      total_price: totalPrice,
+      status: "pending",
+      created_at: now
     });
-    if(!r.ok)throw new Error("Save failed");
+    if(res.error)throw new Error("Save failed");
 
     // Send confirmation email
     await sendEmail(email,
