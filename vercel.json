@@ -3,6 +3,9 @@
     { "source": "/c/:token", "destination": "/profile.html" },
     { "source": "/apply", "destination": "/apply.html" },
     { "source": "/company", "destination": "/company.html" },
-    { "source": "/ct/:token", "destination": "/profile-sb-test.html" }
+    { "source": "/ct/:token", "destination": "/profile-sb-test.html" },
+    { "source": "/apply-test", "destination": "/apply-sb-test.html" },
+    { "source": "/company-test", "destination": "/company-sb-test.html" },
+    { "source": "/admin-test", "destination": "/admin-sb-test.html" }
   ]
 }
