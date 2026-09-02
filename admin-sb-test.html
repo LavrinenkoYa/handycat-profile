@@ -4595,10 +4595,12 @@ function filterOrds(s, btn) {
 
 // ── EMAIL ─────────────────────────────────────────────────────
 async function sendEmail(to, subject, html) {
-  // TODO: no email provider wired up yet post-Supabase-migration.
-  // Needs a Supabase Edge Function + transactional email API (Resend/Postmark/etc).
-  console.warn("sendEmail: no email provider configured yet, not sent to " + to);
-  return Promise.resolve();
+  return fetch(SB_URL + "/functions/v1/send-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + SB_ANON_KEY, "apikey": SB_ANON_KEY },
+    body: JSON.stringify({ to: to, subject: subject, html: html })
+  }).then(function(r) { if (!r.ok) console.warn("sendEmail: request failed", r.status); return r; })
+    .catch(function(e) { console.warn("sendEmail: network error", e); });
 }
 
 function emailApproved(app, dashLink) {
