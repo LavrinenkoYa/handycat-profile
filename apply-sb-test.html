@@ -853,11 +853,12 @@ function nv(v){return Number(v||0);}
 function dv(v){return Number(v||0);}
 
 function sendEmail(to,subject,html){
-  // TODO: no transactional email provider wired up yet. Firestore's "Trigger Email"
-  // extension has no Supabase equivalent; needs a Supabase Edge Function + email API
-  // (Resend/Postmark/etc.) before this goes to production.
-  console.warn("sendEmail: no email provider configured yet, not sent to "+to);
-  return Promise.resolve();
+  return fetch(SB_URL+"/functions/v1/send-email",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Authorization":"Bearer "+SB_ANON_KEY,"apikey":SB_ANON_KEY},
+    body:JSON.stringify({to:to,subject:subject,html:html})
+  }).then(function(r){if(!r.ok)console.warn("sendEmail: request failed",r.status);return r;})
+    .catch(function(e){console.warn("sendEmail: network error",e);});
 }
 
 // ── EMAIL VERIFICATION (OTP gate before the application form) ──
