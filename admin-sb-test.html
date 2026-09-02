@@ -3056,6 +3056,14 @@ async function fsP(c, id, fields) {
 }
 async function fsMerge(c, id, newFields) {
   var row = fieldsToSnake(newFields);
+  // Try a real partial UPDATE first: Postgres validates NOT NULL constraints
+  // against the full proposed row on upsert's INSERT path even when the row
+  // already exists and only DO UPDATE would apply, so a partial upsert can
+  // fail on tables with required columns that aren't part of this patch.
+  // An UPDATE only touches the given columns, matching Firestore merge:true.
+  var upd = await sb.from(c).update(row).eq("id", id).select("id");
+  if (!upd.error && upd.data && upd.data.length > 0) return true;
+  // No existing row (or update failed) — fall back to upsert to create it.
   row.id = id;
   var res = await sb.from(c).upsert(row);
   return !res.error;
@@ -5653,7 +5661,7 @@ async function loadAllCards() {
       _client: c.clientId ? clMap[c.clientId] : null
     });
   });
-  allCardsData.sort(function(a,b) { return (a.printId||"").localeCompare(b.printId||""); });
+  allCardsData.sort(function(a,b) { return String(a.printId||"").localeCompare(String(b.printId||"")); });
 
   // Populate company filter
   var sel = document.getElementById("acCompany");
