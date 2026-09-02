@@ -1247,10 +1247,12 @@ var SB_URL="https://leiztsecokpeombovobc.supabase.co";
 var SB_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s";
 var sb=window.supabase.createClient(SB_URL,SB_ANON_KEY);
 function sendEmail(to,subject,html){
-  // TODO: no transactional email provider wired up yet. Needs a Supabase Edge
-  // Function + email API (Resend/Postmark/etc.) before this goes to production.
-  console.warn("sendEmail: no email provider configured yet, not sent to "+to);
-  return Promise.resolve();
+  return fetch(SB_URL+"/functions/v1/send-email",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Authorization":"Bearer "+SB_ANON_KEY,"apikey":SB_ANON_KEY},
+    body:JSON.stringify({to:to,subject:subject,html:html})
+  }).then(function(r){if(!r.ok)console.warn("sendEmail: request failed",r.status);return r;})
+    .catch(function(e){console.warn("sendEmail: network error",e);});
 }
 
 var S={company:null,companyId:null,handymen:[],cards:[],orders:[],clients:{},cardFilter:"all",ordFilter:"all"};
