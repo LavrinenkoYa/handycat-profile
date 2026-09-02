@@ -139,7 +139,7 @@
       <div class="step-title" data-i18n="verify_title">Verify your email</div>
       <div class="step-sub" data-i18n="verify_sub">We'll send a 6-digit code to confirm it's really you before you apply.</div>
       <div class="fg"><label data-i18n="label_email_address">Email Address *</label><input id="verifyEmail" type="email" data-i18n-ph="ph_email_address" placeholder="john@fixpro.com"/></div>
-      <div class="actions">
+      <div class="actions" id="sendCodeActions">
         <button class="btn-back" disabled style="visibility:hidden" data-i18n="btn_back">Back</button>
         <button class="btn-next" id="sendCodeBtn" onclick="sendVerificationCode()"><span class="ld"></span><span data-i18n="btn_send_code">Send Code</span></button>
       </div>
@@ -894,6 +894,7 @@ async function sendVerificationCode(isResend){
       "</div>"
     );
     document.getElementById("codeEntryWrap").style.display="block";
+    document.getElementById("sendCodeActions").style.display="none";
     document.getElementById("verifyEmail").disabled=true;
     toast(isResend?t("toast_code_resent"):t("toast_code_sent"));
     startResendCooldown();
@@ -924,6 +925,7 @@ function startResendCooldown(){
 
 function backToEmailEntry(){
   document.getElementById("codeEntryWrap").style.display="none";
+  document.getElementById("sendCodeActions").style.display="flex";
   document.getElementById("verifyEmail").disabled=false;
   document.getElementById("verifyCode").value="";
   clearInterval(resendCooldownTimer);
