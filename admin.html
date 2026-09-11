@@ -702,6 +702,11 @@
           </button>
         </div>
       </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="pg-pill active" onclick="filterCoStatus('all',this)" data-i18n="pill_all">All</button>
+        <button class="pg-pill" onclick="filterCoStatus('active',this)" data-i18n="status_active">Active</button>
+        <button class="pg-pill" onclick="filterCoStatus('inactive',this)" data-i18n="badge_blocked">Blocked</button>
+      </div>
     </div>
     <div id="coPending"></div>
     <div class="cgrid" id="coGrid"><div class="muted" style="padding:16px" data-i18n="loading_text">Loading...</div></div>
@@ -1677,6 +1682,7 @@ var I18N = {
   "toast_company_activated": "✓ Company activated",
   "toast_company_deactivated": "✓ Company deactivated",
   "toast_archived_deleted": "✓ \"{name}\" archived & deleted. Restore from 🗄️ Archive.",
+  "toast_error_deleting_company": "Error deleting company — please try again.",
   "toast_handyman_deleted_check": "✓ Handyman deleted",
   "toast_error_deleting": "Error deleting",
   "toast_handyman_deleted": "Handyman deleted",
@@ -2143,6 +2149,7 @@ var I18N = {
   "toast_company_activated": "✓ Компанію активовано",
   "toast_company_deactivated": "✓ Компанію деактивовано",
   "toast_archived_deleted": "✓ «{name}» заархівовано та видалено. Відновити можна в 🗄️ Архіві.",
+  "toast_error_deleting_company": "Помилка видалення компанії — спробуйте ще раз.",
   "toast_handyman_deleted_check": "✓ Майстра видалено",
   "toast_error_deleting": "Помилка видалення",
   "toast_handyman_deleted": "Майстра видалено",
@@ -2609,6 +2616,7 @@ var I18N = {
   "toast_company_activated": "✓ Empresa activada",
   "toast_company_deactivated": "✓ Empresa desactivada",
   "toast_archived_deleted": "✓ «{name}» archivada y eliminada. Restaura desde 🗄️ Archivo.",
+  "toast_error_deleting_company": "Error al eliminar la empresa — inténtalo de nuevo.",
   "toast_handyman_deleted_check": "✓ Profesional eliminado",
   "toast_error_deleting": "Error al eliminar",
   "toast_handyman_deleted": "Profesional eliminado",
@@ -2990,7 +2998,14 @@ function showApp() {
     var email = document.getElementById("authEmail").value.trim();
     if (email) emailEl.textContent = email;
   }
-  loadPool();
+  // Restore whatever page the admin was last on instead of always resetting
+  // to Cards, so refreshing the browser doesn't lose their place.
+  var lastPage = sessionStorage.getItem("hca_last_page");
+  if (lastPage && lastPage !== "nfc-pool" && document.getElementById("page-" + lastPage)) {
+    nav(lastPage, true);
+  } else {
+    loadPool();
+  }
   loadNotifications();
   loadArchiveBadge();
 }
@@ -3111,6 +3126,8 @@ function nav(n, skipHistory) {
     document.querySelectorAll(".nb").forEach(function(b) {
       if (b.dataset.route === n) b.classList.add("active");
     });
+    // Remember the last main tab so a page reload restores it.
+    sessionStorage.setItem("hca_last_page", n);
   }
   if (n === "companies") loadCos();
   if (n === "handymen") loadHMs();
@@ -3440,11 +3457,20 @@ function updateCdStatusBadge() {
     : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>';
 }
 
+var coStatusFilter = "all";
+function filterCoStatus(s, btn) {
+  coStatusFilter = s;
+  document.querySelectorAll("#page-companies .pg-pill").forEach(function(b) { b.classList.remove("active"); });
+  if (btn) btn.classList.add("active");
+  renderCos();
+}
 function getFilteredCos() {
   var all = CC._allCos || [];
   var q = ((document.getElementById("coSearchInput") || {}).value || "").trim().toLowerCase();
   var loc = (document.getElementById("coLocationFilter") || {}).value || "";
   return all.filter(function(c) {
+    if (coStatusFilter === "active" && c.status === "inactive") return false;
+    if (coStatusFilter === "inactive" && c.status !== "inactive") return false;
     if (loc && (c.location || "") !== loc) return false;
     if (q) {
       var hit = (c.name || "").toLowerCase().includes(q) ||
@@ -3592,17 +3618,25 @@ async function deleteCo() {
   var co = CC.cos[cdId] || {};
   var name = co.name || cdId;
 
-  var cards = await fsQ("nfc_cards", [{field:"companyId", value:cdId}]);
-  var handymen = await fsQ("handymen", [{field:"companyIds", value:cdId, op:"ARRAY_CONTAINS"}]);
+  // Pull in every row that references this company. card_requests,
+  // lead_requests, company_tokens and handymen all have a foreign key to
+  // companies(id) — deleting the company first (as this used to do) throws
+  // a constraint violation that was never checked, so the delete silently
+  // "succeeded" in the UI while the company row was still there.
+  var results = await Promise.all([
+    fsQ("nfc_cards", [{field:"companyId", value:cdId}]),
+    fsQ("handymen", [{field:"companyIds", value:cdId, op:"ARRAY_CONTAINS"}]),
+    fsQ("card_requests", [{field:"companyId", value:cdId}]),
+    fsQ("lead_requests", [{field:"companyId", value:cdId}]),
+    fsQ("company_tokens", [{field:"companyId", value:cdId}])
+  ]);
+  var cards = results[0], handymen = results[1], cardReqs = results[2], leadReqs = results[3], tokens = results[4];
   var details = "Cards: " + cards.length + " · Handymen: " + handymen.length;
 
   cfm(
     tf("confirm_delete_company", {name: name}),
     tf("confirm_delete_company_sub", {details: details}),
     async function(btn) {
-      var delCards = confirm(tf("confirm_delete_all_cards", {count: cards.length}));
-      var delHM = confirm(tf("confirm_delete_all_handymen", {count: handymen.length}));
-
       if (btn) btn.textContent = t("confirm_archiving");
 
       // Save to archive
@@ -3617,34 +3651,42 @@ async function deleteCo() {
         company: sv(JSON.stringify(co)),
         cards: sv(JSON.stringify(cards)),
         handymen: sv(JSON.stringify(handymen)),
-        deletedCards: delCards,
-        deletedHandymen: delHM
+        deletedCards: true,
+        deletedHandymen: true
       };
       var archiveOk = await fsP("archive", archiveId, archiveData);
       if (!archiveOk) {
         if (!confirm(t("confirm_archive_save_failed"))) return;
       }
 
-      // Download JSON backup
-      var backup = { company: co, cards: cards, handymen: handymen, archivedAt: now.toISOString() };
+      // Download JSON backup (includes the request/token rows too, in case
+      // they're ever needed — they aren't restorable from Archive like the
+      // company/cards/handymen are)
+      var backup = { company: co, cards: cards, handymen: handymen, cardRequests: cardReqs, leadRequests: leadReqs, tokens: tokens, archivedAt: now.toISOString() };
       var blob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"});
       var link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = "backup-" + name.replace(/\s+/g,"-") + "-" + now.toISOString().slice(0,10) + ".json";
       link.click();
 
-      if (btn) btn.textContent = t("confirm_deleting");
-      await fsDel("companies", cdId);
-
-      if (delCards) {
-        for (var i = 0; i < cards.length; i++) {
-          if (btn) btn.textContent = tf("confirm_deleting_cards_progress", {done: i+1, total: cards.length});
-          await fsDel("nfc_cards", cards[i].id);
-        }
+      // Delete everything that references this company FIRST, then the
+      // company row itself.
+      for (var i = 0; i < cards.length; i++) {
+        if (btn) btn.textContent = tf("confirm_deleting_cards_progress", {done: i+1, total: cards.length});
+        await fsDel("nfc_cards", cards[i].id);
       }
-      if (delHM) {
-        if (btn) btn.textContent = t("confirm_deleting_handymen_progress");
-        for (var i = 0; i < handymen.length; i++) await fsDel("handymen", handymen[i].id);
+      if (btn) btn.textContent = t("confirm_deleting_handymen_progress");
+      for (var i = 0; i < handymen.length; i++) await fsDel("handymen", handymen[i].id);
+      for (var i = 0; i < cardReqs.length; i++) await fsDel("card_requests", cardReqs[i].id);
+      for (var i = 0; i < leadReqs.length; i++) await fsDel("lead_requests", leadReqs[i].id);
+      for (var i = 0; i < tokens.length; i++) await fsDel("company_tokens", tokens[i].id);
+
+      if (btn) btn.textContent = t("confirm_deleting");
+      var delOk = await fsDel("companies", cdId);
+      if (!delOk) {
+        closeModal("mConfirm");
+        toast(t("toast_error_deleting_company"));
+        return;
       }
 
       closeModal("mConfirm");

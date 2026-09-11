@@ -1324,6 +1324,9 @@ function navApp(n){
   var mainRoutes=["overview","handymen","cards","orders"];
   if(mainRoutes.indexOf(n)!==-1){
     document.querySelectorAll(".nb").forEach(function(b){if(b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'"+n+"'"))b.classList.add("active");});
+    // Remember the last main tab so a page reload restores it instead of
+    // always dropping back to Overview.
+    localStorage.setItem("hc_last_page",n);
   }
   if(n==="cards"){loadPendingReqs().then(loadCards);}
   else if(n==="overview")loadOverview();
@@ -1480,7 +1483,10 @@ async function loadApp(){
   var cids={};S.orders.forEach(function(o){if(o.clientId)cids[o.clientId]=true;});
   await Promise.all(Object.keys(cids).map(async function(id){var cl=await fsGet("clients",id);if(cl)S.clients[id]=cl;}));
   show("s-app");
-  loadOverview();
+  var lastPage=localStorage.getItem("hc_last_page");
+  var validPages=["overview","handymen","cards","orders"];
+  if(lastPage&&validPages.indexOf(lastPage)!==-1) navApp(lastPage);
+  else loadOverview();
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────
@@ -1488,12 +1494,14 @@ function loadOverview(){
   var activeOrds=S.orders.filter(function(o){return o.status==="new"||o.status==="in_progress";}).length;
   var completedOrds=S.orders.filter(function(o){return o.status==="completed";}).length;
   var freeCards=S.cards.filter(function(c){return c.status==="unassigned";}).length;
+  var bonusLeadsCount=Number(S.company.bonusLeads||0);
   var hmMap={};S.handymen.forEach(function(h){hmMap[h.id]=h;});
   document.getElementById("overviewStats").innerHTML=
     '<div class="cd-stat"><div class="cd-stat-num">'+S.handymen.length+'</div><div class="cd-stat-label">'+t("stat_handymen")+'</div></div>'+
     '<div class="cd-stat"><div class="cd-stat-num">'+S.cards.length+'</div><div class="cd-stat-label">'+t("stat_total_cards")+'</div></div>'+
     '<div class="cd-stat"><div class="cd-stat-num">'+activeOrds+'</div><div class="cd-stat-label">'+t("stat_active_orders")+'</div></div>'+
-    '<div class="cd-stat"><div class="cd-stat-num">'+completedOrds+'</div><div class="cd-stat-label">'+t("stat_completed")+'</div></div>';
+    '<div class="cd-stat"><div class="cd-stat-num">'+completedOrds+'</div><div class="cd-stat-label">'+t("stat_completed")+'</div></div>'+
+    '<div class="cd-stat"><div class="cd-stat-num">'+bonusLeadsCount+'</div><div class="cd-stat-label">'+t("stat_bonus_leads")+'</div></div>';
   var recent=S.orders.slice(0,6);
   var tb=document.getElementById("recentOrdersBody");
   if(!recent.length){tb.innerHTML='<tr><td colspan="5" class="pg-empty">'+t("empty_no_orders_yet")+'</td></tr>';return;}
