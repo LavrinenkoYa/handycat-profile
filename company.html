@@ -462,11 +462,26 @@
         </div>
       </div>
 
+      <!-- Switch company (only shown when the logged-in email has more than one company) -->
+      <button class="sb-signout-card" id="switchCoBtn" style="display:none;margin-bottom:0" onclick="openSwitchCompany()">⇄ <span data-i18n="btn_switch_company">Switch company</span></button>
+
       <!-- Sign out -->
       <button class="sb-signout-card" onclick="signOut()" data-i18n="nav_signout">Sign out</button>
     </div>
     <div class="sb-footer">Handycat LLC 2026</div>
   </aside>
+
+  <!-- SWITCH COMPANY DRAWER -->
+  <div class="drawer-overlay" id="mSwitchCo" onclick="closeDrawer(event)">
+    <div class="drawer" onclick="event.stopPropagation()">
+      <button class="drawer-close" onclick="closeModal('mSwitchCo')"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.207 0.707031L10.3105 9.60352L19.207 18.5L18.5 19.207L9.60352 10.3105L0.707031 19.207L0 18.5L8.89648 9.60352L0 0.707031L0.707031 0L9.60352 8.89648L18.5 0L19.207 0.707031Z" fill="black"/></svg></button>
+      <div class="drawer-header">
+        <div class="drawer-title" data-i18n="switch_company_title">Switch company</div>
+        <div class="drawer-sub" data-i18n="switch_company_sub">Choose which company to view</div>
+      </div>
+      <div id="switchCoList" style="padding:0 28px 28px"></div>
+    </div>
+  </div>
 
   <!-- MAIN CONTENT -->
   <main class="sb-main">
@@ -704,6 +719,10 @@ var I18N = {
   "nav_cards": "NFC Cards",
   "nav_orders": "Orders",
   "nav_signout": "Sign out",
+  "btn_switch_company": "Switch company",
+  "switch_company_title": "Switch company",
+  "switch_company_sub": "Choose which company to view",
+  "label_current_company": "Current",
   "overview_title_default": "Dashboard",
   "overview_sub_default": "Welcome back!",
   "overview_welcome_back": "Welcome back, {name}!",
@@ -869,6 +888,10 @@ var I18N = {
   "nav_cards": "NFC-картки",
   "nav_orders": "Замовлення",
   "nav_signout": "Вийти",
+  "btn_switch_company": "Змінити компанію",
+  "switch_company_title": "Змінити компанію",
+  "switch_company_sub": "Оберіть компанію для перегляду",
+  "label_current_company": "Поточна",
   "overview_title_default": "Панель",
   "overview_sub_default": "Раді вас бачити!",
   "overview_welcome_back": "Раді вас бачити, {name}!",
@@ -1034,6 +1057,10 @@ var I18N = {
   "nav_cards": "Tarjetas NFC",
   "nav_orders": "Pedidos",
   "nav_signout": "Cerrar sesión",
+  "btn_switch_company": "Cambiar empresa",
+  "switch_company_title": "Cambiar empresa",
+  "switch_company_sub": "Elige qué empresa ver",
+  "label_current_company": "Actual",
   "overview_title_default": "Panel",
   "overview_sub_default": "¡Bienvenido de nuevo!",
   "overview_welcome_back": "¡Bienvenido de nuevo, {name}!",
@@ -1369,6 +1396,7 @@ async function init(){
     localStorage.setItem("hc_company_id",companyId);
     localStorage.setItem("hc_company_email",tok.email||"");
     localStorage.setItem("hc_company_session",Date.now()+30*24*60*60*1000); // 30 day session
+    S.siblingCompanies=await loadSiblingCompanies(tok.email);
     window.history.replaceState({},"","/company");
     await loadApp();
     return;
@@ -1382,6 +1410,7 @@ async function init(){
     var company=await fsGet("companies",savedId);
     if(company&&company.status!=="inactive"){
       S.company=company;S.companyId=savedId;
+      S.siblingCompanies=await loadSiblingCompanies(localStorage.getItem("hc_company_email"));
       await loadApp();return;
     }
     // Session invalid — clear and show auth
@@ -1390,6 +1419,37 @@ async function init(){
   }
 
   show("s-auth");
+}
+
+// Every company row sharing this account's email (excluding blocked ones) —
+// powers the "Switch company" picker for accounts with more than one company.
+async function loadSiblingCompanies(email){
+  if(!email) return [];
+  var companies=await fsQ("companies",[{field:"email",value:email}]);
+  return companies.filter(function(c){return c.status!=="inactive";});
+}
+
+function openSwitchCompany(){
+  var list=document.getElementById("switchCoList");
+  list.innerHTML=(S.siblingCompanies||[]).map(function(c){
+    var active=c.id===S.companyId;
+    return '<div onclick="selectCompany(\''+c.id+'\')" style="padding:14px;border:1.5px solid '+(active?"#164e23":"#eceae6")+';border-radius:12px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px">'+
+      '<div style="min-width:0"><div style="font-weight:600;font-family:\'Inter\',sans-serif">'+esc(c.name||c.id)+'</div><div style="font-size:12px;color:#858585">'+esc(c.location||"")+'</div></div>'+
+      (active?'<span style="color:#164e23;font-size:13px;font-weight:600;flex-shrink:0">'+t("label_current_company")+'</span>':'')+
+    '</div>';
+  }).join("");
+  openModal("mSwitchCo");
+}
+
+async function selectCompany(id){
+  if(id===S.companyId){closeModal("mSwitchCo");return;}
+  closeModal("mSwitchCo");
+  show("s-loading");
+  var company=await fsGet("companies",id);
+  if(!company){toast(t("err_account_not_found_title"));show("s-app");return;}
+  S.company=company;S.companyId=id;
+  localStorage.setItem("hc_company_id",id);
+  await loadApp();
 }
 
 function coInputFocus(input){
@@ -1457,6 +1517,8 @@ async function loadApp(){
   document.getElementById("topCompanyName").textContent=c.name||"Company";
   var sbEmail=document.getElementById("sbUserEmail");if(sbEmail)sbEmail.textContent=localStorage.getItem("hc_company_email")||c.email||"";
   var emailEl=document.getElementById("sbUserEmail");if(emailEl&&c.email)emailEl.textContent=c.email;
+  var switchBtn=document.getElementById("switchCoBtn");
+  if(switchBtn)switchBtn.style.display=((S.siblingCompanies||[]).length>1)?"block":"none";
   document.getElementById("overviewTitle").textContent=c.name||t("overview_title_default");
   document.getElementById("overviewSub").textContent=tf("overview_welcome_back",{name:c.name||""});
 

@@ -155,6 +155,18 @@
       </div>
     </div>
 
+    <!-- EXISTING COMPANY FOUND -->
+    <div class="ss" id="s-existing-company">
+      <div class="step-icon" style="background:#e8f0fe">&#x1F3E2;</div>
+      <div class="step-title" data-i18n="existing_co_title">You already have a company</div>
+      <div class="step-sub" data-i18n="existing_co_sub">This email is already linked to the company below. Continue to your dashboard, or register a new company instead.</div>
+      <div id="existingCoList" style="margin:16px 0"></div>
+      <div class="actions">
+        <button class="btn-back" onclick="cancelExistingCompany()" data-i18n="btn_back">Back</button>
+        <button class="btn-next" id="existingCoNewBtn" onclick="proceedNewApplication()"><span data-i18n="btn_register_new_company">Register a new company</span></button>
+      </div>
+    </div>
+
     <!-- STEP 1 -->
     <div class="ss" id="step-1">
       <div class="step-icon" style="background:#fff4e1">&#x1F4CB;</div>
@@ -411,6 +423,11 @@ var I18N = {
   "ph_service_region": "New York metropolitan area",
   "btn_back": "Back",
   "btn_next": "Next",
+  "existing_co_title": "You already have a company",
+  "existing_co_sub": "This email is already linked to the company below. Continue to your dashboard, or register a new company instead.",
+  "btn_register_new_company": "Register a new company",
+  "btn_continue_dashboard": "Continue",
+  "toast_redirecting": "Redirecting to your dashboard...",
   "step2_title": "About your business",
   "step2_sub": "Help us understand your company better.",
   "label_business_type": "Business Type *",
@@ -553,6 +570,11 @@ var I18N = {
   "ph_service_region": "Київ та область",
   "btn_back": "Назад",
   "btn_next": "Далі",
+  "existing_co_title": "У вас вже є компанія",
+  "existing_co_sub": "Цей email вже пов'язаний із компанією нижче. Перейдіть у свій кабінет або зареєструйте нову компанію.",
+  "btn_register_new_company": "Зареєструвати нову компанію",
+  "btn_continue_dashboard": "Продовжити",
+  "toast_redirecting": "Перенаправлення до вашого кабінету...",
   "step2_title": "Про ваш бізнес",
   "step2_sub": "Допоможіть нам краще зрозуміти вашу компанію.",
   "label_business_type": "Тип бізнесу *",
@@ -695,6 +717,11 @@ var I18N = {
   "ph_service_region": "Área metropolitana de Madrid",
   "btn_back": "Atrás",
   "btn_next": "Siguiente",
+  "existing_co_title": "Ya tienes una empresa",
+  "existing_co_sub": "Este correo ya está vinculado a la empresa que se muestra abajo. Continúa a tu panel o registra una nueva empresa.",
+  "btn_register_new_company": "Registrar una nueva empresa",
+  "btn_continue_dashboard": "Continuar",
+  "toast_redirecting": "Redirigiendo a tu panel...",
   "step2_title": "Sobre tu empresa",
   "step2_sub": "Ayúdanos a entender mejor tu empresa.",
   "label_business_type": "Tipo de negocio *",
@@ -955,7 +982,14 @@ async function verifyEnteredCode(){
     await sb.from("email_verifications").update({verified:true}).eq("email",email.toLowerCase());
     verifiedEmail=email;
     clearInterval(resendCooldownTimer);
-    unlockForm(email);
+    var existingCos=await checkExistingCompanies(email);
+    if(existingCos.length){
+      renderExistingCompanies(existingCos);
+      document.getElementById("s-verify").classList.remove("active");
+      document.getElementById("s-existing-company").classList.add("active");
+    }else{
+      unlockForm(email);
+    }
   }catch(e){
     console.error(e);
     toast(t("toast_code_invalid"));
@@ -965,10 +999,51 @@ async function verifyEnteredCode(){
 
 function unlockForm(email){
   document.getElementById("s-verify").classList.remove("active");
+  document.getElementById("s-existing-company").classList.remove("active");
   document.getElementById("step-1").classList.add("active");
   var emailField=document.getElementById("f-email");
   if(emailField){emailField.value=email;emailField.readOnly=true;}
   toast(t("toast_email_verified"));
+}
+
+// ── EXISTING COMPANY DETECTION ──────────────────────────────────
+// The email was just OTP-verified, so if it's already tied to a company we
+// offer to jump straight into that dashboard instead of silently starting a
+// second, duplicate application.
+async function checkExistingCompanies(email){
+  var res=await sb.from("companies").select("id,name,location,status").eq("email",email.toLowerCase());
+  if(res.error||!res.data)return[];
+  return res.data.filter(function(c){return c.status!=="inactive";});
+}
+
+function renderExistingCompanies(list){
+  var wrap=document.getElementById("existingCoList");
+  wrap.innerHTML=list.map(function(c){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;border:1.5px solid #eceae6;border-radius:12px;margin-bottom:10px">'+
+      '<div style="min-width:0"><div style="font-weight:600">'+esc(c.name||c.id)+'</div><div style="font-size:12px;color:#888">'+esc(c.location||"")+'</div></div>'+
+      '<button class="btn-next" style="flex-shrink:0;padding:10px 18px;width:auto" onclick="continueToCompany(\''+c.id+'\')" data-i18n="btn_continue_dashboard">Continue</button>'+
+    '</div>';
+  }).join("");
+}
+
+async function continueToCompany(companyId){
+  toast(t("toast_redirecting"));
+  var token="tok-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  await sb.from("company_tokens").upsert({
+    id:token,company_id:companyId,email:verifiedEmail,
+    expires_at:new Date(Date.now()+7*24*60*60*1000).toISOString(),
+    used:false
+  });
+  window.location.href="https://app.handycat.us/company?token="+token;
+}
+
+function proceedNewApplication(){
+  unlockForm(verifiedEmail);
+}
+
+function cancelExistingCompany(){
+  document.getElementById("s-existing-company").classList.remove("active");
+  document.getElementById("s-verify").classList.add("active");
 }
 
 function buildSteps(){
