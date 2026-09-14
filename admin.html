@@ -5502,6 +5502,7 @@ async function doAssignCards() {
         var idxInAll = i + bi;
         return fsMerge('nfc_cards', card.id, {
           companyId:  sv(companyId),
+          requestId:  sv(reqId),
           status:     sv('unassigned'),
           assignedAt: sv(now),
           source:     sv(idxInAll < freeCount ? 'lead' : 'paid')
