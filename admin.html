@@ -975,12 +975,31 @@
 
     <!-- Tabs -->
     <div style="display:flex;align-items:flex-end;gap:0;margin-bottom:0">
-      <button class="cd-tab active" id="poolTabAll" onclick="switchPoolTab('all')" data-i18n="tab_all_cards">All Cards</button>
+      <button class="cd-tab active" id="poolTabReq" onclick="switchPoolTab('requests')"><span data-i18n="tab_requests">Requests</span> <span id="cardReqBadge" class="pg-badge pg-badge-blue" style="display:none;margin-left:6px;vertical-align:middle"></span></button>
       <button class="cd-tab" id="poolTabOrders" onclick="switchPoolTab('orders')" data-i18n="tab_orders">Orders</button>
-      <button class="cd-tab" id="poolTabReq" onclick="switchPoolTab('requests')"><span data-i18n="tab_requests">Requests</span> <span id="cardReqBadge" class="pg-badge pg-badge-blue" style="display:none;margin-left:6px;vertical-align:middle"></span></button>
+      <button class="cd-tab" id="poolTabAll" onclick="switchPoolTab('all')" data-i18n="tab_all_cards">All Cards</button>
+      <button class="cd-tab" id="poolTabCos" onclick="switchPoolTab('companies')" data-i18n="tab_companies_cards">Companies</button>
     </div>
 
-    <div id="poolPanelAll">
+    <div id="poolPanelCompanies" style="display:none">
+    <div class="pg-table-wrap" style="border-radius:0 30px 30px 30px">
+      <div class="pg-table-toolbar pool-toolbar">
+        <div class="pg-section-title" style="margin:0" data-i18n="tab_companies_cards">Companies</div>
+        <div class="co-search" style="width:300px;margin-left:auto">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#858585" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#858585" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input id="pcSearch" placeholder="Search company..." oninput="renderPoolCompanies()" data-i18n-ph="ph_search_company"/>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="pg-table" style="min-width:640px">
+          <thead><tr><th data-i18n="th_company">Company</th><th data-i18n="th_status">Status</th><th data-i18n="th_cards">Cards</th><th data-i18n="status_available">Available</th><th data-i18n="status_assigned">Assigned</th><th data-i18n="status_activated">Activated</th><th style="width:60px"></th></tr></thead>
+          <tbody id="pcBody"></tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+
+    <div id="poolPanelAll" style="display:none">
     <div class="pg-header">
       <div class="pg-toprow" style="margin-bottom:20px">
         <div>
@@ -1038,14 +1057,14 @@
     </div>
     </div>
 
-    <div id="poolPanelRequests" style="display:none">
+    <div id="poolPanelRequests">
     <div class="pg-table-wrap" style="border-radius:0 30px 30px 30px">
       <div class="pg-table-toolbar pool-toolbar">
         <div class="pg-section-title" style="margin:0" data-i18n="section_requests">Requests</div>
       </div>
       <div style="overflow-x:auto">
         <table class="pg-table" style="min-width:560px">
-          <thead><tr><th data-i18n="th_date">Date</th><th data-i18n="th_company">Company</th><th data-i18n="th_cards">Cards</th><th data-i18n="th_notes">Notes</th><th data-i18n="th_status">Status</th><th style="width:160px"></th></tr></thead>
+          <thead><tr><th data-i18n="th_date">Date</th><th data-i18n="th_company">Company</th><th data-i18n="th_cards">Cards</th><th data-i18n="th_notes">Notes</th><th data-i18n="th_status">Status</th><th style="width:220px"></th><th style="width:44px"></th></tr></thead>
           <tbody id="cardReqBody"></tbody>
         </table>
       </div>
@@ -1118,6 +1137,39 @@
             <th data-i18n="th_token">Token</th><th data-i18n="th_print_id">Print ID</th><th data-i18n="th_url">URL</th><th data-i18n="th_status">Status</th><th data-i18n="th_company">Company</th><th data-i18n="th_created">Created</th>
           </tr></thead>
           <tbody id="pbdBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD REQUEST DETAIL -->
+  <div class="page" id="page-card-req-detail">
+    <div style="margin-bottom:12px">
+      <button class="cd-back-btn" onclick="history.back()" title="Back"><svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.5303 25.47C20.604 25.5386 20.6631 25.6214 20.7041 25.7134C20.7451 25.8054 20.7671 25.9047 20.7689 26.0054C20.7707 26.1062 20.7522 26.2062 20.7144 26.2996C20.6767 26.393 20.6206 26.4778 20.5494 26.549C20.4781 26.6202 20.3933 26.6764 20.2999 26.7141C20.2065 26.7518 20.1065 26.7703 20.0058 26.7686C19.9051 26.7668 19.8058 26.7447 19.7138 26.7038C19.6218 26.6628 19.539 26.6037 19.4703 26.53L9.47032 16.53C9.32987 16.3893 9.25098 16.1987 9.25098 16C9.25098 15.8012 9.32987 15.6106 9.47032 15.47L19.4703 5.46997C19.6125 5.33749 19.8005 5.26537 19.9948 5.26879C20.1891 5.27222 20.3745 5.35093 20.5119 5.48835C20.6494 5.62576 20.7281 5.81114 20.7315 6.00545C20.7349 6.19975 20.6628 6.38779 20.5303 6.52997L11.0616 16L20.5303 25.47Z" fill="#343330"/></svg></button>
+    </div>
+    <div class="cd-header" style="margin-bottom:20px">
+      <div class="cd-header-row" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <div class="cd-title-row" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div class="cd-title" id="crdTitle">—</div>
+            <span id="crdStatus"></span>
+          </div>
+          <div class="cd-meta" id="crdMeta">—</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap">
+          <div id="crdActions"></div>
+          <button class="cd-add-cards-btn" id="crdOpenCo" style="background:#fff;border:1.5px solid #eceae6;color:#111;gap:8px;margin:0"><span data-i18n="btn_open_company">Open company</span> &#x2192;</button>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:14px;color:#585858"><span style="color:#858585" data-i18n="th_notes">Notes</span>: <span id="crdNotes">—</span></div>
+    </div>
+    <div class="cd-stats-row" id="crdStats"></div>
+    <div id="crdFallbackNote" style="display:none;font-size:12px;color:#858585;margin:-8px 0 12px 4px" data-i18n="note_req_fallback_cards">* This request pre-dates per-request tracking — showing all cards of the company.</div>
+    <div class="pg-table-wrap">
+      <div style="overflow-x:auto">
+        <table class="pg-table" style="min-width:620px">
+          <thead><tr><th data-i18n="th_print_id">Print ID</th><th data-i18n="th_token">Token</th><th data-i18n="th_status">Status</th><th data-i18n="th_handyman">Handyman</th><th data-i18n="th_client">Client</th><th data-i18n="th_created">Created</th></tr></thead>
+          <tbody id="crdBody"></tbody>
         </table>
       </div>
     </div>
@@ -1512,6 +1564,13 @@ var I18N = {
   "gen_progress_generating": "Generating...",
   "gen_progress_done": "✓ Done!",
   "tab_all_cards": "All Cards",
+  "tab_companies_cards": "Companies",
+  "ph_search_company": "Search company...",
+  "label_requested_cards": "Requested",
+  "label_issued_cards": "Issued",
+  "btn_open_company": "Open company",
+  "note_req_fallback_cards": "* This request pre-dates per-request tracking — showing all cards of the company.",
+  "toast_request_not_found": "Request not found",
   "tab_requests": "Requests",
   "all_cards_title": "All Cards",
   "all_cards_sub": "Search and manage cards across all companies",
@@ -1979,6 +2038,13 @@ var I18N = {
   "gen_progress_generating": "Генерація...",
   "gen_progress_done": "✓ Готово!",
   "tab_all_cards": "Усі картки",
+  "tab_companies_cards": "Компанії",
+  "ph_search_company": "Пошук компанії...",
+  "label_requested_cards": "Запитано",
+  "label_issued_cards": "Видано",
+  "btn_open_company": "Відкрити компанію",
+  "note_req_fallback_cards": "* Цей запит створено до появи прив'язки карток до запиту — показано всі картки компанії.",
+  "toast_request_not_found": "Запит не знайдено",
   "tab_requests": "Запити",
   "all_cards_title": "Усі картки",
   "all_cards_sub": "Пошук і керування картками всіх компаній",
@@ -2446,6 +2512,13 @@ var I18N = {
   "gen_progress_generating": "Generando...",
   "gen_progress_done": "✓ ¡Listo!",
   "tab_all_cards": "Todas las tarjetas",
+  "tab_companies_cards": "Empresas",
+  "ph_search_company": "Buscar empresa...",
+  "label_requested_cards": "Solicitadas",
+  "label_issued_cards": "Emitidas",
+  "btn_open_company": "Abrir empresa",
+  "note_req_fallback_cards": "* Esta solicitud es anterior al seguimiento por solicitud — se muestran todas las tarjetas de la empresa.",
+  "toast_request_not_found": "Solicitud no encontrada",
   "tab_requests": "Solicitudes",
   "all_cards_title": "Todas las tarjetas",
   "all_cards_sub": "Busca y gestiona tarjetas de todas las empresas",
@@ -3044,22 +3117,36 @@ async function fsGet(c, id) {
   if (res.error || !res.data) return null;
   return rowToCamel(res.data);
 }
+// PostgREST silently caps any single request at 1000 rows, so anything that
+// may exceed that (nfc_cards!) has to be fetched page by page.
+async function sbFetchAll(buildQuery, lim) {
+  var PAGE = 1000, out = [], from = 0, max = lim || 10000;
+  while (from < max) {
+    var to = Math.min(from + PAGE, max) - 1;
+    var res = await buildQuery().order("id").range(from, to);
+    if (res.error || !res.data) break;
+    out = out.concat(res.data);
+    if (res.data.length < (to - from + 1)) break;
+    from += PAGE;
+  }
+  return out;
+}
 async function fsL(c, ps) {
-  var res = await sb.from(c).select("*").limit(ps || 300);
-  if (res.error || !res.data) return [];
-  var _out = res.data.map(rowToCamel);
+  var rows = await sbFetchAll(function() { return sb.from(c).select("*"); }, ps || 10000);
+  var _out = rows.map(rowToCamel);
   if (c === "orders") _out = _out.filter(function(o) { return !o.isOnboarding; });
   return _out;
 }
 async function fsQ(c, filters, lim) {
-  var q = sb.from(c).select("*").limit(lim || 500);
-  (filters || []).forEach(function(f) {
-    var col = f.field === "companyIds" ? "company_id" : toSnake(f.field);
-    q = q.eq(col, f.value);
-  });
-  var res = await q;
-  if (res.error || !res.data) return [];
-  var _out = res.data.map(rowToCamel);
+  var rows = await sbFetchAll(function() {
+    var q = sb.from(c).select("*");
+    (filters || []).forEach(function(f) {
+      var col = f.field === "companyIds" ? "company_id" : toSnake(f.field);
+      q = q.eq(col, f.value);
+    });
+    return q;
+  }, lim || 10000);
+  var _out = rows.map(rowToCamel);
   if (c === "orders") _out = _out.filter(function(o) { return !o.isOnboarding; });
   return _out;
 }
@@ -4762,7 +4849,7 @@ async function loadCardRequests() {
 function renderCardReqs() {
   var tb = document.getElementById("cardReqBody");
   var pagerEl = document.getElementById("cardReqPager");
-  if (!allCardReqs.length) { tb.innerHTML = '<tr><td colspan="6" class="pg-empty">' + t("empty_no_card_requests_yet") + '</td></tr>'; if (pagerEl) pagerEl.innerHTML = ""; return; }
+  if (!allCardReqs.length) { tb.innerHTML = '<tr><td colspan="7" class="pg-empty">' + t("empty_no_card_requests_yet") + '</td></tr>'; if (pagerEl) pagerEl.innerHTML = ""; return; }
   var totalPages = Math.max(1, Math.ceil(allCardReqs.length / cardReqPageSize));
   if (cardReqPage > totalPages) cardReqPage = totalPages;
   var start = (cardReqPage - 1) * cardReqPageSize;
@@ -4775,37 +4862,171 @@ function renderCardReqs() {
   };
   tb.innerHTML = pageItems.map(function(req) {
     var st = stMap[req.status] || stMap.pending;
-    var isPending = req.status === "pending";
-    var isInProgress = req.status === "in_progress";
-    var generated = req.generatedCount || 0;
     var total = req.count || 10;
-    var btns = "";
-    if (isPending) {
-      btns = '<div style="display:flex;gap:8px;align-items:center">' +
-        '<button class="pg-circle-btn pg-circle-approve" title="Assign from pool" onclick="openAssignModal(this,\'' + req.id + '\',\'' + (req.companyId || '') + '\',' + total + ')"><span class="pg-spin"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="pg-icon"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" stroke="#111" stroke-width="1.6" stroke-linecap="round"/></svg></button>' +
-        '<button class="pg-circle-btn pg-circle-reject" title="Reject" onclick="rejectCardReq(\'' + req.id + '\')"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" class="pg-icon"><path d="M19.207 0.707031L10.3105 9.60352L19.207 18.5L18.5 19.207L9.60352 10.3105L0.707031 19.207L0 18.5L8.89648 9.60352L0 0.707031L0.707031 0L9.60352 8.89648L18.5 0L19.207 0.707031Z" fill="#D93025"/></svg></button>' +
-      '</div>';
-    } else if (isInProgress) {
-      btns = '<div style="display:flex;align-items:center;gap:10px">' +
-        '<span style="font-size:13px;color:#858585">' + tf("label_generated_created", {generated: generated, total: total}) + '</span>' +
-        '<button class="pg-decision-btn pg-decision-revision" onclick="approveCardReq(\'' + req.id + '\',' + total + ',\'' + (req.companyId || "") + '\')">' + t("btn_resume") + '</button>' +
-      '</div>';
-    } else {
-      btns = '<div style="display:flex;align-items:center;gap:8px">' +
-        '<span style="color:#858585;font-size:13px">' + fd(req.approvedAt || req.createdAt) + '</span>' +
-        '<button class="cd-action-btn" title="Export CSV" onclick="exportReqCards(\'' + req.id + '\',\'' + esc(req.companyName || "") + '\')"><svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.75 22.5C5.75 24.0163 6.75875 25.25 8 25.25C8.27519 25.2446 8.54642 25.1834 8.79719 25.0699C9.04797 24.9564 9.27305 24.7932 9.45875 24.59C9.59777 24.4529 9.78478 24.3754 9.98003 24.374C10.1753 24.3726 10.3634 24.4474 10.5043 24.5825C10.6453 24.7176 10.728 24.9024 10.7349 25.0975C10.7418 25.2927 10.6723 25.4828 10.5413 25.6275C10.2164 25.9778 9.82348 26.2581 9.3865 26.4511C8.94951 26.6441 8.4777 26.7458 8 26.75C5.9325 26.75 4.25 24.8438 4.25 22.5C4.25 20.1562 5.9325 18.25 8 18.25C8.47788 18.2545 8.9498 18.3566 9.3868 18.5501C9.8238 18.7435 10.2167 19.0242 10.5413 19.375C10.6723 19.5197 10.7418 19.7098 10.7349 19.905C10.728 20.1001 10.6453 20.2849 10.5043 20.42C10.3634 20.5551 10.1753 20.6299 9.98003 20.6285C9.78478 20.6271 9.59777 20.5496 9.45875 20.4125C9.27331 20.2088 9.04834 20.045 8.79754 19.9312C8.54675 19.8173 8.27539 19.7556 8 19.75C6.75875 19.75 5.75 20.9825 5.75 22.5ZM15.8813 21.6537C14.5238 21.2625 14.205 21.0675 14.2563 20.665C14.2634 20.5386 14.2996 20.4156 14.3621 20.3054C14.4245 20.1953 14.5115 20.1011 14.6163 20.03C15.3162 19.5563 16.8238 19.8025 17.2975 19.925C17.488 19.9706 17.6889 19.9398 17.857 19.8393C18.0251 19.7387 18.1473 19.5763 18.1972 19.3869C18.2472 19.1975 18.2211 18.996 18.1244 18.8256C18.0277 18.6551 17.8682 18.5293 17.68 18.475C17.43 18.4088 15.1675 17.85 13.7788 18.785C13.4968 18.976 13.2602 19.2265 13.0856 19.519C12.9111 19.8114 12.8029 20.1387 12.7688 20.4775C12.5437 22.2513 14.3013 22.7587 15.465 23.095C16.98 23.5325 17.3125 23.7613 17.24 24.315C17.2336 24.4477 17.1963 24.5771 17.1313 24.693C17.0662 24.8089 16.975 24.908 16.865 24.9825C16.1637 25.4487 14.68 25.1875 14.2163 25.06C14.0305 25.0216 13.8371 25.055 13.675 25.1535C13.5129 25.252 13.3941 25.4083 13.3426 25.5908C13.2911 25.7734 13.3107 25.9687 13.3974 26.1374C13.4841 26.3061 13.6316 26.4357 13.81 26.5C14.4088 26.6596 15.0253 26.7436 15.645 26.75C16.3313 26.75 17.0875 26.6313 17.69 26.2325C17.9797 26.0392 18.2231 25.7842 18.4027 25.4857C18.5823 25.1873 18.6936 24.8528 18.7288 24.5063C18.98 22.5487 17.115 22.01 15.8813 21.6525V21.6537ZM26.2563 18.2938C26.1635 18.2606 26.0651 18.246 25.9668 18.2509C25.8684 18.2557 25.7719 18.2799 25.6829 18.3221C25.5939 18.3642 25.514 18.4234 25.4479 18.4964C25.3818 18.5694 25.3307 18.6548 25.2975 18.7475L23.5 23.7687L21.7062 18.75C21.6769 18.6529 21.6281 18.5628 21.5629 18.4851C21.4977 18.4074 21.4175 18.3438 21.327 18.298C21.2365 18.2522 21.1376 18.2252 21.0364 18.2187C20.9352 18.2122 20.8337 18.2263 20.7381 18.2602C20.6425 18.294 20.5548 18.3469 20.4802 18.4156C20.4056 18.4844 20.3457 18.5675 20.3042 18.66C20.2626 18.7525 20.2403 18.8525 20.2385 18.9539C20.2367 19.0554 20.2555 19.1561 20.2938 19.25L22.7938 26.25C22.8458 26.3956 22.9416 26.5216 23.068 26.6107C23.1945 26.6998 23.3453 26.7476 23.5 26.7476C23.6547 26.7476 23.8055 26.6998 23.932 26.6107C24.0584 26.5216 24.1542 26.3956 24.2062 26.25L26.7062 19.25C26.7727 19.0625 26.762 18.8563 26.6764 18.6768C26.5909 18.4972 26.4375 18.359 26.25 18.2925L26.2563 18.2938ZM26.75 11V14C26.75 14.1989 26.671 14.3897 26.5303 14.5303C26.3897 14.671 26.1989 14.75 26 14.75C25.8011 14.75 25.6103 14.671 25.4697 14.5303C25.329 14.3897 25.25 14.1989 25.25 14V11.75H19C18.8011 11.75 18.6103 11.671 18.4697 11.5303C18.329 11.3897 18.25 11.1989 18.25 11V4.75H7C6.9337 4.75 6.87011 4.77634 6.82322 4.82322C6.77634 4.87011 6.75 4.9337 6.75 5V14C6.75 14.1989 6.67098 14.3897 6.53033 14.5303C6.38968 14.671 6.19891 14.75 6 14.75C5.80109 14.75 5.61032 14.671 5.46967 14.5303C5.32902 14.3897 5.25 14.1989 5.25 14V5C5.25 4.53587 5.43437 4.09075 5.76256 3.76256C6.09075 3.43437 6.53587 3.25 7 3.25H19C19.1988 3.25018 19.3895 3.32931 19.53 3.47L26.53 10.47C26.6707 10.6105 26.7498 10.8012 26.75 11ZM24.1887 10.25L19.75 5.81V10.25H24.1887Z" fill="#343330"/></svg></button>' +
-      '</div>';
-    }
-    return '<tr>' +
+    var btns = cardReqActionsHTML(req);
+    return '<tr style="cursor:pointer" onclick="openCardReqDetail(\'' + req.id + '\')">' +
       '<td style="color:#858585">' + fd(req.createdAt) + '</td>' +
       '<td style="font-weight:600">' + esc(req.companyName || req.companyId || "—") + '</td>' +
       '<td style="font-weight:700;color:#4f00df;font-size:16px">' + total + '</td>' +
       '<td style="color:#858585">' + esc(req.notes || "—") + '</td>' +
       '<td><span class="pg-badge ' + st.cls + '">' + st.label + '</span></td>' +
-      '<td>' + btns + '</td>' +
+      '<td onclick="event.stopPropagation()">' + btns + '</td>' +
+      '<td style="text-align:right"><button class="cd-action-btn" title="View"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#858585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>' +
     '</tr>';
   }).join("");
   if (pagerEl) pagerEl.innerHTML = renderPagerHTML(cardReqPage, totalPages, cardReqPageSize, "cardReq");
+}
+
+var CSV_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="#164e23" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var CHECK_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="pg-icon"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+// Action cell shared by the Requests table and the request detail page.
+function cardReqActionsHTML(req) {
+  var total = req.count || 10;
+  var generated = req.generatedCount || 0;
+  var rid = req.id.replace(/'/g, "");
+  var cid = (req.companyId || "").replace(/'/g, "");
+  if (req.status === "pending") {
+    return '<div style="display:flex;gap:8px;align-items:center">' +
+      '<button class="pg-circle-btn pg-circle-approve" title="' + t("btn_approve") + '" onclick="openAssignModal(this,\'' + rid + '\',\'' + cid + '\',' + total + ')"><span class="pg-spin"></span>' + CHECK_ICON + '</button>' +
+      '<button class="pg-circle-btn pg-circle-reject" title="' + t("btn_reject") + '" onclick="rejectCardReq(\'' + rid + '\')"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" class="pg-icon"><path d="M19.207 0.707031L10.3105 9.60352L19.207 18.5L18.5 19.207L9.60352 10.3105L0.707031 19.207L0 18.5L8.89648 9.60352L0 0.707031L0.707031 0L9.60352 8.89648L18.5 0L19.207 0.707031Z" fill="#D93025"/></svg></button>' +
+    '</div>';
+  }
+  if (req.status === "in_progress") {
+    return '<div style="display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:13px;color:#858585">' + tf("label_generated_created", {generated: generated, total: total}) + '</span>' +
+      '<button class="pg-decision-btn pg-decision-revision" onclick="approveCardReq(this,\'' + rid + '\',' + total + ',\'' + cid + '\')">' + t("btn_resume") + '</button>' +
+    '</div>';
+  }
+  if (req.status === "rejected") {
+    return '<span style="color:#858585;font-size:13px">' + fd(req.rejectedAt || req.createdAt) + '</span>';
+  }
+  return '<div style="display:flex;align-items:center;gap:10px">' +
+    '<span style="color:#858585;font-size:13px">' + fd(req.approvedAt || req.createdAt) + '</span>' +
+    '<button class="cd-add-cards-btn" style="background:#fff;border:1.5px solid #eceae6;color:#111;gap:6px;padding:7px 12px;font-size:13px;margin:0" onclick="exportReqCards(\'' + rid + '\',\'' + esc(req.companyName || "").replace(/'/g, "") + '\')">' + CSV_ICON + ' <span data-i18n="btn_export_csv">' + t("btn_export_csv") + '</span></button>' +
+  '</div>';
+}
+
+// ═══════════════════════════════════════════════════════════
+// CARD REQUEST DETAIL PAGE
+// ═══════════════════════════════════════════════════════════
+var crdReqId = null, crdCards = [];
+
+async function openCardReqDetail(reqId, keepHistory) {
+  var req = allCardReqs.find(function(r) { return r.id === reqId; }) || await fsGet("card_requests", reqId);
+  if (!req) { toast(t("toast_request_not_found")); return; }
+  crdReqId = reqId;
+  var stMap = {
+    pending:     { cls: "pg-badge-yellow", label: t("pill_pending") },
+    in_progress: { cls: "pg-badge-blue",   label: t("pill_in_progress") },
+    approved:    { cls: "pg-badge-green",  label: t("pill_approved") },
+    rejected:    { cls: "pg-badge-red",    label: t("pill_rejected") }
+  };
+  var st = stMap[req.status] || stMap.pending;
+  var coName = req.companyName || (CC.cos[req.companyId] || {}).name || req.companyId || "—";
+  document.getElementById("crdTitle").textContent = coName;
+  document.getElementById("crdMeta").textContent = [fd(req.createdAt), req.email, req.id].filter(Boolean).join(" · ");
+  document.getElementById("crdStatus").innerHTML = '<span class="pg-badge ' + st.cls + '">' + st.label + '</span>';
+  document.getElementById("crdActions").innerHTML = cardReqActionsHTML(req);
+  var coBtn = document.getElementById("crdOpenCo");
+  coBtn.style.display = req.companyId ? "" : "none";
+  coBtn.onclick = function() { nav("companies", 1); openCo(req.companyId); };
+  document.getElementById("crdNotes").textContent = req.notes || "—";
+
+  var tb = document.getElementById("crdBody");
+  tb.innerHTML = '<tr><td colspan="6" class="pg-empty">' + t("loading_text") + '</td></tr>';
+  if (!keepHistory) nav("card-req-detail"); else if (!document.getElementById("page-card-req-detail").classList.contains("active")) nav("card-req-detail");
+
+  // Cards tied to this request; older requests pre-date requestId, fall back to company cards.
+  crdCards = await fsQ("nfc_cards", [{field:"requestId", value:reqId}]);
+  var isFallback = false;
+  if (!crdCards.length && req.companyId && req.status === "approved") {
+    crdCards = await fsQ("nfc_cards", [{field:"companyId", value:req.companyId}]);
+    isFallback = crdCards.length > 0;
+  }
+  var total = req.count || 0;
+  var active = crdCards.filter(function(c){ return c.status === "active"; }).length;
+  var assigned = crdCards.filter(function(c){ return c.status === "assigned"; }).length;
+  var free = crdCards.filter(function(c){ return c.status === "unassigned"; }).length;
+  document.getElementById("crdStats").innerHTML =
+    '<div class="cd-stat"><div class="cd-stat-num">' + total + '</div><div class="cd-stat-label">' + t("label_requested_cards") + '</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num" style="color:#4f00df">' + crdCards.length + '</div><div class="cd-stat-label">' + t("label_issued_cards") + (isFallback ? ' *' : '') + '</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num">' + free + '</div><div class="cd-stat-label">' + t("status_available") + '</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num">' + assigned + '</div><div class="cd-stat-label">' + t("status_assigned") + '</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num" style="color:#164e23">' + active + '</div><div class="cd-stat-label">' + t("status_activated") + '</div></div>';
+  document.getElementById("crdFallbackNote").style.display = isFallback ? "" : "none";
+
+  if (!crdCards.length) { tb.innerHTML = '<tr><td colspan="6" class="pg-empty">' + t("empty_no_cards_found") + '</td></tr>'; return; }
+  var hmById = CC._hmById || {};
+  crdCards.sort(function(a,b){ return String(a.printId||"").localeCompare(String(b.printId||"")); });
+  tb.innerHTML = crdCards.map(function(c) {
+    var hm = c.handymanId ? (hmById[c.handymanId] || c.handymanId) : "—";
+    return '<tr style="cursor:pointer" onclick="showAllCardDetail(\'' + c.id + '\')">' +
+      '<td><span class="cd-pid">' + esc(c.printId || c.id.slice(-6).toUpperCase()) + '</span></td>' +
+      '<td class="cd-token">' + esc(c.id) + '</td>' +
+      '<td>' + bdg(c.status || "unassigned") + '</td>' +
+      '<td style="color:#858585">' + esc(hm) + '</td>' +
+      '<td style="color:#858585">' + (c.clientId ? t("status_activated") : "—") + '</td>' +
+      '<td style="color:#858585">' + csvDate(c.createdAt) + '</td>' +
+    '</tr>';
+  }).join("");
+}
+
+function refreshCardReqDetailIfOpen() {
+  var pg = document.getElementById("page-card-req-detail");
+  if (pg && pg.classList.contains("active") && crdReqId) openCardReqDetail(crdReqId, true);
+}
+
+// ═══════════════════════════════════════════════════════════
+// CARDS → COMPANIES TAB
+// ═══════════════════════════════════════════════════════════
+var poolCompanies = [];
+
+async function loadPoolCompanies() {
+  var tb = document.getElementById("pcBody");
+  tb.innerHTML = '<tr><td colspan="7" class="pg-empty">' + t("loading_text") + '</td></tr>';
+  var results = await Promise.all([
+    fsL("companies", 2000),
+    poolAllCards.length ? Promise.resolve(poolAllCards) : fsL("nfc_cards", 20000)
+  ]);
+  var cos = results[0], cards = results[1];
+  cos.forEach(function(c) { CC.cos[c.id] = Object.assign(CC.cos[c.id] || {}, c); });
+  var agg = {};
+  cards.forEach(function(c) {
+    if (!c.companyId) return;
+    var a = agg[c.companyId] || (agg[c.companyId] = { total: 0, free: 0, assigned: 0, active: 0 });
+    a.total++;
+    if (c.status === "unassigned") a.free++;
+    else if (c.status === "assigned") a.assigned++;
+    else if (c.status === "active") a.active++;
+  });
+  poolCompanies = cos.map(function(c) {
+    return Object.assign({}, c, { _cards: agg[c.id] || { total: 0, free: 0, assigned: 0, active: 0 } });
+  }).sort(function(a, b) { return b._cards.total - a._cards.total || (a.name || "").localeCompare(b.name || ""); });
+  renderPoolCompanies();
+}
+
+function renderPoolCompanies() {
+  var q = (document.getElementById("pcSearch") || {value:""}).value.trim().toLowerCase();
+  var tb = document.getElementById("pcBody");
+  var fil = poolCompanies.filter(function(c) {
+    if (!q) return true;
+    return (c.name || "").toLowerCase().includes(q) || (c.email || "").toLowerCase().includes(q) || (c.id || "").toLowerCase().includes(q);
+  });
+  if (!fil.length) { tb.innerHTML = '<tr><td colspan="7" class="pg-empty">' + t("empty_no_companies") + '</td></tr>'; return; }
+  tb.innerHTML = fil.map(function(c) {
+    var a = c._cards;
+    var cid = c.id.replace(/'/g, "");
+    return '<tr style="cursor:pointer" onclick="nav(\'companies\',1);openCo(\'' + cid + '\')">' +
+      '<td><div style="font-weight:600">' + esc(c.name || c.id) + '</div><div style="font-size:12px;color:#858585">' + esc(c.email || "") + '</div></td>' +
+      '<td>' + bdg(c.status === "inactive" ? "inactive" : "active") + '</td>' +
+      '<td style="font-weight:700;color:#4f00df;font-size:16px">' + a.total + '</td>' +
+      '<td>' + a.free + '</td>' +
+      '<td>' + a.assigned + '</td>' +
+      '<td style="color:#164e23;font-weight:600">' + a.active + '</td>' +
+      '<td style="text-align:right"><button class="cd-action-btn" title="View"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#858585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>' +
+    '</tr>';
+  }).join("");
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -4825,15 +5046,18 @@ function switchPoolTab(tab) {
   document.getElementById('poolTabOrders').classList.toggle('active', tab === 'orders');
   document.getElementById('poolTabAll').classList.toggle('active', tab === 'all');
   document.getElementById('poolTabReq').classList.toggle('active', tab === 'requests');
+  document.getElementById('poolTabCos').classList.toggle('active', tab === 'companies');
   document.getElementById('poolPanelOrders').style.display = tab === 'orders' ? '' : 'none';
   document.getElementById('poolPanelAll').style.display = tab === 'all' ? '' : 'none';
   document.getElementById('poolPanelRequests').style.display = tab === 'requests' ? '' : 'none';
+  document.getElementById('poolPanelCompanies').style.display = tab === 'companies' ? '' : 'none';
   if (tab === 'all') loadAllCards();
+  if (tab === 'companies') loadPoolCompanies();
 }
 
 async function loadPool() {
   nav('nfc-pool');
-  switchPoolTab('all');
+  switchPoolTab('requests');
   loadCardRequests();
   document.getElementById('poolBatchBody').innerHTML =
     '<tr><td colspan="5" class="pg-empty">' + t("loading_text") + '</td></tr>';
@@ -5300,10 +5524,11 @@ async function doAssignCards() {
 
     // Update local state
     var idx = allCardReqs.findIndex(function(r){ return r.id === reqId; });
-    if (idx >= 0) { allCardReqs[idx].status = 'approved'; }
+    if (idx >= 0) { allCardReqs[idx].status = 'approved'; allCardReqs[idx].approvedAt = new Date().toISOString(); }
 
     closeModal('mAssignCards');
     renderCardReqs();
+    refreshCardReqDetailIfOpen();
     loadNotifications();
     var msg = tf('toast_cards_assigned_to_company', {count: count});
     if (freeCount > 0) msg += tf('toast_free_leads_suffix', {count: freeCount, paid: paidCount > 0 ? tf('toast_paid_suffix', {count: paidCount}) : ''});
@@ -5463,8 +5688,9 @@ async function rejectCardReq(reqId) {
     );
   }
   var idx = allCardReqs.findIndex(function(r) { return r.id === reqId; });
-  if (idx >= 0) allCardReqs[idx].status = "rejected";
+  if (idx >= 0) { allCardReqs[idx].status = "rejected"; allCardReqs[idx].rejectedAt = new Date().toISOString(); }
   renderCardReqs();
+  refreshCardReqDetailIfOpen();
   loadNotifications();
   toast(t("toast_request_rejected"));
 }
