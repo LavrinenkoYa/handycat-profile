@@ -257,7 +257,7 @@
       <div class="pkg-grid" id="pkgGrid"></div>
       <div id="customQtyWrap" style="display:none;margin-bottom:16px">
         <label style="display:block;font-size:13px;color:#0d0c19;margin-bottom:6px" data-i18n="label_num_cards">Number of cards</label>
-        <input id="customQtyInput" type="number" min="5" data-i18n-ph="ph_custom_qty" placeholder="e.g. 750" oninput="updateCustomQty()"/>
+        <input id="customQtyInput" type="number" min="300" step="1" data-i18n-ph="ph_custom_qty" placeholder="e.g. 500" oninput="updateCustomQty()"/>
       </div>
       <div style="background:#f8f8f8;border-radius:12px;padding:16px;margin-bottom:16px">
         <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px" data-i18n="whats_included">What's included with each card:</div>
@@ -270,25 +270,7 @@
       </div>
       <div class="actions">
         <button class="btn-back" onclick="prevStep()">&#x2190; <span data-i18n="btn_back">Back</span></button>
-        <button class="btn-next" onclick="nextStep()"><span data-i18n="btn_next">Next</span> &#x2192;</button>
-      </div>
-    </div>
-
-    <!-- STEP 4 -->
-    <div class="ss" id="step-4">
-      <div class="step-icon" style="background:#f3edff">&#x1F6E1;</div>
-      <div class="step-title" data-i18n="step4_title">Licensing &amp; insurance</div>
-      <div class="step-sub" data-i18n="step4_sub">This helps us verify your legitimacy and build trust with clients.</div>
-      <div class="fgr">
-        <div class="fg"><label data-i18n="label_license_number">Business License Number *</label><input id="f-license" data-i18n-ph="ph_license_number" placeholder="LIC-XXXXXXXX"/></div>
-        <div class="fg"><label data-i18n="label_years_business">Years in Business *</label><input id="f-years" type="number" min="0" placeholder="5"/></div>
-      </div>
-      <div class="fg"><label data-i18n="label_insurance_provider">Insurance Provider *</label><input id="f-insurance" data-i18n-ph="ph_insurance_provider" placeholder="e.g. State Farm, Allstate..."/></div>
-      <div class="fg"><label><span data-i18n="label_additional_notes">Additional Notes</span> <span style="color:#aaa;font-weight:400" data-i18n="optional">(optional)</span></label><textarea id="f-notes" data-i18n-ph="ph_additional_notes" placeholder="Any additional information about your company, certifications, or anything else you'd like us to know..."></textarea></div>
-      <div class="actions">
-        <button class="btn-back" onclick="prevStep()">&#x2190; <span data-i18n="btn_back">Back</span></button>
-        <button class="btn-back" onclick="submitApplication(true)" style="color:#4f00df;font-weight:600" data-i18n="btn_skip_for_now">Skip for now</button>
-        <button class="btn-next" id="submitBtn" onclick="submitApplication(false)">
+        <button class="btn-next" id="submitBtn" onclick="submitApplication()">
           <span class="ld"></span><span data-i18n="btn_submit_application">Submit Application</span>
         </button>
       </div>
@@ -323,15 +305,15 @@
 </div>
 
 <script>
-function STEP_LABELS(){ return [t("step_label_1"),t("step_label_2"),t("step_label_3"),t("step_label_4")]; }
-var currentStep=1,totalSteps=4,cardCount=10;
+function STEP_LABELS(){ return [t("step_label_1"),t("step_label_2"),t("step_label_3")]; }
+var currentStep=1,totalSteps=3,cardCount=10;
 
 // Tiered per-card pricing (base $5/card, discount unlocks at higher volumes).
-// Custom quantities are always billed at the base rate (no volume discount) -
-// picking one of the fixed packages is what gets you the discount.
-var CARD_PRICE_TIERS=[{min:0,rate:5.0},{min:100,rate:4.7},{min:250,rate:4.5},{min:500,rate:4.2}];
+// Custom quantities start at CUSTOM_MIN cards and are billed at CUSTOM_RATE.
+var CARD_PRICE_TIERS=[{min:0,rate:5.0},{min:100,rate:4.7}];
 var CARD_PACKAGES=[10,50,100];
-var CUSTOM_RATE=CARD_PRICE_TIERS[0].rate;
+var CUSTOM_MIN=300;
+var CUSTOM_RATE=4.2;
 var selectedPackage=10,customQty=0;
 
 function tieredRate(qty){
@@ -370,7 +352,7 @@ function selectPackage(qty){
 
 function updateCustomQty(){
   var v=parseInt(document.getElementById("customQtyInput").value,10);
-  if(!v||v<5)v=0;
+  if(!v||v<1)v=0;
   customQty=v;
   cardCount=v;
   document.getElementById("pkgCustomPrice").textContent=v?fmtMoney(v*CUSTOM_RATE):"\u2014";
@@ -456,10 +438,10 @@ var I18N = {
   "step3_title": "How many NFC cards do you need?",
   "step3_sub": "Each card is assigned to one handyman. We'll prepare your order after approval.",
   "label_num_cards": "Number of cards",
-  "ph_custom_qty": "e.g. 750",
+  "ph_custom_qty": "e.g. 500",
   "pkg_cards_label": "cards",
   "pkg_custom_label": "Custom",
-  "pkg_custom_sub": "any amount",
+  "pkg_custom_sub": "from 300 cards",
   "whats_included": "What's included with each card:",
   "feat_nfc_chip": "NFC chip pre-programmed with handyman's profile URL",
   "feat_client_reg": "Client registration & review system",
@@ -496,7 +478,7 @@ var I18N = {
   "toast_select_biztype": "Please select your business type",
   "toast_select_teamsize": "Please select your team size",
   "toast_select_one_service": "Please select at least one service",
-  "toast_valid_custom_qty": "Please enter a valid custom quantity (min 5 cards)",
+  "toast_valid_custom_qty": "Please enter a valid custom quantity (min {min} cards)",
   "toast_select_package": "Please select a card package",
   "toast_enter_license": "Please enter your license number",
   "toast_enter_years": "Please enter years in business",
@@ -603,10 +585,10 @@ var I18N = {
   "step3_title": "Скільки NFC-карток вам потрібно?",
   "step3_sub": "Кожна картка призначається одному майстру. Ми підготуємо ваше замовлення після схвалення.",
   "label_num_cards": "Кількість карток",
-  "ph_custom_qty": "напр. 750",
+  "ph_custom_qty": "напр. 500",
   "pkg_cards_label": "карток",
   "pkg_custom_label": "Свій варіант",
-  "pkg_custom_sub": "будь-яка кількість",
+  "pkg_custom_sub": "від 300 карток",
   "whats_included": "Що включено в кожну картку:",
   "feat_nfc_chip": "NFC-чіп, попередньо запрограмований на профіль майстра",
   "feat_client_reg": "Реєстрація клієнтів та система відгуків",
@@ -643,7 +625,7 @@ var I18N = {
   "toast_select_biztype": "Будь ласка, оберіть тип бізнесу",
   "toast_select_teamsize": "Будь ласка, оберіть розмір команди",
   "toast_select_one_service": "Будь ласка, оберіть принаймні одну послугу",
-  "toast_valid_custom_qty": "Будь ласка, введіть коректну кількість (мінімум 5 карток)",
+  "toast_valid_custom_qty": "Будь ласка, введіть коректну кількість (мінімум {min} карток)",
   "toast_select_package": "Будь ласка, оберіть пакет карток",
   "toast_enter_license": "Будь ласка, введіть номер ліцензії",
   "toast_enter_years": "Будь ласка, введіть кількість років у бізнесі",
@@ -750,10 +732,10 @@ var I18N = {
   "step3_title": "¿Cuántas tarjetas NFC necesitas?",
   "step3_sub": "Cada tarjeta se asigna a un técnico. Prepararemos tu pedido después de la aprobación.",
   "label_num_cards": "Número de tarjetas",
-  "ph_custom_qty": "ej. 750",
+  "ph_custom_qty": "ej. 500",
   "pkg_cards_label": "tarjetas",
   "pkg_custom_label": "Personalizado",
-  "pkg_custom_sub": "cualquier cantidad",
+  "pkg_custom_sub": "desde 300 tarjetas",
   "whats_included": "Qué incluye cada tarjeta:",
   "feat_nfc_chip": "Chip NFC preprogramado con la URL del perfil del técnico",
   "feat_client_reg": "Registro de clientes y sistema de reseñas",
@@ -790,7 +772,7 @@ var I18N = {
   "toast_select_biztype": "Por favor selecciona el tipo de negocio",
   "toast_select_teamsize": "Por favor selecciona el tamaño del equipo",
   "toast_select_one_service": "Por favor selecciona al menos un servicio",
-  "toast_valid_custom_qty": "Por favor ingresa una cantidad válida (mínimo 5 tarjetas)",
+  "toast_valid_custom_qty": "Por favor ingresa una cantidad válida (mínimo {min} tarjetas)",
   "toast_select_package": "Por favor selecciona un paquete de tarjetas",
   "toast_enter_license": "Por favor ingresa tu número de licencia",
   "toast_enter_years": "Por favor ingresa los años en el negocio",
@@ -1123,7 +1105,7 @@ function addCustomService(){
   inp.focus();
   updatePreviewCard();
 }
-function validate(step,skip){
+function validate(step){
   if(step===1){
     if(!document.getElementById("f-company").value.trim()){toast(t("toast_enter_company_name"));return false;}
     if(!document.getElementById("f-contact").value.trim()){toast(t("toast_enter_contact"));return false;}
@@ -1140,15 +1122,10 @@ function validate(step,skip){
   }
   if(step===3){
     if(selectedPackage==="custom"){
-      if(!customQty||customQty<5){toast(t("toast_valid_custom_qty"));return false;}
+      if(!customQty||customQty<CUSTOM_MIN){toast(tf("toast_valid_custom_qty",{min:CUSTOM_MIN}));return false;}
     }else if(!cardCount||cardCount<1){
       toast(t("toast_select_package"));return false;
     }
-  }
-  if(step===4 && !skip){
-    if(!document.getElementById("f-license").value.trim()){toast(t("toast_enter_license"));return false;}
-    if(!document.getElementById("f-years").value){toast(t("toast_enter_years"));return false;}
-    if(!document.getElementById("f-insurance").value.trim()){toast(t("toast_enter_insurance"));return false;}
   }
   return true;
 }
@@ -1168,9 +1145,9 @@ function prevStep(){
   updateProgress();window.scrollTo(0,0);
 }
 
-async function submitApplication(skip){
+async function submitApplication(){
   if(!verifiedEmail){toast(t("toast_email_not_verified"));return;}
-  if(!validate(4,skip))return;
+  if(!validate(3))return;
   var btn=document.getElementById("submitBtn");
   btn.disabled=true;btn.classList.add("loading");
   var services=Array.from(document.querySelectorAll("#serviceChips .chip.sel")).map(function(c){return c.dataset.label||c.textContent.trim();});
@@ -1193,11 +1170,11 @@ async function submitApplication(skip){
       team_size: document.getElementById("f-teamsize").value,
       services: services,
       website: document.getElementById("f-website").value.trim(),
-      license_number: document.getElementById("f-license").value.trim(),
-      years_in_business: document.getElementById("f-years").value,
-      insurance_provider: document.getElementById("f-insurance").value.trim(),
-      notes: document.getElementById("f-notes").value.trim(),
-      licensing_skipped: !!skip,
+      license_number: "",
+      years_in_business: null,
+      insurance_provider: "",
+      notes: "",
+      licensing_skipped: true,
       requested_cards: cardCount,
       card_package: String(selectedPackage),
       price_per_card: pricePerCard,
