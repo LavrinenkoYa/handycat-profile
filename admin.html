@@ -3057,9 +3057,16 @@ async function login() {
   var en = await gotrue("/factors", { factor_type: "totp", friendly_name: "HandyCat admin " + Date.now().toString(36) }, pendingAuth.access_token);
   if (!en.ok || !en.data || !en.data.totp) { showAuthErr(t("auth_err_failed")); resetLoginUi(); return; }
   pendingFactorId = en.data.id;
-  document.getElementById("mfaQr").src = en.data.totp.qr_code;
+  document.getElementById("mfaQr").src = qrSrc(en.data.totp.qr_code);
   document.getElementById("mfaSecret").textContent = en.data.totp.secret || "";
   showMfaStep(true);
+}
+// Supabase returns the QR as SVG markup (sometimes already prefixed with "data:image/svg+xml;utf-8,").
+// Raw SVG in a data: URL breaks on characters like "#", so it is always URL-encoded here.
+function qrSrc(q) {
+  q = String(q || "");
+  var i = q.indexOf("<svg");
+  return i >= 0 ? "data:image/svg+xml;charset=utf-8," + encodeURIComponent(q.slice(i)) : q;
 }
 function showMfaStep(enroll) {
   document.getElementById("authErr").style.display = "none";
