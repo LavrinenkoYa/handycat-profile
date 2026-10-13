@@ -103,7 +103,6 @@
   .grecaptcha-badge{visibility:hidden !important}
     </style>
 </head>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <body>
 <div class="container">
   <div class="sidebar">
@@ -357,9 +356,29 @@ function updateCustomQty(){
   cardCount=v;
   document.getElementById("pkgCustomPrice").textContent=v?fmtMoney(v*CUSTOM_RATE):"\u2014";
 }
-var SB_URL="https://leiztsecokpeombovobc.supabase.co";
-var SB_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s";
-var sb=window.supabase.createClient(SB_URL,SB_ANON_KEY);
+// -- API: all database access and e-mail go through the public-api edge function --
+// The key below is only the gateway (anon) key; it grants no database access once the
+// tables are locked down server-side, so it is safe to ship in the page.
+var HC_PROD={url:"https://leiztsecokpeombovobc.supabase.co/functions/v1/public-api",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s"};
+// >>> PREVIEW-ONLY: remove this block and the HC_DEV branch of the line below before merging to main <<<
+var HC_DEV={url:"https://fmsmtabaulgankddiwqf.supabase.co/functions/v1/public-api",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtc210YWJhdWxnYW5rZGRpd3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MDk5MTMsImV4cCI6MjEwNzQ4NTkxM30.roAo-FTxoIqGKKoaG79eyB-425yXuIqZ69rhpgw9Xrg"};
+var API=(/\.vercel\.app$/.test(location.hostname)||location.hostname==="localhost")?HC_DEV:HC_PROD;
+// >>> END PREVIEW-ONLY <<<
+var verifyTicket=null;
+async function api(action,payload){
+  var res;
+  try{
+    res=await fetch(API.url,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+API.key,"apikey":API.key},
+      body:JSON.stringify(Object.assign({action:action},payload||{}))
+    });
+  }catch(e){return {ok:false,error:"network",status:0};}
+  var j=null;try{j=await res.json();}catch(e){}
+  if(!j||typeof j!=="object")j={ok:false,error:"bad_response"};
+  j.status=res.status;
+  return j;
+}
 var I18N = {
  "en": {
   "logo_sub": "Company registration",
@@ -379,6 +398,10 @@ var I18N = {
   "toast_code_expired": "This code has expired. Please request a new one.",
   "toast_code_incorrect": "Incorrect code, please try again",
   "toast_too_many_attempts": "Too many attempts. Please request a new code.",
+  "toast_rate_limited": "Too many requests. Please wait a bit and try again.",
+  "toast_mail_failed": "We couldn't send the email. Please try again in a minute.",
+  "toast_cooldown": "Please wait {seconds}s before requesting another code.",
+  "toast_form_invalid": "Please check the form: some fields are invalid.",
   "toast_email_verified": "Email verified!",
   "toast_email_not_verified": "Please verify your email first",
   "email_otp_subject": "Your HandyCat verification code",
@@ -526,6 +549,10 @@ var I18N = {
   "toast_code_expired": "Термін дії цього коду минув. Будь ласка, запросіть новий.",
   "toast_code_incorrect": "Невірний код, спробуйте ще раз",
   "toast_too_many_attempts": "Забагато спроб. Будь ласка, запросіть новий код.",
+  "toast_rate_limited": "Забагато запитів. Зачекайте трохи й спробуйте ще раз.",
+  "toast_mail_failed": "Не вдалося надіслати лист. Спробуйте ще раз за хвилину.",
+  "toast_cooldown": "Зачекайте {seconds} с, перш ніж запитувати новий код.",
+  "toast_form_invalid": "Перевірте форму: деякі поля заповнено некоректно.",
   "toast_email_verified": "Email підтверджено!",
   "toast_email_not_verified": "Будь ласка, спочатку підтвердьте свою електронну адресу",
   "email_otp_subject": "Ваш код підтвердження HandyCat",
@@ -673,6 +700,10 @@ var I18N = {
   "toast_code_expired": "Este código ha caducado. Solicita uno nuevo.",
   "toast_code_incorrect": "Código incorrecto, inténtalo de nuevo",
   "toast_too_many_attempts": "Demasiados intentos. Solicita un nuevo código.",
+  "toast_rate_limited": "Demasiadas solicitudes. Espera un poco e inténtalo de nuevo.",
+  "toast_mail_failed": "No pudimos enviar el correo. Inténtalo de nuevo en un minuto.",
+  "toast_cooldown": "Espera {seconds} s antes de pedir otro código.",
+  "toast_form_invalid": "Revisa el formulario: algunos campos no son válidos.",
   "toast_email_verified": "¡Correo verificado!",
   "toast_email_not_verified": "Por favor, verifica tu correo electrónico primero",
   "email_otp_subject": "Tu código de verificación de HandyCat",
@@ -861,15 +892,6 @@ function sv(v){return v==null?"":String(v);}
 function nv(v){return Number(v||0);}
 function dv(v){return Number(v||0);}
 
-function sendEmail(to,subject,html){
-  return fetch(SB_URL+"/functions/v1/send-email",{
-    method:"POST",
-    headers:{"Content-Type":"application/json","Authorization":"Bearer "+SB_ANON_KEY,"apikey":SB_ANON_KEY},
-    body:JSON.stringify({to:to,subject:subject,html:html})
-  }).then(function(r){if(!r.ok)console.warn("sendEmail: request failed",r.status);return r;})
-    .catch(function(e){console.warn("sendEmail: network error",e);});
-}
-
 // ── EMAIL VERIFICATION (OTP gate before the application form) ──
 var verifiedEmail=null;
 var resendCooldownTimer=null;
@@ -882,42 +904,29 @@ async function sendVerificationCode(isResend){
   if(!isValidEmail(email)){toast(t("toast_enter_valid_email"));return;}
   var btn=document.getElementById("sendCodeBtn");
   if(btn){btn.disabled=true;btn.classList.add("loading");}
-  var code=String(Math.floor(100000+Math.random()*900000));
-  try{
-    var res=await sb.from("email_verifications").upsert({
-      email: email.toLowerCase(),
-      code: code,
-      expires_at: new Date(Date.now()+10*60*1000).toISOString(),
-      verified: false,
-      attempts: 0,
-      created_at: new Date().toISOString()
-    });
-    if(res.error){toast(t("toast_code_invalid"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
-    await sendEmail(email,t("email_otp_subject"),
-      "<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px'>"+
-      "<h2 style='color:#185FA5'>HandyCat</h2>"+
-      "<p>"+t("email_otp_greeting")+"</p>"+
-      "<p>"+t("email_otp_body")+"</p>"+
-      "<div style='font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;background:#f5f5f7;border-radius:12px;padding:16px;margin:20px 0'>"+code+"</div>"+
-      "<p style='font-size:13px;color:#888'>"+t("email_otp_expiry")+"</p>"+
-      "</div>"
-    );
-    document.getElementById("codeEntryWrap").style.display="block";
-    document.getElementById("sendCodeActions").style.display="none";
-    document.getElementById("verifyEmail").disabled=true;
-    toast(isResend?t("toast_code_resent"):t("toast_code_sent"));
-    startResendCooldown();
-  }catch(e){
-    console.error(e);
-    toast(t("toast_code_invalid"));
-  }
+  var r=await api("send-code",{email:email,lang:LANG});
   if(btn){btn.disabled=false;btn.classList.remove("loading");}
+  var cooldown=(!r.ok&&r.error==="cooldown");
+  if(!r.ok&&!cooldown){
+    if(r.error==="rate_limited")toast(t("toast_rate_limited"));
+    else if(r.error==="mail_failed")toast(t("toast_mail_failed"));
+    else if(r.error==="invalid_email")toast(t("toast_enter_valid_email"));
+    else toast(t("toast_code_invalid"));
+    return;
+  }
+  // A cooldown means a code was sent less than a minute ago, so the entry box is still the right place to be.
+  document.getElementById("codeEntryWrap").style.display="block";
+  document.getElementById("sendCodeActions").style.display="none";
+  document.getElementById("verifyEmail").disabled=true;
+  if(cooldown)toast(tf("toast_cooldown",{seconds:r.retry_after||60}));
+  else toast(isResend?t("toast_code_resent"):t("toast_code_sent"));
+  startResendCooldown(cooldown?(r.retry_after||60):60);
 }
 
-function startResendCooldown(){
+function startResendCooldown(initial){
   var link=document.getElementById("resendLink");
   if(!link)return;
-  var seconds=60;
+  var seconds=initial||60;
   var original=t("btn_resend_code");
   link.style.pointerEvents="none";link.style.opacity=.5;
   clearInterval(resendCooldownTimer);
@@ -946,37 +955,24 @@ async function verifyEnteredCode(){
   if(!code){toast(t("toast_enter_code"));return;}
   var btn=document.getElementById("verifyCodeBtn");
   if(btn){btn.disabled=true;btn.classList.add("loading");}
-  try{
-    var res=await sb.from("email_verifications").select("*").eq("email",email.toLowerCase()).maybeSingle();
-    if(res.error||!res.data){toast(t("toast_code_expired"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
-    var f=res.data;
-    var storedCode=f.code||null;
-    var expiresAt=f.expires_at||null;
-    var attempts=Number(f.attempts||0);
-    if(attempts>=5){toast(t("toast_too_many_attempts"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
-    if(!storedCode||!expiresAt||new Date(expiresAt)<new Date()){toast(t("toast_code_expired"));if(btn){btn.disabled=false;btn.classList.remove("loading");}return;}
-    if(code!==storedCode){
-      await sb.from("email_verifications").update({attempts: attempts+1}).eq("email",email.toLowerCase());
-      toast(t("toast_code_incorrect"));
-      if(btn){btn.disabled=false;btn.classList.remove("loading");}
-      return;
-    }
-    await sb.from("email_verifications").update({verified:true}).eq("email",email.toLowerCase());
-    verifiedEmail=email;
-    clearInterval(resendCooldownTimer);
-    var existingCos=await checkExistingCompanies(email);
-    if(existingCos.length){
-      renderExistingCompanies(existingCos);
-      document.getElementById("s-verify").classList.remove("active");
-      document.getElementById("s-existing-company").classList.add("active");
-    }else{
-      unlockForm(email);
-    }
-  }catch(e){
-    console.error(e);
-    toast(t("toast_code_invalid"));
-  }
+  var r=await api("verify-code",{email:email,code:code});
   if(btn){btn.disabled=false;btn.classList.remove("loading");}
+  if(!r.ok||!r.ticket){
+    var keys={expired:"toast_code_expired",too_many_attempts:"toast_too_many_attempts",incorrect:"toast_code_incorrect",rate_limited:"toast_rate_limited"};
+    toast(t(keys[r.error]||"toast_code_invalid"));
+    return;
+  }
+  verifiedEmail=email.toLowerCase();
+  verifyTicket=r.ticket;
+  clearInterval(resendCooldownTimer);
+  var existingCos=r.companies||[];
+  if(existingCos.length){
+    renderExistingCompanies(existingCos);
+    document.getElementById("s-verify").classList.remove("active");
+    document.getElementById("s-existing-company").classList.add("active");
+  }else{
+    unlockForm(verifiedEmail);
+  }
 }
 
 function unlockForm(email){
@@ -988,35 +984,33 @@ function unlockForm(email){
   toast(t("toast_email_verified"));
 }
 
-// ── EXISTING COMPANY DETECTION ──────────────────────────────────
-// The email was just OTP-verified, so if it's already tied to a company we
-// offer to jump straight into that dashboard instead of silently starting a
-// second, duplicate application.
-async function checkExistingCompanies(email){
-  var res=await sb.from("companies").select("id,name,location,status").eq("email",email.toLowerCase());
-  if(res.error||!res.data)return[];
-  return res.data.filter(function(c){return c.status!=="inactive";});
-}
-
+// ── EXISTING COMPANIES (returned by the server once the e-mail is verified) ──
 function renderExistingCompanies(list){
   var wrap=document.getElementById("existingCoList");
   wrap.innerHTML=list.map(function(c){
     return '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;border:1.5px solid #eceae6;border-radius:12px;margin-bottom:10px">'+
       '<div style="min-width:0"><div style="font-weight:600">'+esc(c.name||c.id)+'</div><div style="font-size:12px;color:#888">'+esc(c.location||"")+'</div></div>'+
-      '<button class="btn-next" style="flex-shrink:0;padding:10px 18px;width:auto" onclick="continueToCompany(\''+c.id+'\')" data-i18n="btn_continue_dashboard">Continue</button>'+
+      '<button class="btn-next" style="flex-shrink:0;padding:10px 18px;width:auto" data-id="'+esc(c.id)+'" onclick="continueToCompany(this.dataset.id)" data-i18n="btn_continue_dashboard">Continue</button>'+
     '</div>';
   }).join("");
 }
 
+function resetVerification(){
+  verifiedEmail=null;verifyTicket=null;
+  document.querySelectorAll(".ss").forEach(function(x){x.classList.remove("active");});
+  document.getElementById("s-verify").classList.add("active");
+  backToEmailEntry();
+}
+
 async function continueToCompany(companyId){
   toast(t("toast_redirecting"));
-  var token="tok-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-  await sb.from("company_tokens").upsert({
-    id:token,company_id:companyId,email:verifiedEmail,
-    expires_at:new Date(Date.now()+7*24*60*60*1000).toISOString(),
-    used:false
-  });
-  window.location.href="https://app.handycat.us/company?token="+token;
+  var r=await api("continue-to-company",{ticket:verifyTicket,company_id:companyId});
+  if(!r.ok||!r.url){
+    if(r.error==="email_not_verified"){toast(t("toast_email_not_verified"));resetVerification();return;}
+    toast(r.error==="rate_limited"?t("toast_rate_limited"):t("toast_something_wrong"));
+    return;
+  }
+  window.location.href=r.url;
 }
 
 function proceedNewApplication(){
@@ -1146,73 +1140,44 @@ function prevStep(){
 }
 
 async function submitApplication(){
-  if(!verifiedEmail){toast(t("toast_email_not_verified"));return;}
+  if(!verifiedEmail||!verifyTicket){toast(t("toast_email_not_verified"));return;}
   if(!validate(3))return;
   var btn=document.getElementById("submitBtn");
   btn.disabled=true;btn.classList.add("loading");
   var services=Array.from(document.querySelectorAll("#serviceChips .chip.sel")).map(function(c){return c.dataset.label||c.textContent.trim();});
-  var appId="APP-"+Date.now().toString(36).toUpperCase();
-  var now=new Date().toISOString();
-  var email=document.getElementById("f-email").value.trim();
-  var company=document.getElementById("f-company").value.trim();
-  var contact=document.getElementById("f-contact").value.trim();
-  var pricePerCard=selectedPackage==="custom"?CUSTOM_RATE:tieredRate(cardCount);
-  var totalPrice=cardCount*pricePerCard;
 
-  try{
-    // Save application to Supabase
-    var res=await sb.from("company_applications").upsert({
-      id: appId, company_name: company, contact_person: contact,
-      email: email, phone: document.getElementById("f-phone").value.trim(),
-      address: document.getElementById("f-address").value.trim(),
-      region: document.getElementById("f-region").value.trim(),
-      business_type: document.getElementById("f-biztype").value,
-      team_size: document.getElementById("f-teamsize").value,
-      services: services,
-      website: document.getElementById("f-website").value.trim(),
-      license_number: "",
-      years_in_business: null,
-      insurance_provider: "",
-      notes: "",
-      licensing_skipped: true,
-      requested_cards: cardCount,
-      card_package: String(selectedPackage),
-      price_per_card: pricePerCard,
-      total_price: totalPrice,
-      status: "pending",
-      created_at: now
-    });
-    if(res.error)throw new Error("Save failed");
+  // The server owns price, status, e-mail address and id; only what the person typed is sent.
+  var r=await api("submit-application",{
+    ticket:verifyTicket,lang:LANG,
+    company_name:document.getElementById("f-company").value.trim(),
+    contact_person:document.getElementById("f-contact").value.trim(),
+    phone:document.getElementById("f-phone").value.trim(),
+    address:document.getElementById("f-address").value.trim(),
+    region:document.getElementById("f-region").value.trim(),
+    business_type:document.getElementById("f-biztype").value,
+    team_size:document.getElementById("f-teamsize").value,
+    services:services,
+    website:document.getElementById("f-website").value.trim(),
+    package:selectedPackage,
+    quantity:cardCount
+  });
 
-    // Send confirmation email
-    await sendEmail(email,
-      tf("email_subject",{company:company}),
-      "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>"+
-      "<h2 style='color:#185FA5'>HandyCat</h2>"+
-      "<p>"+tf("email_greeting",{contact:contact})+"</p>"+
-      "<p>"+t("email_thanks")+"</p>"+
-      "<p>"+tf("email_received",{company:"<strong>"+company+"</strong>"})+"</p>"+
-      "<div style='background:#f5f5f7;border-radius:12px;padding:16px;margin:20px 0'>"+
-      "<p style='margin:4px 0'><strong>"+t("application_id_label")+"</strong> "+appId+"</p>"+
-      "<p style='margin:4px 0'><strong>"+t("email_cards_requested_label")+"</strong> "+tf("email_cards_requested_value",{count:cardCount,rate:fmtMoney(pricePerCard),total:fmtMoney(totalPrice)})+"</p>"+
-      "<p style='margin:4px 0'><strong>"+t("email_submitted_label")+"</strong> "+new Date().toLocaleDateString(LOCALE_MAP[LANG]||'en-US',{month:'long',day:'numeric',year:'numeric'})+"</p>"+
-      "</div>"+
-      "<p>"+t("email_will_notify")+"</p>"+
-      "<p>"+t("email_regards")+"<br><strong>"+t("email_team_sign")+"</strong></p>"+
-      "</div>"
-    );
-
-    document.getElementById("appIdDisplay").textContent=appId;
-    document.getElementById("emailDisplay").textContent=email;
-    document.querySelectorAll(".ss").forEach(function(s){s.classList.remove("active");});
-    document.getElementById("s-success").classList.add("active");
-    document.getElementById("progFill").style.strokeDashoffset=0;
-    document.getElementById("progPct").textContent="100%";
-  }catch(e){
-    console.error(e);
-    toast(t("toast_something_wrong"));
+  if(!r.ok){
+    console.error("submit failed",r.error);
     btn.disabled=false;btn.classList.remove("loading");
+    if(r.error==="email_not_verified"){toast(t("toast_email_not_verified"));resetVerification();return;}
+    if(r.error==="invalid_form"){toast(t("toast_form_invalid"));return;}
+    if(r.error==="rate_limited"){toast(t("toast_rate_limited"));return;}
+    toast(t("toast_something_wrong"));
+    return;
   }
+
+  document.getElementById("appIdDisplay").textContent=r.application_id;
+  document.getElementById("emailDisplay").textContent=r.email;
+  document.querySelectorAll(".ss").forEach(function(x){x.classList.remove("active");});
+  document.getElementById("s-success").classList.add("active");
+  document.getElementById("progFill").style.strokeDashoffset=0;
+  document.getElementById("progPct").textContent="100%";
 }
 
 function copyAppId(){
