@@ -1639,6 +1639,8 @@ function delHM(id){
       toast(t("toast_request_error"));return;
     }
     S.handymen=S.handymen.filter(function(h){return h.id!==id;});
+    // His card went back to the free pool on the server; show it as free here too.
+    (r.released_cards||[]).forEach(function(cid){var c=S.cards.find(function(x){return x.id===cid;});if(c){c.status="unassigned";c.handymanId="";}});
     renderHM();toast(t("toast_hm_deleted"));
   })();
 }
