@@ -341,7 +341,6 @@
     .lang-switcher-opt:hover{background:#f6f6f6}
     .lang-switcher-opt.active{background:#eef4fb;color:#185FA5}
     </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M2 5h18M2 11h18M2 17h18" stroke="#343330" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -711,7 +710,7 @@ var I18N = {
   "auth_title": "Company Dashboard",
   "auth_email_label": "Company Email",
   "auth_email_placeholder": "you@yourcompany.com",
-  "auth_magic_sent": "✓  Check your inbox! We sent a sign-in link to your email. It expires in 7 days.",
+  "auth_magic_sent": "✓  Check your inbox! If a company account exists for this email, we've sent a sign-in link. It expires in 24 hours.",
   "auth_send_btn": "Send Sign-in Link",
   "auth_apply_link": "Apply to join HandyCat →",
   "nav_overview": "Overview",
@@ -839,6 +838,8 @@ var I18N = {
   "toast_min_cards": "Minimum 5 cards per request",
   "toast_request_sent": "✓ Request sent! You'll receive an email once your cards are ready.",
   "toast_request_error": "Something went wrong. Please try again.",
+  "toast_rate_limited": "Too many requests. Please wait a bit and try again.",
+  "toast_card_unavailable": "This card is no longer available. Pick another one.",
   "toast_card_not_found": "Card not found",
   "toast_hm_not_found": "Handyman not found",
   "confirm_delete_hm": "Delete this handyman? This cannot be undone.",
@@ -880,7 +881,7 @@ var I18N = {
   "auth_title": "Панель компанії",
   "auth_email_label": "Електронна пошта компанії",
   "auth_email_placeholder": "you@yourcompany.com",
-  "auth_magic_sent": "✓  Перевірте пошту! Ми надіслали посилання для входу на вашу електронну адресу. Термін дії — 7 днів.",
+  "auth_magic_sent": "✓  Перевірте пошту! Якщо для цієї адреси існує кабінет компанії, ми надіслали посилання для входу. Термін дії — 24 години.",
   "auth_send_btn": "Надіслати посилання для входу",
   "auth_apply_link": "Подати заявку в HandyCat →",
   "nav_overview": "Огляд",
@@ -1008,6 +1009,8 @@ var I18N = {
   "toast_min_cards": "Мінімум 5 карток на запит",
   "toast_request_sent": "✓ Запит надіслано! Ви отримаєте email, коли картки будуть готові.",
   "toast_request_error": "Щось пішло не так. Спробуйте ще раз.",
+  "toast_rate_limited": "Забагато запитів. Зачекайте трохи й спробуйте ще раз.",
+  "toast_card_unavailable": "Ця картка вже недоступна. Оберіть іншу.",
   "toast_card_not_found": "Картку не знайдено",
   "toast_hm_not_found": "Майстра не знайдено",
   "confirm_delete_hm": "Видалити цього майстра? Цю дію не можна скасувати.",
@@ -1049,7 +1052,7 @@ var I18N = {
   "auth_title": "Panel de la empresa",
   "auth_email_label": "Correo de la empresa",
   "auth_email_placeholder": "you@yourcompany.com",
-  "auth_magic_sent": "✓  Revisa tu bandeja de entrada. Te enviamos un enlace de acceso a tu correo. Caduca en 7 días.",
+  "auth_magic_sent": "✓  Revisa tu bandeja de entrada. Si existe una cuenta de empresa para este correo, te enviamos un enlace de acceso. Caduca en 24 horas.",
   "auth_send_btn": "Enviar enlace de acceso",
   "auth_apply_link": "Solicita unirte a HandyCat →",
   "nav_overview": "Resumen",
@@ -1177,6 +1180,8 @@ var I18N = {
   "toast_min_cards": "Mínimo 5 tarjetas por solicitud",
   "toast_request_sent": "✓ ¡Solicitud enviada! Recibirás un correo cuando tus tarjetas estén listas.",
   "toast_request_error": "Algo salió mal. Inténtalo de nuevo.",
+  "toast_rate_limited": "Demasiadas solicitudes. Espera un poco e inténtalo de nuevo.",
+  "toast_card_unavailable": "Esta tarjeta ya no está disponible. Elige otra.",
   "toast_card_not_found": "Tarjeta no encontrada",
   "toast_hm_not_found": "Técnico no encontrado",
   "confirm_delete_hm": "¿Eliminar este técnico? Esta acción no se puede deshacer.",
@@ -1270,31 +1275,42 @@ function setLang(lang){
     else if (pid==="cp-orders") renderOrders();
   }
 }
-var SB_URL="https://leiztsecokpeombovobc.supabase.co";
-var SB_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s";
-var sb=window.supabase.createClient(SB_URL,SB_ANON_KEY);
-function sendEmail(to,subject,html){
-  return fetch(SB_URL+"/functions/v1/send-email",{
-    method:"POST",
-    headers:{"Content-Type":"application/json","Authorization":"Bearer "+SB_ANON_KEY,"apikey":SB_ANON_KEY},
-    body:JSON.stringify({to:to,subject:subject,html:html})
-  }).then(function(r){if(!r.ok)console.warn("sendEmail: request failed",r.status);return r;})
-    .catch(function(e){console.warn("sendEmail: network error",e);});
+// -- API: all data access and e-mail go through the company-api edge function --
+// The key below is only the gateway (anon) key. It grants no database access once the
+// tables are locked down; what a person may see is decided by their server-side session.
+var HC_PROD={url:"https://leiztsecokpeombovobc.supabase.co/functions/v1/company-api",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s"};
+// >>> PREVIEW-ONLY: remove this block and the HC_DEV branch of the line below before merging to main <<<
+var HC_DEV={url:"https://fmsmtabaulgankddiwqf.supabase.co/functions/v1/company-api",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtc210YWJhdWxnYW5rZGRpd3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MDk5MTMsImV4cCI6MjEwNzQ4NTkxM30.roAo-FTxoIqGKKoaG79eyB-425yXuIqZ69rhpgw9Xrg"};
+var API=(/\.vercel\.app$/.test(location.hostname)||location.hostname==="localhost")?HC_DEV:HC_PROD;
+// >>> END PREVIEW-ONLY <<<
+var SESSION_KEY="hc_session";
+var PUBLIC_ACTIONS=["request-login","exchange-link","health"];
+function getSession(){
+  var raw=localStorage.getItem(SESSION_KEY);if(!raw)return null;
+  try{var o=JSON.parse(raw);if(o&&o.token&&Number(o.exp)>Date.now())return o.token;}catch(e){}
+  localStorage.removeItem(SESSION_KEY);return null;
+}
+function setSession(token,expIso){localStorage.setItem(SESSION_KEY,JSON.stringify({token:token,exp:Date.parse(expIso)||(Date.now()+30*24*60*60*1000)}));}
+function clearSession(){localStorage.removeItem(SESSION_KEY);}
+async function api(action,payload){
+  var body=Object.assign({action:action},payload||{});
+  if(PUBLIC_ACTIONS.indexOf(action)<0&&!("session" in body)){var tok=getSession();if(tok)body.session=tok;}
+  var res;
+  try{
+    res=await fetch(API.url,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+API.key,"apikey":API.key},body:JSON.stringify(body)});
+  }catch(e){return {ok:false,error:"network",status:0};}
+  var j=null;try{j=await res.json();}catch(e){}
+  if(!j||typeof j!=="object")j={ok:false,error:"bad_response"};
+  j.status=res.status;
+  return j;
 }
 
 var S={company:null,companyId:null,handymen:[],cards:[],orders:[],clients:{},cardFilter:"all",ordFilter:"all"};
 
-// ── FIRESTORE ─────────────────────────────────────────────────
-function toSnake(s){return s.replace(/[A-Z]/g,function(m){return "_"+m.toLowerCase();});}
+// -- row helpers (the API returns database rows; the page works with camelCase) --
 function toCamel(s){return s.replace(/_([a-z0-9])/g,function(_,c){return c.toUpperCase();});}
 function rowToCamel(row){if(!row)return null;var out={};Object.keys(row).forEach(function(k){out[toCamel(k)]=row[k];});return out;}
-function fieldsToSnake(obj){var out={};Object.keys(obj).forEach(function(k){out[toSnake(k)]=obj[k];});return out;}
-async function fsGet(c,id){var res=await sb.from(c).select("*").eq("id",id).maybeSingle();if(res.error||!res.data)return null;return rowToCamel(res.data);}
-async function fsL(c,ps){var res=await sb.from(c).select("*").limit(ps||200);if(res.error||!res.data)return[];var _out=res.data.map(rowToCamel);if(c==="orders")_out=_out.filter(function(o){return!o.isOnboarding;});return _out;}
-async function fsQ(c,filters,lim){var q=sb.from(c).select("*").limit(lim||200);(filters||[]).forEach(function(f){var col=f.field==="companyIds"?"company_id":toSnake(f.field);q=q.eq(col,f.value);});var res=await q;if(res.error||!res.data)return[];var _out=res.data.map(rowToCamel);if(c==="orders")_out=_out.filter(function(o){return!o.isOnboarding;});return _out;}
-async function fsP(c,id,fields){var row=fieldsToSnake(fields);row.id=id;var res=await sb.from(c).upsert(row);return!res.error;}
-async function fsMerge(c,id,nf){var row=fieldsToSnake(nf);row.id=id;var res=await sb.from(c).upsert(row);return!res.error;}
-async function fsDel(c,id){var res=await sb.from(c).delete().eq("id",id);return!res.error;}
+function rowsToCamel(a){return (a||[]).map(rowToCamel);}
 function sv(v){return v==null?"":String(v);}
 function nv(v){return Number(v||0);}
 function av(a){return a||[];}
@@ -1365,75 +1381,58 @@ function showPage(n){document.querySelectorAll(".page").forEach(function(p){p.cl
 
 // ── AUTH ──────────────────────────────────────────────────────
 async function init(){
+  // Old, forgeable client-side "session" keys: remove them, they no longer mean anything.
+  ["hc_company_id","hc_company_email","hc_company_session"].forEach(function(k){localStorage.removeItem(k);});
   var params=new URLSearchParams(window.location.search);
   var token=params.get("token");
 
   if(token){
     show("s-loading");
-    // Validate token
-    var tok=await fsGet("company_tokens",token);
-    if(!tok){showError(t("err_link_invalid_title"),t("err_link_invalid_msg"));return;}
-    // BUG FIX 1: was missing return on used check
-    if(tok.used){showError(t("err_link_used_title"),t("err_link_used_msg"));return;}
-    var expiry=new Date(tok.expiresAt||0);
-    if(expiry<new Date()){showError(t("err_link_expired_title"),t("err_link_expired_msg"));return;}
-
-    // Mark token as used ONLY after all checks pass
-    await fsMerge("company_tokens",token,{used:true});
-
-    // BUG FIX 2: try exact companyId first, then try without case change
-    var companyId=tok.companyId;
-    var company=await fsGet("companies",companyId);
-    if(!company){
-      // Try lowercase as fallback
-      company=await fsGet("companies",companyId.toLowerCase());
-      if(company) companyId=companyId.toLowerCase();
+    var r=await api("exchange-link",{token:token});
+    if(r.error!=="network")window.history.replaceState({},"","/company"); // never keep a login token in the address bar
+    if(!r.ok){
+      var map={
+        link_invalid:["err_link_invalid_title","err_link_invalid_msg"],
+        link_used:["err_link_used_title","err_link_used_msg"],
+        link_expired:["err_link_expired_title","err_link_expired_msg"],
+        account_not_found:["err_account_not_found_title","err_account_not_found_msg"],
+        account_inactive:["err_account_inactive_title","err_account_inactive_msg"]
+      };
+      var m=map[r.error]||["err_generic_title","err_generic_msg"];
+      showError(t(m[0]),t(m[1]));return;
     }
-    if(!company){showError(t("err_account_not_found_title"),t("err_account_not_found_msg"));return;}
-    if(company.status==="inactive"){showError(t("err_account_inactive_title"),t("err_account_inactive_msg"));return;}
-
-    S.company=company;S.companyId=companyId;
-    localStorage.setItem("hc_company_id",companyId);
-    localStorage.setItem("hc_company_email",tok.email||"");
-    localStorage.setItem("hc_company_session",Date.now()+30*24*60*60*1000); // 30 day session
-    S.siblingCompanies=await loadSiblingCompanies(tok.email);
-    window.history.replaceState({},"","/company");
-    await loadApp();
-    return;
+    setSession(r.session,r.session_expires_at);
+    var ok=await bootstrapSession();
+    if(ok===true)return;
+    showError(t("err_generic_title"),t("err_generic_msg"));return;
   }
 
-  // BUG FIX 3: check localStorage session validity
-  var savedId=localStorage.getItem("hc_company_id");
-  var sessionExpiry=Number(localStorage.getItem("hc_company_session")||0);
-  if(savedId&&sessionExpiry>Date.now()){
+  if(getSession()){
     show("s-loading");
-    var company=await fsGet("companies",savedId);
-    if(company&&company.status!=="inactive"){
-      S.company=company;S.companyId=savedId;
-      S.siblingCompanies=await loadSiblingCompanies(localStorage.getItem("hc_company_email"));
-      await loadApp();return;
-    }
-    // Session invalid — clear and show auth
-    localStorage.removeItem("hc_company_id");
-    localStorage.removeItem("hc_company_session");
+    var ok2=await bootstrapSession();
+    if(ok2===true)return;
+    if(ok2==="invalid"){clearSession();show("s-auth");return;}
+    showError(t("err_generic_title"),t("err_generic_msg"));return; // e.g. offline: keep the session
   }
-
   show("s-auth");
 }
 
-// Every company row sharing this account's email (excluding blocked ones) —
-// powers the "Switch company" picker for accounts with more than one company.
-async function loadSiblingCompanies(email){
-  if(!email) return [];
-  var companies=await fsQ("companies",[{field:"email",value:email}]);
-  return companies.filter(function(c){return c.status!=="inactive";});
+// true = signed in, "invalid" = the server no longer accepts this session, false = something else went wrong
+async function bootstrapSession(){
+  var r=await api("me");
+  if(!r.ok||!r.company)return r.error==="session_invalid"?"invalid":false;
+  S.company=rowToCamel(r.company);S.companyId=S.company.id;
+  S.email=r.email||"";
+  S.siblingCompanies=r.siblings||[];
+  await loadApp();
+  return true;
 }
 
 function openSwitchCompany(){
   var list=document.getElementById("switchCoList");
   list.innerHTML=(S.siblingCompanies||[]).map(function(c){
     var active=c.id===S.companyId;
-    return '<div onclick="selectCompany(\''+c.id+'\')" style="padding:14px;border:1.5px solid '+(active?"#164e23":"#eceae6")+';border-radius:12px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px">'+
+    return '<div data-id="'+esc(c.id)+'" onclick="selectCompany(this.dataset.id)" style="padding:14px;border:1.5px solid '+(active?"#164e23":"#eceae6")+';border-radius:12px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px">'+
       '<div style="min-width:0"><div style="font-weight:600;font-family:\'Inter\',sans-serif">'+esc(c.name||c.id)+'</div><div style="font-size:12px;color:#858585">'+esc(c.location||"")+'</div></div>'+
       (active?'<span style="color:#164e23;font-size:13px;font-weight:600;flex-shrink:0">'+t("label_current_company")+'</span>':'')+
     '</div>';
@@ -1445,10 +1444,12 @@ async function selectCompany(id){
   if(id===S.companyId){closeModal("mSwitchCo");return;}
   closeModal("mSwitchCo");
   show("s-loading");
-  var company=await fsGet("companies",id);
-  if(!company){toast(t("err_account_not_found_title"));show("s-app");return;}
-  S.company=company;S.companyId=id;
-  localStorage.setItem("hc_company_id",id);
+  var r=await api("switch-company",{company_id:id});
+  if(!r.ok||!r.company){
+    if(r.error==="session_invalid"){clearSession();show("s-auth");return;}
+    toast(t("err_account_not_found_title"));show("s-app");return;
+  }
+  S.company=rowToCamel(r.company);S.companyId=S.company.id;
   await loadApp();
 }
 
@@ -1465,85 +1466,44 @@ async function sendMagicLink(){
   var email=document.getElementById("authEmail").value.trim();
   if(!email||!email.includes("@")){showAuthErr(t("authErr_invalid_email"));return;}
   var btn=document.getElementById("magicBtn");setLoading(btn,true);
-
-  // BUG FIX: search company directly by email (most reliable)
-  var companies=await fsQ("companies",[{field:"email",value:email}]);
-  var companyId=null;
-  if(companies.length){
-    var co=companies.find(function(c){return c.status!=="inactive";});
-    if(co) companyId=co.id;
-  }
-  // Fallback: search via approved application
-  if(!companyId){
-    var apps=await fsQ("company_applications",[{field:"email",value:email}]);
-    var approvedApp=apps.find(function(a){return a.status==="approved"||a.status==="active";});
-    if(approvedApp){
-      // Try to find the company created from this application
-      var appCompanyId=approvedApp.id.toLowerCase();
-      var co2=await fsGet("companies",appCompanyId);
-      if(co2&&co2.status!=="inactive") companyId=appCompanyId;
-    }
-  }
-  if(!companyId){
-    setLoading(btn,false);
-    showAuthErr(t("authErr_no_company"));return;
-  }
-
-  // Generate new magic token
-  var token="tok-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-  await fsP("company_tokens",token,{
-    companyId:companyId,email:email,
-    expiresAt:new Date(Date.now()+7*24*60*60*1000).toISOString(),
-    used:false
-  });
-
-  // Send sign-in email
-  var dashLink="https://app.handycat.us/company?token="+token;
-  await sendEmail(email, t("email_signin_subject"),
-    "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'><h2 style='color:#185FA5'>HandyCat</h2><p>"+t("email_signin_greeting")+"</p><p>"+t("email_signin_body")+"</p><div style='margin:24px 0'><a href='"+dashLink+"' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px'>"+t("email_signin_button")+"</a></div><p style='font-size:13px;color:#888'>"+t("email_signin_expiry")+"</p><p>"+t("email_signin_regards")+"<br><strong>"+t("email_signin_team")+"</strong></p></div>");
-
+  var r=await api("request-login",{email:email,lang:LANG});
   setLoading(btn,false);
+  if(!r.ok){
+    showAuthErr(r.error==="invalid_email"?t("authErr_invalid_email"):r.error==="rate_limited"?t("toast_rate_limited"):t("err_generic_msg"));
+    return;
+  }
+  // Same message whether or not an account exists for this address.
+  document.getElementById("authErr").style.display="none";
   document.getElementById("magicSent").style.display="block";
-  localStorage.setItem("hc_company_email",email);
 }
 
 function showAuthErr(msg){var el=document.getElementById("authErr");el.textContent=msg;el.style.display="block";}
 function showError(title,msg){document.getElementById("errTitle").textContent=title;document.getElementById("errMsg").textContent=msg;show("s-error");}
-function signOut(){localStorage.removeItem("hc_company_id");localStorage.removeItem("hc_company_email");localStorage.removeItem("hc_company_session");S.company=null;S.companyId=null;show("s-auth");}
+function signOut(){
+  api("sign-out"); // best effort: the server revokes the session (the token is read before it is cleared below)
+  clearSession();S.company=null;S.companyId=null;S.email="";show("s-auth");
+}
 
 // ── LOAD APP ──────────────────────────────────────────────────
 async function loadApp(){
   var c=S.company;
   document.getElementById("topCompanyName").textContent=c.name||"Company";
-  var sbEmail=document.getElementById("sbUserEmail");if(sbEmail)sbEmail.textContent=localStorage.getItem("hc_company_email")||c.email||"";
+  var sbEmail=document.getElementById("sbUserEmail");if(sbEmail)sbEmail.textContent=S.email||c.email||"";
   var emailEl=document.getElementById("sbUserEmail");if(emailEl&&c.email)emailEl.textContent=c.email;
   var switchBtn=document.getElementById("switchCoBtn");
   if(switchBtn)switchBtn.style.display=((S.siblingCompanies||[]).length>1)?"block":"none";
   document.getElementById("overviewTitle").textContent=c.name||t("overview_title_default");
   document.getElementById("overviewSub").textContent=tf("overview_welcome_back",{name:c.name||""});
 
-  // Load handymen — try ARRAY_CONTAINS first
-  var hm=await fsQ("handymen",[{field:"companyIds",value:S.companyId,op:"ARRAY_CONTAINS"}]);
-
-  // Fallback: if empty, load all and filter client-side
-  // (handles edge case where companyIds format differs)
-  if(!hm.length){
-    var allHM=await fsL("handymen",500);
-    hm=allHM.filter(function(h){
-      return (h.companyIds||[]).indexOf(S.companyId)>=0 ||
-             h.companyId===S.companyId;
-    });
+  var r=await api("load");
+  if(!r.ok){
+    if(r.error==="session_invalid"){clearSession();show("s-auth");return;}
+    throw new Error("load failed: "+r.error);
   }
-
-  var results=await Promise.all([
-    fsQ("nfc_cards",[{field:"companyId",value:S.companyId}]),
-    fsQ("orders",[{field:"companyId",value:S.companyId}])
-  ]);
-  S.handymen=hm;S.cards=results[0];
-  S.orders=results[1].sort(function(a,b){return(b.createdAt||"").localeCompare(a.createdAt||"");});
-  // Load clients for orders
-  var cids={};S.orders.forEach(function(o){if(o.clientId)cids[o.clientId]=true;});
-  await Promise.all(Object.keys(cids).map(async function(id){var cl=await fsGet("clients",id);if(cl)S.clients[id]=cl;}));
+  S.handymen=rowsToCamel(r.handymen);S.cards=rowsToCamel(r.cards);
+  S.orders=rowsToCamel(r.orders).sort(function(a,b){return(b.createdAt||"").localeCompare(a.createdAt||"");});
+  S.clients={};rowsToCamel(r.clients).forEach(function(cl){S.clients[cl.id]=cl;});
+  window._pendingCardReqs=rowsToCamel(r.pending_card_requests);
   show("s-app");
   var lastPage=localStorage.getItem("hc_last_page");
   var validPages=["overview","handymen","cards","orders"];
@@ -1648,37 +1608,34 @@ async function saveHM(){
   if(!name){toast(t("toast_enter_name"));return;}
   var btn=document.getElementById("saveHMBtn");setLoading(btn,true);
   var eid=document.getElementById("editHMId").value;
-  var id=eid||(name.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")+"-"+Date.now().toString(36));
   var sk=document.getElementById("hmSkills").value.split(",").map(function(s){return s.trim();}).filter(Boolean);
-  var ct=document.getElementById("hmCard").value;
-  var ok=await fsP("handymen",id,{
-    name:sv(name),phone:sv(document.getElementById("hmPhone").value),
-    email:sv(document.getElementById("hmEmail").value),
-    experienceYears:nv(document.getElementById("hmExp").value),
-    skills:av(sk),companyIds:av([S.companyId]),
-    assignedCardToken:sv(ct),ratingAvg:nv(0),reviewCount:nv(0),
-    ordersCompleted:nv(0),status:sv("active"),
-    createdAt:sv(eid?(S.handymen.find(function(h){return h.id===eid;})||{}).createdAt||new Date().toISOString():new Date().toISOString())
+  var r=await api("save-handyman",{
+    id:eid||undefined,name:name,
+    phone:document.getElementById("hmPhone").value,email:document.getElementById("hmEmail").value,
+    experience_years:document.getElementById("hmExp").value,skills:sk,card:document.getElementById("hmCard").value
   });
-  if(ok&&ct){
-    await fsMerge("nfc_cards",ct,{status:sv("assigned"),handymanId:sv(id)});
-    var idx=S.cards.findIndex(function(c){return c.id===ct;});
-    if(idx>=0)S.cards[idx].status="assigned";
-  }
-  if(ok){
-    closeModal("mHM");toast(eid?t("toast_hm_updated"):t("toast_hm_added"));
-    var newHM={id:id,name:name,phone:document.getElementById("hmPhone").value,email:document.getElementById("hmEmail").value,skills:sk,assignedCardToken:ct,status:"active",ratingAvg:0,ordersCompleted:0};
-    if(eid){var i=S.handymen.findIndex(function(h){return h.id===eid;});if(i>=0)S.handymen[i]=newHM;else S.handymen.push(newHM);}
-    else S.handymen.push(newHM);
-    renderHM();
-  }else{toast(t("toast_hm_save_error"));}
   setLoading(btn,false);
+  if(!r.ok){
+    if(r.error==="session_invalid"){clearSession();show("s-auth");return;}
+    toast(r.error==="card_unavailable"?t("toast_card_unavailable"):t("toast_hm_save_error"));
+    return;
+  }
+  var hm=rowToCamel(r.handyman);
+  if(r.card){var ci=S.cards.findIndex(function(c){return c.id===r.card.id;});if(ci>=0)S.cards[ci]=rowToCamel(r.card);}
+  var i=S.handymen.findIndex(function(h){return h.id===hm.id;});
+  if(i>=0)S.handymen[i]=hm;else S.handymen.push(hm);
+  closeModal("mHM");toast(eid?t("toast_hm_updated"):t("toast_hm_added"));
+  renderHM();
 }
 
 function delHM(id){
   if(!confirm(t("confirm_delete_hm")))return;
   (async function(){
-    await fsDel("handymen",id);
+    var r=await api("delete-handyman",{id:id});
+    if(!r.ok){
+      if(r.error==="session_invalid"){clearSession();show("s-auth");return;}
+      toast(t("toast_request_error"));return;
+    }
     S.handymen=S.handymen.filter(function(h){return h.id!==id;});
     renderHM();toast(t("toast_hm_deleted"));
   })();
@@ -1714,10 +1671,9 @@ function loadCards(){
 
 // Load pending card requests for this company
 async function loadPendingReqs(){
-  try{
-    var reqs=await fsQ("card_requests",[{field:"companyId",value:S.companyId},{field:"status",value:"pending"}]);
-    window._pendingCardReqs=reqs;
-  }catch(e){window._pendingCardReqs=[];}
+  var r=await api("pending-requests");
+  if(r.ok)window._pendingCardReqs=rowsToCamel(r.pending_card_requests);
+  else if(r.error==="session_invalid"){clearSession();show("s-auth");}
 }
 
 function renderCards(hmByToken){
@@ -1763,37 +1719,15 @@ async function submitCardRequest(){
   var notes=document.getElementById("reqCardsNotes").value.trim();
   if(!count||Number(count)<5){toast(t("toast_min_cards"));return;}
   var btn=document.getElementById("reqCardsBtn");setLoading(btn,true);
-  try {
-    var reqId="cardreq-"+Date.now().toString(36);
-    await fsP("card_requests",reqId,{
-      companyId:S.companyId,
-      companyName:esc(S.company.name) || "",
-      email:S.company.email||"",
-      count:Number(count),
-      notes:notes,
-      status:"pending",
-      createdAt:new Date().toISOString()
-    });
-    // Email admin
-    await sendEmail("designlavrinenko@gmail.com",
-      "\u{1F4B3} Card request: "+(esc(S.company.name) || "")+" needs "+count+" cards",
-      "<div style='font-family:sans-serif;max-width:600px;padding:24px'>"+
-      "<h2 style='color:#185FA5'>HandyCat — New Card Request</h2>"+
-      "<table style='width:100%;border-collapse:collapse'>"+
-      "<tr><td style='padding:8px 0;color:#888'>Company</td><td style='font-weight:600'>"+(esc(S.company.name) || "")+"</td></tr>"+
-      "<tr><td style='padding:8px 0;color:#888'>Cards needed</td><td style='font-weight:700;font-size:18px;color:#185FA5'>"+count+"</td></tr>"+
-      "<tr><td style='padding:8px 0;color:#888'>Notes</td><td>"+(notes||"—")+"</td></tr>"+
-      "</table>"+
-      "<div style='margin-top:20px'><a href='https://app.handycat.us/admin.html' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600'>Review in Admin &#x2192;</a></div>"+
-      "</div>");
-    setLoading(btn,false);
-    closeModal("mReqCards");
-    toast(t("toast_request_sent"));
-  } catch(e) {
-    console.error(e);
-    setLoading(btn,false);
-    toast(t("toast_request_error"));
+  // The server takes company, name and e-mail from the session and notifies the team itself.
+  var r=await api("request-cards",{count:Number(count),notes:notes});
+  setLoading(btn,false);
+  if(!r.ok){
+    if(r.error==="session_invalid"){clearSession();show("s-auth");return;}
+    toast(t("toast_request_error"));return;
   }
+  closeModal("mReqCards");
+  toast(t("toast_request_sent"));
 }
 
 function openRequestLeads(){openModal("mReqLeads");}
@@ -1803,37 +1737,14 @@ async function submitLeadRequest(){
   var notes=document.getElementById("reqLeadsNotes").value.trim();
   if(!count||Number(count)<1){toast(t("toast_min_leads"));return;}
   var btn=document.getElementById("reqLeadsBtn");setLoading(btn,true);
-  try {
-    var reqId="leadreq-"+Date.now().toString(36);
-    await fsP("lead_requests",reqId,{
-      companyId:S.companyId,
-      companyName:esc(S.company.name) || "",
-      email:S.company.email||"",
-      count:Number(count),
-      notes:notes,
-      status:"pending",
-      createdAt:new Date().toISOString()
-    });
-    // Email admin
-    await sendEmail("designlavrinenko@gmail.com",
-      "\u{1F3AF} Lead request: "+(esc(S.company.name) || "")+" needs "+count+" leads",
-      "<div style='font-family:sans-serif;max-width:600px;padding:24px'>"+
-      "<h2 style='color:#185FA5'>HandyCat — New Bonus Leads Request</h2>"+
-      "<table style='width:100%;border-collapse:collapse'>"+
-      "<tr><td style='padding:8px 0;color:#888'>Company</td><td style='font-weight:600'>"+(esc(S.company.name) || "")+"</td></tr>"+
-      "<tr><td style='padding:8px 0;color:#888'>Leads needed</td><td style='font-weight:700;font-size:18px;color:#185FA5'>"+count+"</td></tr>"+
-      "<tr><td style='padding:8px 0;color:#888'>Notes</td><td>"+(notes||"—")+"</td></tr>"+
-      "</table>"+
-      "<div style='margin-top:20px'><a href='https://app.handycat.us/admin.html' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600'>Review in Admin &#x2192;</a></div>"+
-      "</div>");
-    setLoading(btn,false);
-    closeModal("mReqLeads");
-    toast(t("toast_leads_request_sent"));
-  } catch(e) {
-    console.error(e);
-    setLoading(btn,false);
-    toast(t("toast_request_error"));
+  var r=await api("request-leads",{count:Number(count),notes:notes});
+  setLoading(btn,false);
+  if(!r.ok){
+    if(r.error==="session_invalid"){clearSession();show("s-auth");return;}
+    toast(t("toast_request_error"));return;
   }
+  closeModal("mReqLeads");
+  toast(t("toast_leads_request_sent"));
 }
 
 // ── ORDERS ────────────────────────────────────────────────────
