@@ -533,8 +533,7 @@
     .lang-switcher-opt:hover{background:#f6f6f6}
     .lang-switcher-opt.active{background:#eef4fb;color:#185FA5}
     </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-</head>
+  </head>
 <body>
 
 <div class="auth-screen show" id="authScreen">
@@ -581,6 +580,20 @@
       <button id="loginBtn" onclick="login()" class="login-btn">
         <span data-i18n="auth_login_btn">Login</span>
       </button>
+
+      <!-- Two-factor step (shown after the password is accepted) -->
+      <div id="mfaStep" style="display:none;flex-direction:column;gap:12px">
+        <div id="mfaEnroll" style="display:none;flex-direction:column;gap:10px;align-items:center">
+          <div style="font-size:14px;color:#555;text-align:center" data-i18n="mfa_enroll_hint">Set up two-step sign-in: scan this QR code with an authenticator app, then enter the 6-digit code.</div>
+          <img id="mfaQr" alt="QR code" style="width:180px;height:180px;background:#fff;border-radius:12px"/>
+          <code id="mfaSecret" style="font-size:12px;word-break:break-all;color:#555"></code>
+        </div>
+        <div style="font-size:14px;color:#555" data-i18n="mfa_code_hint">Enter the 6-digit code from your authenticator app.</div>
+        <div class="login-input-wrap">
+          <input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123456" class="login-input-field" onkeydown="if(event.key==='Enter')verifyMfa()"/>
+        </div>
+        <button id="mfaBtn" onclick="verifyMfa()" class="login-btn"><span data-i18n="mfa_verify_btn">Verify</span></button>
+      </div>
 
     </div>
   </div>
@@ -1443,6 +1456,11 @@ var I18N = {
   "auth_err_missing": "Please enter email and password",
   "auth_err_wrong": "Incorrect email or password.",
   "auth_err_failed": "Sign in failed. Please try again.",
+  "auth_err_not_admin": "This account has no admin access.",
+  "mfa_enroll_hint": "Set up two-step sign-in: scan this QR code with an authenticator app (Google Authenticator, 1Password…), then enter the 6-digit code.",
+  "mfa_code_hint": "Enter the 6-digit code from your authenticator app.",
+  "mfa_verify_btn": "Verify",
+  "mfa_err_code": "Wrong code. Please try again.",
   "auth_err_connection": "Connection error. Please try again.",
   "sb_search": "Search",
   "nav_cards": "Cards",
@@ -1923,6 +1941,11 @@ var I18N = {
   "auth_err_missing": "Введіть електронну пошту та пароль",
   "auth_err_wrong": "Неправильна пошта або пароль.",
   "auth_err_failed": "Не вдалося увійти. Спробуйте ще раз.",
+  "auth_err_not_admin": "Цей обліковий запис не має доступу адміністратора.",
+  "mfa_enroll_hint": "Налаштуйте двоетапний вхід: відскануйте QR-код застосунком-автентифікатором (Google Authenticator, 1Password…), потім введіть 6-значний код.",
+  "mfa_code_hint": "Введіть 6-значний код із застосунку-автентифікатора.",
+  "mfa_verify_btn": "Підтвердити",
+  "mfa_err_code": "Неправильний код. Спробуйте ще раз.",
   "auth_err_connection": "Помилка з'єднання. Спробуйте ще раз.",
   "sb_search": "Пошук",
   "nav_cards": "Картки",
@@ -2403,6 +2426,11 @@ var I18N = {
   "auth_err_missing": "Introduce tu correo y contraseña",
   "auth_err_wrong": "Correo o contraseña incorrectos.",
   "auth_err_failed": "No se pudo iniciar sesión. Inténtalo de nuevo.",
+  "auth_err_not_admin": "Esta cuenta no tiene acceso de administrador.",
+  "mfa_enroll_hint": "Configura el inicio de sesión en dos pasos: escanea este código QR con una app de autenticación (Google Authenticator, 1Password…) y luego introduce el código de 6 dígitos.",
+  "mfa_code_hint": "Introduce el código de 6 dígitos de tu app de autenticación.",
+  "mfa_verify_btn": "Verificar",
+  "mfa_err_code": "Código incorrecto. Inténtalo de nuevo.",
   "auth_err_connection": "Error de conexión. Inténtalo de nuevo.",
   "sb_search": "Buscar",
   "nav_cards": "Tarjetas",
@@ -2932,12 +2960,64 @@ function setLang(lang){
   else if (pid === "page-co-detail" && typeof cdId !== "undefined" && cdId) { renderCDCards(); renderCDHMTable(cdHM||[]); }
   else if (pid === "page-pool-batch-detail") renderPoolDetail();
 }
-var AKEY = "AIzaSyAdDK2mL3DVhp1We0JO38KU44EOLnS4a7U";
 var BURL = "https://app.handycat.us";
-var AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
-var SB_URL = "https://leiztsecokpeombovobc.supabase.co";
-var SB_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s";
-var sb = window.supabase.createClient(SB_URL, SB_ANON_KEY);
+// -- API: every data access and e-mail goes through the admin-api edge function. Each call carries the
+// admin's Supabase Auth access token; the server checks it, the admin allow-list and two-factor (aal2).
+// The key below is only the gateway (anon) key and grants no database access by itself.
+var ADMIN_PROD = { url: "https://leiztsecokpeombovobc.supabase.co/functions/v1/admin-api", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s" };
+// >>> PREVIEW-ONLY: remove this block and the ADMIN_DEV branch of the line below before merging to main <<<
+var ADMIN_DEV = { url: "https://fmsmtabaulgankddiwqf.supabase.co/functions/v1/admin-api", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtc210YWJhdWxnYW5rZGRpd3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MDk5MTMsImV4cCI6MjEwNzQ4NTkxM30.roAo-FTxoIqGKKoaG79eyB-425yXuIqZ69rhpgw9Xrg" };
+var ADMIN_API = (/\.vercel\.app$/.test(location.hostname) || location.hostname === "localhost") ? ADMIN_DEV : ADMIN_PROD;
+// >>> END PREVIEW-ONLY <<<
+// -- Supabase Auth (replaces Firebase): e-mail + password, then a TOTP code (two-factor). --
+var AUTH_BASE = new URL(ADMIN_API.url).origin + "/auth/v1";
+var AUTH_STORE = "hca_auth";
+function authGet() { try { return JSON.parse(sessionStorage.getItem(AUTH_STORE) || "null"); } catch (e) { return null; } }
+function authSet(t) {
+  sessionStorage.setItem(AUTH_STORE, JSON.stringify({ access: t.access_token, refresh: t.refresh_token, exp: Date.now() + ((t.expires_in || 3600) - 60) * 1000 }));
+  currentIdToken = t.access_token;
+}
+function authClear() { sessionStorage.removeItem(AUTH_STORE); currentIdToken = null; }
+async function gotrue(path, body, token, method) {
+  var headers = { "Content-Type": "application/json", "apikey": ADMIN_API.key };
+  if (token) headers.Authorization = "Bearer " + token;
+  var res;
+  try { res = await fetch(AUTH_BASE + path, { method: method || (body === undefined ? "GET" : "POST"), headers: headers, body: body === undefined ? undefined : JSON.stringify(body) }); }
+  catch (e) { return { ok: false, status: 0, data: null }; }
+  var data = null; try { data = await res.json(); } catch (e) {}
+  return { ok: res.ok, status: res.status, data: data };
+}
+// One refresh at a time, shared by all calls that hit an expired token: Supabase rotates refresh tokens and
+// treats re-use of an old one as theft (it would revoke the whole session).
+var refreshing = null;
+function authRefresh() {
+  if (refreshing) return refreshing;
+  refreshing = (async function() {
+    var a = authGet();
+    if (!a || !a.refresh) return false;
+    var r = await gotrue("/token?grant_type=refresh_token", { refresh_token: a.refresh });
+    if (!r.ok || !r.data || !r.data.access_token) return false;
+    authSet(r.data); return true;
+  })();
+  return refreshing.finally(function() { refreshing = null; });
+}
+async function adminApi(action, payload, retried) {
+  var sentToken = currentIdToken;
+  var body = Object.assign({ action: action, access_token: currentIdToken }, payload || {});
+  var res;
+  try {
+    res = await fetch(ADMIN_API.url, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + ADMIN_API.key, "apikey": ADMIN_API.key }, body: JSON.stringify(body) });
+  } catch (e) { return { ok: false, error: "network" }; }
+  var j = null; try { j = await res.json(); } catch (e) {}
+  if (!j || typeof j !== "object") j = { ok: false, error: "bad_response" };
+  // Access tokens live an hour: refresh once and retry. Revoked session / no admin rights / no 2FA: back to login.
+  if (j.error === "token_invalid" && !retried && action !== "whoami") {
+    if (currentIdToken && currentIdToken !== sentToken) return adminApi(action, payload, true);   // refreshed meanwhile
+    if (await authRefresh()) return adminApi(action, payload, true);
+  }
+  if ((j.error === "token_invalid" || j.error === "not_authorized" || j.error === "mfa_required") && action !== "whoami" && currentIdToken) logout();
+  return j;
+}
 
 // ── AUTH ──────────────────────────────────────────────────────
 var currentIdToken = null;
@@ -2949,6 +3029,13 @@ function loginInputBlur(input) {
   input.closest('.login-input-wrap').classList.remove('focused');
 }
 
+var pendingAuth = null, pendingFactorId = null;
+function resetLoginUi() {
+  var btn = document.getElementById("loginBtn");
+  btn.disabled = false; btn.style.opacity = "1";
+  btn.querySelector("span").textContent = t("auth_login_btn");
+  var mb = document.getElementById("mfaBtn"); if (mb) mb.disabled = false;
+}
 async function login() {
   var email = document.getElementById("authEmail").value.trim();
   var pass = document.getElementById("authPass").value;
@@ -2956,29 +3043,60 @@ async function login() {
   var btn = document.getElementById("loginBtn");
   btn.disabled = true; btn.style.opacity = "0.7";
   btn.querySelector("span").textContent = t("auth_signing_in");
-  try {
-    var r = await fetch(AUTH + ":signInWithPassword?key=" + AKEY, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email, password: pass, returnSecureToken: true })
-    });
-    var d = await r.json();
-    if (!r.ok) {
-      var msg = d.error && d.error.message;
-      showAuthErr(msg === "INVALID_PASSWORD" || msg === "EMAIL_NOT_FOUND" || msg === "INVALID_LOGIN_CREDENTIALS"
-        ? t("auth_err_wrong") : t("auth_err_failed"));
-      btn.disabled = false; btn.style.opacity = "1";
-      btn.querySelector("span").textContent = t("auth_login_btn");
-      return;
-    }
-    currentIdToken = d.idToken;
-    sessionStorage.setItem("hca_token", d.idToken);
-    sessionStorage.setItem("hca_expiry", String(Date.now() + 55 * 60 * 1000));
-    showApp();
-  } catch(e) {
-    showAuthErr(t("auth_err_connection"));
-    btn.disabled = false; btn.style.opacity = "1";
-    btn.querySelector("span").textContent = t("auth_login_btn");
+  var r = await gotrue("/token?grant_type=password", { email: email, password: pass });
+  if (!r.ok || !r.data || !r.data.access_token) {
+    showAuthErr(r.status === 0 ? t("auth_err_connection") : (r.status === 400 || r.status === 401) ? t("auth_err_wrong") : t("auth_err_failed"));
+    resetLoginUi(); return;
   }
+  pendingAuth = r.data;
+  var factors = ((r.data.user || {}).factors || []).filter(function(f) { return f.factor_type === "totp"; });
+  var verified = factors.find(function(f) { return f.status === "verified"; });
+  if (verified) { pendingFactorId = verified.id; showMfaStep(false); return; }
+  // First sign-in: set up the authenticator. Drop half-finished setups first.
+  for (var i = 0; i < factors.length; i++) await gotrue("/factors/" + factors[i].id, undefined, pendingAuth.access_token, "DELETE");
+  var en = await gotrue("/factors", { factor_type: "totp", friendly_name: "HandyCat admin " + Date.now().toString(36) }, pendingAuth.access_token);
+  if (!en.ok || !en.data || !en.data.totp) { showAuthErr(t("auth_err_failed")); resetLoginUi(); return; }
+  pendingFactorId = en.data.id;
+  document.getElementById("mfaQr").src = qrSrc(en.data.totp.qr_code);
+  document.getElementById("mfaSecret").textContent = en.data.totp.secret || "";
+  showMfaStep(true);
+}
+// Supabase returns the QR as SVG markup (sometimes already prefixed with "data:image/svg+xml;utf-8,").
+// Raw SVG in a data: URL breaks on characters like "#", so it is always URL-encoded here.
+function qrSrc(q) {
+  q = String(q || "");
+  var i = q.indexOf("<svg");
+  return i >= 0 ? "data:image/svg+xml;charset=utf-8," + encodeURIComponent(q.slice(i)) : q;
+}
+function showMfaStep(enroll) {
+  document.getElementById("authErr").style.display = "none";
+  document.getElementById("loginBtn").style.display = "none";
+  document.getElementById("mfaStep").style.display = "flex";
+  document.getElementById("mfaEnroll").style.display = enroll ? "flex" : "none";
+  var c = document.getElementById("mfaCode"); c.value = ""; try { c.focus(); } catch (e) {}
+}
+async function verifyMfa() {
+  var code = document.getElementById("mfaCode").value.replace(/\s+/g, "");
+  if (!/^\d{6}$/.test(code)) { showAuthErr(t("mfa_err_code")); return; }
+  if (!pendingAuth || !pendingFactorId) { showAuthErr(t("auth_err_failed")); return; }
+  var mb = document.getElementById("mfaBtn"); mb.disabled = true;
+  var ch = await gotrue("/factors/" + pendingFactorId + "/challenge", {}, pendingAuth.access_token);
+  var v = (ch.ok && ch.data) ? await gotrue("/factors/" + pendingFactorId + "/verify", { challenge_id: ch.data.id, code: code }, pendingAuth.access_token) : { ok: false };
+  if (!v.ok || !v.data || !v.data.access_token) { mb.disabled = false; showAuthErr(t("mfa_err_code")); return; }
+  await finishLogin(v.data);
+}
+async function finishLogin(tokens) {
+  currentIdToken = tokens.access_token;
+  var who = await adminApi("whoami");
+  if (!who.ok) {
+    currentIdToken = null;
+    showAuthErr(who.error === "not_authorized" ? t("auth_err_not_admin") : t("auth_err_failed"));
+    var mb = document.getElementById("mfaBtn"); if (mb) mb.disabled = false;
+    return;
+  }
+  pendingAuth = null; pendingFactorId = null;
+  authSet(tokens);
+  showApp();
 }
 
 function showAuthErr(msg) {
@@ -3103,20 +3221,20 @@ function showApp() {
   loadArchiveBadge();
 }
 
-function logout() {
-  sessionStorage.removeItem("hca_token");
-  sessionStorage.removeItem("hca_expiry");
-  currentIdToken = null;
+async function logout() {
+  var a = authGet();
+  authClear();
+  sessionStorage.removeItem("hca_token"); sessionStorage.removeItem("hca_expiry");   // old Firebase session keys
+  if (a && a.access) await Promise.race([gotrue("/logout", {}, a.access), new Promise(function(r) { setTimeout(r, 1500); })]);
   location.reload();
 }
 
-(function checkSession() {
-  var token = sessionStorage.getItem("hca_token");
-  var expiry = Number(sessionStorage.getItem("hca_expiry") || 0);
-  if (token && Date.now() < expiry) {
-    currentIdToken = token;
-    showApp();
-  }
+(async function checkSession() {
+  sessionStorage.removeItem("hca_token"); sessionStorage.removeItem("hca_expiry");     // old Firebase session keys
+  var a = authGet();
+  if (!a) return;
+  if (Date.now() < a.exp) { currentIdToken = a.access; showApp(); return; }
+  if (await authRefresh()) showApp(); else authClear();
 })();
 
 // ── FIRESTORE ─────────────────────────────────────────────────
@@ -3133,67 +3251,50 @@ function fieldsToSnake(obj) {
   return out;
 }
 async function fsGet(c, id) {
-  var res = await sb.from(c).select("*").eq("id", id).maybeSingle();
-  if (res.error || !res.data) return null;
-  return rowToCamel(res.data);
+  var r = await adminApi("db", { op: "get", table: c, id: id });
+  return r.ok && r.row ? rowToCamel(r.row) : null;
 }
-// PostgREST silently caps any single request at 1000 rows, so anything that
-// may exceed that (nfc_cards!) has to be fetched page by page.
-async function sbFetchAll(buildQuery, lim) {
+// The server returns at most 1000 rows per call, so larger tables (nfc_cards!) are fetched page by page.
+async function apiFetchAll(table, filters, lim) {
   var PAGE = 1000, out = [], from = 0, max = lim || 10000;
   while (from < max) {
     var to = Math.min(from + PAGE, max) - 1;
-    var res = await buildQuery().order("id").range(from, to);
-    if (res.error || !res.data) break;
-    out = out.concat(res.data);
-    if (res.data.length < (to - from + 1)) break;
+    var r = await adminApi("db", { op: "list", table: table, filters: filters || [], from: from, to: to });
+    if (!r.ok || !r.rows) break;
+    out = out.concat(r.rows);
+    if (r.rows.length < (to - from + 1)) break;
     from += PAGE;
   }
   return out;
 }
 async function fsL(c, ps) {
-  var rows = await sbFetchAll(function() { return sb.from(c).select("*"); }, ps || 10000);
-  var _out = rows.map(rowToCamel);
+  var _out = (await apiFetchAll(c, [], ps || 10000)).map(rowToCamel);
   if (c === "orders") _out = _out.filter(function(o) { return !o.isOnboarding; });
   return _out;
 }
 async function fsQ(c, filters, lim) {
-  var rows = await sbFetchAll(function() {
-    var q = sb.from(c).select("*");
-    (filters || []).forEach(function(f) {
-      var col = f.field === "companyIds" ? "company_id" : toSnake(f.field);
-      q = q.eq(col, f.value);
-    });
-    return q;
-  }, lim || 10000);
-  var _out = rows.map(rowToCamel);
+  var f = (filters || []).map(function(x) { return { col: x.field === "companyIds" ? "company_id" : toSnake(x.field), value: x.value }; });
+  var _out = (await apiFetchAll(c, f, lim || 10000)).map(rowToCamel);
   if (c === "orders") _out = _out.filter(function(o) { return !o.isOnboarding; });
   return _out;
 }
 async function fsP(c, id, fields) {
-  var row = fieldsToSnake(fields);
-  row.id = id;
-  var res = await sb.from(c).upsert(row);
-  return !res.error;
+  var row = fieldsToSnake(fields); row.id = id;
+  var r = await adminApi("db", { op: "upsert", table: c, row: row });
+  if (!r.ok) console.warn("fsP failed", c, id, r.error, r.column || r.detail || "");
+  return !!r.ok;
 }
+// Partial update; creates the row if it does not exist (same semantics as before).
 async function fsMerge(c, id, newFields) {
-  var row = fieldsToSnake(newFields);
-  // Try a real partial UPDATE first: Postgres validates NOT NULL constraints
-  // against the full proposed row on upsert's INSERT path even when the row
-  // already exists and only DO UPDATE would apply, so a partial upsert can
-  // fail on tables with required columns that aren't part of this patch.
-  // An UPDATE only touches the given columns, matching Firestore merge:true.
-  var upd = await sb.from(c).update(row).eq("id", id).select("id");
-  if (!upd.error && upd.data && upd.data.length > 0) return true;
-  // No existing row (or update failed) — fall back to upsert to create it.
-  row.id = id;
-  var res = await sb.from(c).upsert(row);
-  return !res.error;
+  var r = await adminApi("db", { op: "merge", table: c, id: id, row: fieldsToSnake(newFields) });
+  if (!r.ok) console.warn("fsMerge failed", c, id, r.error, r.column || r.detail || "");
+  return !!r.ok;
 }
 var fsPatchFields = fsMerge;
 async function fsDel(c, id) {
-  var res = await sb.from(c).delete().eq("id", id);
-  return !res.error;
+  var r = await adminApi("db", { op: "delete", table: c, id: id });
+  if (!r.ok) console.warn("fsDel failed", c, id, r.error, r.detail || "");
+  return !!r.ok;
 }
 function pf(f) { return f || {}; }
 function sv(v) { return v == null ? "" : String(v); }
@@ -4191,23 +4292,42 @@ async function saveHM() {
   var id = eid || (name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now().toString(36));
   var sk = document.getElementById("hmSkills").value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
   var ct = document.getElementById("hmCardSel") ? document.getElementById("hmCardSel").value : "";
-  var ok = await fsP("handymen", id, {
+  var hmFields = {
     name: sv(name), phone: sv(document.getElementById("hmPhone").value),
     email: sv(document.getElementById("hmEmail").value),
     experienceYears: nv(document.getElementById("hmExp").value),
     skills: av(sk), companyIds: av(cdId ? [cdId] : []),
     assignedCardToken: sv(ct), ratingAvg: nv(0), reviewCount: nv(0),
     ordersCompleted: nv(0), status: sv("active"), createdAt: sv(new Date().toISOString())
-  });
+  };
+  if (eid) {
+    // Editing must not wipe statistics (the old code reset them) or move the handyman out of his company.
+    delete hmFields.ratingAvg; delete hmFields.reviewCount; delete hmFields.ordersCompleted; delete hmFields.createdAt;
+    if (!cdId) delete hmFields.companyIds;
+  }
+  var ok = eid ? await fsMerge("handymen", id, hmFields) : await fsP("handymen", id, hmFields);
   if (ok && ct) await fsPatchFields("nfc_cards", ct, { status: sv("assigned"), handymanId: sv(id) });
   if (btn) btn.classList.remove("loading");
   if (ok) { closeModal("mAddHM"); toast(eid ? t("toast_handyman_updated") : t("toast_handyman_added")); await loadCDHM(); await loadCDCards(); }
   else { if (btn) btn.classList.remove("loading"); toast(t("toast_error_saving_handyman")); }
 }
 
+// A deleted handyman's card that is merely "assigned" returns to the free pool; activated cards are left alone.
+async function releaseHandymanCards(hmId) {
+  var cards = await fsQ("nfc_cards", [{ field: "handymanId", value: hmId }]);
+  for (var i = 0; i < cards.length; i++) {
+    if (cards[i].status === "assigned") await fsPatchFields("nfc_cards", cards[i].id, { status: "unassigned", handymanId: "" });
+  }
+}
+
 function delHM(id) {
   cfm(t("confirm_delete_handyman_q"), t("confirm_cannot_undone_short"), async function() {
-    var ok = await fsDel("handymen", id); if (ok) { toast(t("toast_handyman_deleted")); await loadCDHM(); } else toast(t("toast_error"));
+    var ok = await fsDel("handymen", id);
+    if (ok) {
+      await releaseHandymanCards(id);
+      toast(t("toast_handyman_deleted")); await loadCDHM();
+      if (typeof loadCDCards === "function") await loadCDCards();
+    } else toast(t("toast_error"));
   });
 }
 
@@ -4651,10 +4771,11 @@ async function showOrderDetail(orderId, backPage) {
   var badgeMap = {new:"bu",in_progress:"bbl",completed:"ba",cancelled:"bi"};
 
   var photosHtml = "";
-  if (order.photos && order.photos.length) {
+  var photoUrls = order.photoUrls || [];
+  if (photoUrls.length) {
     photosHtml = '<div class="pg-card"><div class="pg-section-title">' + t("section_photos") + '</div>'+
       '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
-      order.photos.map(function(url){ return '<img src="'+url+'" class="pg-photo" onclick="window.open(\''+url+'\',\'_blank\')" />'; }).join("")+
+      photoUrls.map(function(url){ return '<img src="'+esc(url)+'" data-url="'+esc(url)+'" class="pg-photo" onclick="window.open(this.dataset.url,\'_blank\',\'noopener\')" />'; }).join("")+
       '</div></div>';
   }
 
@@ -4774,12 +4895,9 @@ function filterOrds(s, btn) {
 
 // ── EMAIL ─────────────────────────────────────────────────────
 async function sendEmail(to, subject, html) {
-  return fetch(SB_URL + "/functions/v1/send-email", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + SB_ANON_KEY, "apikey": SB_ANON_KEY },
-    body: JSON.stringify({ to: to, subject: subject, html: html })
-  }).then(function(r) { if (!r.ok) console.warn("sendEmail: request failed", r.status); return r; })
-    .catch(function(e) { console.warn("sendEmail: network error", e); });
+  var r = await adminApi("send-mail", { to: to, subject: subject, html: html });
+  if (!r.ok) console.warn("sendEmail failed", r.error);
+  return r;
 }
 
 function emailApproved(app, dashLink) {
@@ -5945,9 +6063,8 @@ async function updateAppStatus(appId, newStatus) {
   try {
     if (newStatus === "approved") {
       // Create company record and generate magic link token
-      var token = "tok-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
       var companyId = app.id.toLowerCase();
-      var dashLink = "https://app.handycat.us/company?token=" + token;
+      var dashLink = "";
       // Bonus leads: use the admin-editable field if present, else fall back to
       // the auto-grant formula (2 free leads per 10 cards requested)
       var leadsInput = document.getElementById("appBonusLeads");
@@ -5965,12 +6082,10 @@ async function updateAppStatus(appId, newStatus) {
       // companies(id) with confusing "409 Conflict" errors that mask the
       // real problem.
       if (!companyOk) throw new Error("Failed to create company record for " + companyId);
-      // Save magic token
-      await fsP("company_tokens", token, {
-        companyId: sv(companyId), email: sv(app.email),
-        expiresAt: sv(new Date(Date.now() + 7*24*60*60*1000).toISOString()),
-        used: false
-      });
+      // One-time sign-in link (7 days), created and stored (hashed) by the server
+      var link = await adminApi("issue-company-link", { company_id: companyId });
+      if (!link.ok || !link.url) throw new Error("Failed to create sign-in link for " + companyId);
+      dashLink = link.url;
       // Auto-create a pending card request for the cards they asked for on
       // signup, so it shows up immediately in both the company's own dashboard
       // (pending banner) and the admin Cards > Requests tab, ready to fulfill —
@@ -6500,6 +6615,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 </div><!-- /app-layout -->
-<div style="position:fixed;bottom:4px;left:6px;z-index:1;font-size:8px;line-height:1.3;color:#ccc;opacity:.7;font-family:sans-serif;pointer-events:none;max-width:200px">This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:#ccc;pointer-events:auto">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener" style="color:#ccc;pointer-events:auto">Terms of Service</a> apply.</div>
 </body>
 </html>
