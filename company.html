@@ -1626,6 +1626,8 @@ async function saveHM(){
   if(i>=0)S.handymen[i]=hm;else S.handymen.push(hm);
   closeModal("mHM");toast(eid?t("toast_hm_updated"):t("toast_hm_added"));
   renderHM();
+  // Editing from the handyman card: refresh the card too, otherwise it keeps showing the old data.
+  if(document.getElementById("cp-hm-detail").classList.contains("active"))showHMDetail(hm.id);
 }
 
 function delHM(id){

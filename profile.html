@@ -189,7 +189,6 @@
     .pf-empty{text-align:center;padding:40px 16px;color:#908f98;font-size:14px}
   .grecaptcha-badge{visibility:hidden !important}
     </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 
@@ -366,10 +365,24 @@
 </div>
 
 <script>
-var SB_URL="https://leiztsecokpeombovobc.supabase.co";
-var SB_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s";
-var sb=window.supabase.createClient(SB_URL,SB_ANON_KEY);
-var STORAGE_BUCKET="photos";
+// -- API: all data access and photo upload go through the card-api edge function --
+// The key below is only the gateway (anon) key. The NFC card token in the address is the credential:
+// the server derives the client from the card and checks every action against it.
+var HC_PROD={url:"https://leiztsecokpeombovobc.supabase.co/functions/v1/card-api",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s"};
+// >>> PREVIEW-ONLY: remove this block and the HC_DEV branch of the line below before merging to main <<<
+var HC_DEV={url:"https://fmsmtabaulgankddiwqf.supabase.co/functions/v1/card-api",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtc210YWJhdWxnYW5rZGRpd3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MDk5MTMsImV4cCI6MjEwNzQ4NTkxM30.roAo-FTxoIqGKKoaG79eyB-425yXuIqZ69rhpgw9Xrg"};
+var API=(/\.vercel\.app$/.test(location.hostname)||location.hostname==="localhost")?HC_DEV:HC_PROD;
+// >>> END PREVIEW-ONLY <<<
+async function api(action,payload){
+  var res;
+  try{
+    res=await fetch(API.url,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+API.key,"apikey":API.key},body:JSON.stringify(Object.assign({action:action},payload||{}))});
+  }catch(e){return {ok:false,error:"network",status:0};}
+  var j=null;try{j=await res.json();}catch(e){}
+  if(!j||typeof j!=="object")j={ok:false,error:"bad_response"};
+  j.status=res.status;
+  return j;
+}
 var I18N = {
  "en": {
   "loading_profile": "Loading your profile...",
@@ -413,6 +426,8 @@ var I18N = {
   "btn_skip_for_now": "Skip for Now",
   "toast_name_phone_required": "Please enter your name and phone number",
   "toast_something_wrong": "Something went wrong. Please try again.",
+  "toast_rate_limited": "Too many requests. Please wait a bit and try again.",
+  "toast_handyman_unavailable": "This handyman is no longer available. Please pick another one.",
   "toast_connection_error": "Connection error. Please try again.",
   "toast_welcome": "Welcome to HandyCat! 🎉",
   "guest": "Guest",
@@ -524,6 +539,8 @@ var I18N = {
   "btn_skip_for_now": "Пропустити",
   "toast_name_phone_required": "Будь ласка, введіть ім'я та номер телефону",
   "toast_something_wrong": "Щось пішло не так. Спробуйте ще раз.",
+  "toast_rate_limited": "Забагато запитів. Зачекайте трохи й спробуйте ще раз.",
+  "toast_handyman_unavailable": "Цей майстер більше недоступний. Оберіть іншого.",
   "toast_connection_error": "Помилка з'єднання. Спробуйте ще раз.",
   "toast_welcome": "Ласкаво просимо до HandyCat! 🎉",
   "guest": "Гість",
@@ -635,6 +652,8 @@ var I18N = {
   "btn_skip_for_now": "Omitir por ahora",
   "toast_name_phone_required": "Por favor ingresa tu nombre y número de teléfono",
   "toast_something_wrong": "Algo salió mal. Inténtalo de nuevo.",
+  "toast_rate_limited": "Demasiadas solicitudes. Espera un poco e inténtalo de nuevo.",
+  "toast_handyman_unavailable": "Este técnico ya no está disponible. Elige otro.",
   "toast_connection_error": "Error de conexión. Inténtalo de nuevo.",
   "toast_welcome": "¡Bienvenido a HandyCat! 🎉",
   "guest": "Invitado",
@@ -798,15 +817,10 @@ var S={
   currentOrderId:null
 };
 
-// ── FIRESTORE ─────────────────────────────────────────────────
-function toSnake(s){return s.replace(/[A-Z]/g,function(m){return "_"+m.toLowerCase();});}
+// -- row helpers (the API returns database rows; the page works with camelCase) --
 function toCamel(s){return s.replace(/_([a-z0-9])/g,function(_,c){return c.toUpperCase();});}
 function rowToCamel(row){if(!row)return null;var out={};Object.keys(row).forEach(function(k){out[toCamel(k)]=row[k];});return out;}
-function fieldsToSnake(obj){var out={};Object.keys(obj).forEach(function(k){out[toSnake(k)]=obj[k];});return out;}
-async function fsGet(c,id){var res=await sb.from(c).select("*").eq("id",id).maybeSingle();if(res.error||!res.data)return null;return rowToCamel(res.data);}
-async function fsQ(c,filters,lim){var q=sb.from(c).select("*").limit(lim||100);(filters||[]).forEach(function(f){var col=f.field==="companyIds"?"company_id":toSnake(f.field);q=q.eq(col,f.value);});var res=await q;if(res.error||!res.data)return[];return res.data.map(rowToCamel);}
-async function fsP(c,id,fields){var row=fieldsToSnake(fields);row.id=id;var res=await sb.from(c).upsert(row);return!res.error;}
-async function fsMerge(c,id,nf){var row=fieldsToSnake(nf);row.id=id;var res=await sb.from(c).upsert(row);return!res.error;}
+function rowsToCamel(a){return (a||[]).map(rowToCamel);}
 function sv(v){return v==null?"":String(v);}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");}
 function nv(v){return Number(v||0);}
@@ -814,12 +828,14 @@ function bv(v){return!!v;}
 function av(arr){return arr||[];}
 
 // ── STORAGE ───────────────────────────────────────────────────
-async function uploadPhoto(file, path) {
+// The server checks the file (real image type by content, <= 5 MB), stores it in a PRIVATE bucket and returns
+// a path; orders refer to that path and the server hands out short-lived links when it shows them.
+async function uploadPhoto(file) {
   try {
-    var res = await sb.storage.from(STORAGE_BUCKET).upload(path, file, {contentType: file.type, upsert: true});
-    if (res.error) return null;
-    var pub = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-    return pub.data.publicUrl;
+    var fd = new FormData(); fd.append("token", S.token); fd.append("file", file);
+    var res = await fetch(API.url, {method:"POST", headers:{"Authorization":"Bearer "+API.key, "apikey":API.key}, body: fd});
+    var j = await res.json();
+    return j && j.ok ? j.path : null;
   } catch(e) { return null; }
 }
 
@@ -827,24 +843,23 @@ async function handleDetailPhotos(input,orderId){
   var files=Array.from(input.files);
   var order=S.orders.find(function(o){return o.id===orderId;});
   if(!order)return;
-  var existing=order.photos||[];
-  var remaining=4-existing.length;
+  var remaining=4-(order.photos||[]).length;
   files=files.slice(0,Math.max(0,remaining));
   if(!files.length){toast(t("toast_max_photos_per_request"));input.value="";return;}
   toast(t("toast_uploading"));
-  var newUrls=[];
+  var paths=[];
   for(var i=0;i<files.length;i++){
     var file=files[i];
     if(file.size>5*1024*1024)continue;
-    var url=await uploadPhoto(file,"orders/"+orderId+"/photo-"+Date.now()+"-"+i);
-    if(url)newUrls.push(url);
+    var p=await uploadPhoto(file);
+    if(p)paths.push(p);
   }
-  if(!newUrls.length){toast(t("toast_upload_failed"));input.value="";return;}
-  var allPhotos=existing.concat(newUrls);
-  var ok=await fsMerge("orders",orderId,{photos:av(allPhotos)});
-  if(ok){
-    order.photos=allPhotos;
-    toast(newUrls.length>1?t("photos_added"):t("photo_added"));
+  if(!paths.length){toast(t("toast_upload_failed"));input.value="";return;}
+  var r=await api("add-photos",{token:S.token,order_id:orderId,photos:paths});
+  if(r.ok&&r.order){
+    var idx=S.orders.findIndex(function(o){return o.id===orderId;});
+    if(idx>=0)S.orders[idx]=rowToCamel(r.order);
+    toast(paths.length>1?t("photos_added"):t("photo_added"));
     showOrderDetail(orderId);
   } else {
     toast(t("toast_could_not_save_photo"));
@@ -864,13 +879,24 @@ function setLoading(btn, on){btn.disabled=on;btn.classList.toggle("loading",on);
 async function init(){
   var token=window.location.pathname.split("/").pop();
   S.token=token;
-  var card=await fsGet("nfc_cards",token);
-  if(!card){show("s-error");return;}
-  S.card=card;
-  if(card.handymanId){S.handyman=await fsGet("handymen",card.handymanId);}
-  if(!card.clientId){showRegister();}
-  else{S.client=await fsGet("clients",card.clientId);if(!S.client){show("s-error");return;}await loadProfile();}
+  if(!(await refresh())){show("s-error");return;}
+  if(!S.card.clientId){showRegister();}
+  else{await loadProfile(true);}
 }
+
+// One call returns everything this card may see (card, its handyman, the client and their orders, relevant handymen).
+async function refresh(){
+  var r=await api("open",{token:S.token});
+  if(!r.ok)return false;
+  S.card=rowToCamel(r.card);
+  S.handyman=rowToCamel(r.handyman);
+  S.client=rowToCamel(r.client);
+  S.hmAll=rowsToCamel(r.handymen);
+  S.hmMap={};S.hmAll.forEach(function(h){S.hmMap[h.id]=h;});
+  S.orders=rowsToCamel(r.orders).sort(function(a,b){return(b.createdAt||"").localeCompare(a.createdAt||"");});
+  return true;
+}
+function getHM(id){return id&&id!=="any"?(S.hmMap[id]||null):null;}
 
 // ── REGISTER ──────────────────────────────────────────────────
 function showRegister(){
@@ -889,21 +915,17 @@ async function registerClient(){
   var phone=document.getElementById("regPhone").value.trim();
   if(!name||!phone){toast(t("toast_name_phone_required"));return;}
   var btn=document.getElementById("regBtn");setLoading(btn,true);
-  try {
-    var cid="client-"+Date.now().toString(36);
-    var now=new Date().toISOString();
-    var ok=await fsP("clients",cid,{name:sv(name),phone:sv(phone),email:sv(document.getElementById("regEmail").value),address:sv(document.getElementById("regAddress").value),ratingAvg:nv(0),reviewCount:nv(0),ordersCount:nv(0),createdAt:sv(now)});
-    if(!ok){setLoading(btn,false);toast(t("toast_something_wrong"));return;}
-    await fsMerge("nfc_cards",S.token,{clientId:sv(cid),status:sv("active"),activatedAt:sv(now)});
-    S.client={id:cid,name:name,phone:phone,ratingAvg:0,reviewCount:0,ordersCount:0};
-    S.orders=[];
-    toast(t("toast_welcome"));
-    show("s-demo-intro");
-  } catch(e) {
-    console.error("Register error:",e);
+  var r=await api("register",{token:S.token,name:name,phone:phone,email:document.getElementById("regEmail").value,address:document.getElementById("regAddress").value});
+  if(!r.ok){
     setLoading(btn,false);
-    toast(t("toast_connection_error"));
+    if(r.error==="already_registered"&&(await refresh())){await loadProfile(true);return;}  // somebody finished it meanwhile
+    toast(r.error==="rate_limited"?t("toast_rate_limited"):r.error==="network"?t("toast_connection_error"):t("toast_something_wrong"));
+    return;
   }
+  S.client=rowToCamel(r.client);S.card.clientId=S.client.id;
+  S.orders=[];
+  toast(t("toast_welcome"));
+  show("s-demo-intro");
 }
 
 // ── DEMO / TEST RUN (shown once, right after first activation) ──
@@ -916,17 +938,11 @@ function startDemoOrder(){
 var AV_COLORS=["#86c0ff","#ecbaec","#bcffe9","#ffd9a0","#c5b5ff"];
 function avColor(seed){var h=0;for(var i=0;i<(seed||"").length;i++)h+=seed.charCodeAt(i);return AV_COLORS[h%AV_COLORS.length];}
 
-async function loadProfile(){
+async function loadProfile(skipRefresh){
   try {
+    if(!skipRefresh&&!(await refresh())){show("s-error");return;}
     var c=S.client;
-    var orders=await fsQ("orders",[{field:"clientId",value:c.id}]);
-    orders.sort(function(a,b){return(b.createdAt||"").localeCompare(a.createdAt||"");});
-    S.orders=orders;
-    var hmIds={};
-    orders.forEach(function(o){if(o.handymanId&&o.handymanId!=="any")hmIds[o.handymanId]=true;});
-    var hmMap={};
-    await Promise.all(Object.keys(hmIds).map(async function(id){var h=await fsGet("handymen",id);if(h)hmMap[id]=h;}));
-    S.hmMap=hmMap;
+    var orders=S.orders;
 
     document.getElementById("profAv").textContent=ini(c.name);
     document.getElementById("profAv").style.background=avColor(c.name||c.id);
@@ -979,7 +995,7 @@ function pfOrderCard(o,hmMap){
       '<span class="pf-order-date">'+fd(o.createdAt)+'</span>'+
     '</div>'+
     '<div class="pf-order-desc">'+esc(displayCategory(o.category)||"")+(desc?': '+esc(descShort):"")+(desc.length>90?' <span class="more" onclick="event.stopPropagation();showOrderDetail(\''+o.id+'\')">'+t("read_more")+'</span>':'')+'</div>'+
-    (photo?'<img src="'+photo+'" class="pf-order-photo"/>':'')+
+    (photo?'<img src="'+esc(photo)+'" class="pf-order-photo"/>':'')+
   '</div>';
 }
 
@@ -1031,7 +1047,7 @@ async function showOrderDetail(orderId){
   content.innerHTML='<div style="padding:60px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>';
   var order=S.orders.find(function(o){return o.id===orderId;});
   if(!order){content.innerHTML='<div style="padding:24px;text-align:center;color:#aaa">'+t("order_not_found")+'</div>';return;}
-  var hm=order.handymanId&&order.handymanId!=="any"?await fsGet("handymen",order.handymanId):null;
+  var hm=getHM(order.handymanId);
   var statusMap={new:t("status_new"),in_progress:t("status_in_progress"),completed:t("status_completed"),cancelled:t("status_cancelled")};
   var badgeMap={new:"b-new",in_progress:"b-progress",completed:"b-done",cancelled:"b-done"};
   var tl=[
@@ -1044,7 +1060,7 @@ async function showOrderDetail(orderId){
   var photosHtml='<div class="detail-section" style="margin:0 12px 10px">'+
       '<div class="section-title">Photos</div>'+
       '<div class="photo-gallery" id="detailPhotoGallery">'+
-        (order.photos&&order.photos.length?order.photos.map(function(url){return'<img class="gallery-img" src="'+url+'" onclick="window.open(\''+url+'\',\'_blank\')">';}).join(""):'')+
+        (order.photos&&order.photos.length?order.photos.map(function(url){return'<img class="gallery-img" src="'+esc(url)+'" data-url="'+esc(url)+'" onclick="window.open(this.dataset.url,\'_blank\',\'noopener\')">';}).join(""):'')+
         (canAddPhotos?'<div class="photo-add-tile" onclick="document.getElementById(\'detailPhotoInput\').click()"><div style="font-size:22px">+</div><div style="font-size:11px">Add</div></div>':'')+
       '</div>'+
       (canAddPhotos?'<input type="file" id="detailPhotoInput" accept="image/*" multiple style="display:none" onchange="handleDetailPhotos(this,\''+orderId+'\')"/>':'')+
@@ -1116,10 +1132,10 @@ async function showOrderDetail(orderId){
 async function markComplete(orderId){
   var btn=document.getElementById("completeBtn");
   if(btn)setLoading(btn,true);
-  var ok=await fsMerge("orders",orderId,{status:sv("completed"),completedAt:sv(new Date().toISOString())});
-  if(ok){
-    var ord=S.orders.find(function(o){return o.id===orderId;});
-    if(ord){ord.status="completed";ord.completedAt=new Date().toISOString();}
+  var r=await api("complete-order",{token:S.token,order_id:orderId});
+  if(r.ok&&r.order){
+    var i=S.orders.findIndex(function(o){return o.id===orderId;});
+    if(i>=0)S.orders[i]=rowToCamel(r.order);
     toast(t("toast_order_completed"));
     showRate(orderId);
   } else {
@@ -1149,19 +1165,18 @@ async function showNewOrder(){
   list.innerHTML='<div style="text-align:center;padding:16px;color:#aaa"><div class="spinner" style="margin:0 auto 8px;width:24px;height:24px;border-width:2px"></div>Loading...</div>';
   var btn2=document.getElementById("submitOrderBtn");setLoading(btn2,false);
   show("s-new-order");
-  // Load handymen
+  // Handymen: the ones this client already worked with first, then the card company's active ones
+  // (all of them arrived with the card, nothing more is fetched).
   var hmIds={};
   S.orders.forEach(function(o){if(o.handymanId&&o.handymanId!=="any")hmIds[o.handymanId]=true;});
-  var compHM=[];
-  if(S.card.companyId){compHM=await fsQ("handymen",[{field:"companyIds",value:S.card.companyId,op:"ARRAY_CONTAINS"}]);}
   var allHM=[];var seen={};
-  // History handymen first
-  await Promise.all(Object.keys(hmIds).map(async function(id){
-    if(seen[id])return;seen[id]=true;
-    var h=S.hmMap[id]||await fsGet("handymen",id);
-    if(h){allHM.push(Object.assign({fromHistory:true},h));}
-  }));
-  compHM.forEach(function(h){if(!seen[h.id]){seen[h.id]=true;allHM.push(h);}});
+  Object.keys(hmIds).forEach(function(id){
+    var h=getHM(id);
+    if(h&&h.status!=="inactive"&&!seen[id]){seen[id]=true;allHM.push(Object.assign({fromHistory:true},h));}
+  });
+  (S.hmAll||[]).forEach(function(h){
+    if(S.card.companyId&&h.companyId===S.card.companyId&&h.status!=="inactive"&&!seen[h.id]){seen[h.id]=true;allHM.push(h);}
+  });
   S.allHM=allHM;
   renderHMPicker(allHM);
 }
@@ -1245,49 +1260,28 @@ async function submitOrder(){
   // admin.html/company.html and displayCategory()'s reverse lookup stay consistent.
   var catLabel=S.selCat==="other"?(document.getElementById("otherCat").value.trim()||I18N.en.cat_other):(I18N.en["cat_"+S.selCat]||I18N.en.cat_other);
   var btn=document.getElementById("submitOrderBtn");setLoading(btn,true);
-  var orderId="ord-"+Date.now().toString(36);
-  var isPublic=S.selHMId==="any";
-  var hmId=isPublic?"":S.selHMId;
-  var hm=!isPublic?S.allHM.find(function(h){return h.id===hmId;}):null;
-  var now=new Date().toISOString();
-  // Upload photos first
-  var photoUrls=[];
+  var photoPaths=[];
   if(S.photoFiles.length){
     toast(t("toast_uploading_photos"));
-    for(var i=0;i<S.photoFiles.length;i++){
-      var url=await uploadPhoto(S.photoFiles[i],"orders/"+orderId+"/photo-"+i+"-"+Date.now());
-      if(url)photoUrls.push(url);
-    }
+    for(var i=0;i<S.photoFiles.length;i++){var p=await uploadPhoto(S.photoFiles[i]);if(p)photoPaths.push(p);}
   }
   var isDemo=!!S.isDemoOrder;
-  var ok=await fsP("orders",orderId,{
-    clientId:sv(S.client.id),
-    handymanId:sv(hmId),
-    companyId:sv(hm&&hm.companyIds?hm.companyIds[0]:S.card.companyId||""),
-    cardToken:sv(S.token),
-    category:sv(catLabel),
-    description:sv(desc),
-    status:sv("new"),
-    isPublic:bv(isPublic),
-    photos:av(photoUrls),
-    isOnboarding:bv(isDemo),
-    createdAt:sv(now)
-  });
-  if(ok){
-    if(isDemo){
-      S.isDemoOrder=false;
-      toast(t("toast_demo_complete"));
-    } else {
-      var newCount=(S.client.ordersCount||0)+1;
-      await fsMerge("clients",S.client.id,{ordersCount:nv(newCount)});
-      S.client.ordersCount=newCount;
-      toast(isPublic?t("toast_request_posted"):tf("toast_request_sent_to",{name:(hm||{}).name||t("your_handyman_lower")}));
-    }
-    await loadProfile();
-  } else {
+  // The server derives client, company, status and counters; it only takes what the person chose.
+  var r=await api("new-order",{token:S.token,category:catLabel,description:desc,handyman_id:S.selHMId,demo:isDemo,photos:photoPaths});
+  if(!r.ok){
     setLoading(btn,false);
-    toast(t("toast_something_wrong"));
+    toast(r.error==="handyman_unavailable"?t("toast_handyman_unavailable"):r.error==="rate_limited"?t("toast_rate_limited"):t("toast_something_wrong"));
+    return;
   }
+  var isPublic=S.selHMId==="any";
+  var hm=(S.allHM||[]).find(function(h){return h.id===S.selHMId;})||getHM(S.selHMId);
+  if(isDemo){
+    S.isDemoOrder=false;
+    toast(t("toast_demo_complete"));
+  } else {
+    toast(isPublic?t("toast_request_posted"):tf("toast_request_sent_to",{name:(hm||{}).name||t("your_handyman_lower")}));
+  }
+  await loadProfile();
 }
 
 // ── RATE & REVIEW ─────────────────────────────────────────────
@@ -1295,7 +1289,7 @@ async function showRate(orderId){
   var order=S.orders.find(function(o){return o.id===orderId;});
   if(!order)return;
   S.ratingOrderId=orderId;S.selStar=0;
-  var hm=order.handymanId&&order.handymanId!=="any"?await fsGet("handymen",order.handymanId):null;
+  var hm=getHM(order.handymanId);
   document.getElementById("rateHMName").textContent=hm?hm.name:t("your_handyman_cap");
   document.getElementById("rateOrdCat").textContent=displayCategory(order.category)||"";
   document.getElementById("reviewText").value="";
@@ -1320,12 +1314,13 @@ async function submitReview(){
   var orderId=S.ratingOrderId;
   var order=S.orders.find(function(o){return o.id===orderId;});
   if(!order){setLoading(btn,false);return;}
-  await fsMerge("orders",orderId,{clientRating:nv(S.selStar),clientReview:sv(review),reviewedAt:sv(new Date().toISOString())});
-  if(order.handymanId&&order.handymanId!=="any"){
-    var hm=await fsGet("handymen",order.handymanId);
-    if(hm){var oc=hm.reviewCount||0,oa=hm.ratingAvg||0,nc=oc+1,na=((oa*oc)+S.selStar)/nc;await fsMerge("handymen",order.handymanId,{ratingAvg:nv(na),reviewCount:nv(nc)});}
+  // The handyman's rating is recomputed on the server; the page only sends the stars and the text.
+  var r=await api("review",{token:S.token,order_id:orderId,rating:S.selStar,review:review});
+  if(!r.ok&&r.error!=="already_reviewed"){
+    setLoading(btn,false);
+    toast(r.error==="rate_limited"?t("toast_rate_limited"):t("toast_something_wrong"));
+    return;
   }
-  await fsP("reviews","rev-"+Date.now().toString(36),{orderId:sv(orderId),fromType:sv("client"),fromId:sv(S.client.id),fromName:sv(S.client.name),toType:sv("handyman"),toId:sv(order.handymanId||""),rating:nv(S.selStar),comment:sv(review),createdAt:sv(new Date().toISOString())});
   toast(t("toast_review_thanks"));
   await loadProfile();
 }
