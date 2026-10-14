@@ -1556,6 +1556,7 @@ function authRefresh() {
   return refreshing.finally(function() { refreshing = null; });
 }
 async function adminApi(action, payload, retried) {
+  if (!(action === "db" && payload && (payload.op === "list" || payload.op === "get"))) listCacheClear();
   var sentToken = currentIdToken;
   var body = Object.assign({ action: action, access_token: currentIdToken }, payload || {});
   var res;
@@ -1778,6 +1779,7 @@ function showApp() {
 async function logout() {
   var a = authGet();
   authClear();
+  listCacheClear();
   sessionStorage.removeItem("hca_token"); sessionStorage.removeItem("hca_expiry");   // old Firebase session keys
   if (a && a.access) await Promise.race([gotrue("/logout", {}, a.access), new Promise(function(r) { setTimeout(r, 1500); })]);
   location.reload();
@@ -1808,18 +1810,31 @@ async function fsGet(c, id) {
   var r = await adminApi("db", { op: "get", table: c, id: id });
   return r.ok && r.row ? rowToCamel(r.row) : null;
 }
+// Short-lived cache of list reads: switching pages, or several panels loading the same table at
+// once (cards, notifications, pool), no longer re-downloads it. Any other admin-api call (every
+// write goes through one) clears it, so the admin always sees their own changes immediately.
+var LIST_CACHE_TTL = 30000, listCache = {};
+function listCacheClear() { listCache = {}; }
 // The server returns at most 1000 rows per call, so larger tables (nfc_cards!) are fetched page by page.
 async function apiFetchAll(table, filters, lim) {
-  var PAGE = 1000, out = [], from = 0, max = lim || 10000;
-  while (from < max) {
-    var to = Math.min(from + PAGE, max) - 1;
-    var r = await adminApi("db", { op: "list", table: table, filters: filters || [], from: from, to: to });
-    if (!r.ok || !r.rows) break;
-    out = out.concat(r.rows);
-    if (r.rows.length < (to - from + 1)) break;
-    from += PAGE;
-  }
-  return out;
+  var key = JSON.stringify([table, filters || [], lim || 10000]);
+  var hit = listCache[key];
+  if (hit && Date.now() - hit.at < LIST_CACHE_TTL) return (await hit.promise).slice();
+  var entry = { at: Date.now() };
+  entry.promise = (async function() {
+    var PAGE = 1000, out = [], from = 0, max = lim || 10000;
+    while (from < max) {
+      var to = Math.min(from + PAGE, max) - 1;
+      var r = await adminApi("db", { op: "list", table: table, filters: filters || [], from: from, to: to });
+      if (!r.ok || !r.rows) { if (listCache[key] === entry) delete listCache[key]; break; }   // never cache a failed/partial read
+      out = out.concat(r.rows);
+      if (r.rows.length < (to - from + 1)) break;
+      from += PAGE;
+    }
+    return out;
+  })();
+  listCache[key] = entry;
+  return (await entry.promise).slice();
 }
 async function fsL(c, ps) {
   var _out = (await apiFetchAll(c, [], ps || 10000)).map(rowToCamel);
@@ -3420,9 +3435,10 @@ async function updateOrderPrice(orderId) {
 async function loadOrds() {
   var tb = document.getElementById("ordBody");
   tb.innerHTML = '<tr><td colspan="7" class="empty">' + t("loading_text") + '</td></tr>';
-  allOrds = await fsL("orders");
+  var loaded = await Promise.all([fsL("orders"), fsL("handymen").catch(function() { return []; })]);
+  allOrds = loaded[0];
   var hma = {};
-  try { var hms = await fsL("handymen"); hms.forEach(function(h) { hma[h.id] = h.name; }); } catch (e) {}
+  loaded[1].forEach(function(h) { hma[h.id] = h.name; });
   CC._hma = hma;
   renderOrds();
 }
@@ -3819,12 +3835,12 @@ async function loadPool() {
   document.getElementById('poolBatchBody').innerHTML =
     '<tr><td colspan="5" class="pg-empty">' + t("loading_text") + '</td></tr>';
 
-  try {
-    poolAllCards = await fsL('nfc_cards', 5000);
-  } catch(e) { poolAllCards = []; }
-  try {
-    poolAllBatches = await fsL('nfc_batches', 500);
-  } catch(e) { poolAllBatches = []; }
+  var loaded = await Promise.all([
+    fsL('nfc_cards', 5000).catch(function() { return []; }),
+    fsL('nfc_batches', 500).catch(function() { return []; })
+  ]);
+  poolAllCards = loaded[0];
+  poolAllBatches = loaded[1];
 
   await ensureLegacyBatch();
   if (poolBatchesRulesMissing) {
@@ -4233,6 +4249,7 @@ function updateAssignPreview() {
 }
 
 async function doAssignCards() {
+  listCacheClear();   // stock is read and then written: always use fresh rows
   var reqId     = document.getElementById('assignReqId').value;
   var companyId = document.getElementById('assignCompanyId').value;
   var count     = parseInt(document.getElementById('assignCount').value, 10);
@@ -4323,6 +4340,7 @@ async function doAssignCards() {
 
 async function approveCardReq(btn, reqId, count, companyId) {
   if (!companyId) { toast(t("toast_no_company_id")); return; }
+  listCacheClear();   // print ids and existing cards are read and then written: always use fresh rows
   if (btn) btn.classList.add("loading");
   if (btn) btn.disabled = true;
 
