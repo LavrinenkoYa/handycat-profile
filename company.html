@@ -1322,11 +1322,12 @@ function show(id){
   document.getElementById(id).classList.add("active");
 }
 function toast(m){var e=document.getElementById("toast");e.textContent=m;e.classList.add("show");setTimeout(function(){e.classList.remove("show");},2800);}
-function ini(n){return(n||"?").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase();}
+function ini(n){return esc((n||"?").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase());}
 function fd(iso){if(!iso)return"";return new Date(iso).toLocaleDateString(LOCALE_MAP[LANG]||"en-US",{month:"short",day:"numeric",year:"numeric"});}
-function bdg(s){var m={active:["ba","status_active"],inactive:["bi","status_inactive"],unassigned:["bu","status_unassigned"],assigned:["bbl","status_assigned"],deactivated:["bi","status_deactivated"],new:["bu","status_new"],in_progress:["bbl","status_in_progress"],completed:["ba","status_completed"],cancelled:["bi","status_cancelled"]};var x=m[s];return x?'<span class="badge '+x[0]+'">'+t(x[1])+"</span>":'<span class="badge bi">'+(s||"—")+"</span>";}
+function bdg(s){var m={active:["ba","status_active"],inactive:["bi","status_inactive"],unassigned:["bu","status_unassigned"],assigned:["bbl","status_assigned"],deactivated:["bi","status_deactivated"],new:["bu","status_new"],in_progress:["bbl","status_in_progress"],completed:["ba","status_completed"],cancelled:["bi","status_cancelled"]};var x=m[s];return x?'<span class="badge '+x[0]+'">'+t(x[1])+"</span>":'<span class="badge bi">'+esc(s||"—")+"</span>";}
 function starsHtml(n){var f=Math.round(n||0);return'<span style="color:#EF9F27">&#x2605;'.repeat(f)+'<span style="color:#ddd">&#x2605;</span>'.repeat(5-f)+"</span>";}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");}
+function safeUrl(u){u=String(u||"");return /^https?:\/\//i.test(u)?u:"";}
 function openModal(id){
   var el=document.getElementById(id);
   el.classList.add("open");
@@ -1542,10 +1543,10 @@ function renderHM(list){
     return'<tr>'+
       '<td><div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="showHMDetail(\''+h.id+'\')"><div class="hm-av">'+ini(h.name)+'</div><span class="pg-link">'+(esc(h.name) || "—")+'</span></div></td>'+
       '<td style="color:#858585">'+(esc(h.phone) || "—")+'</td>'+
-      '<td style="color:#4f00df;font-weight:700;font-size:14px">'+(h.skills||[]).slice(0,2).join(", ")+'</td>'+
-      '<td>'+(h.assignedCardToken?'<span class="pg-link" onclick="showCardDetail(\''+h.assignedCardToken+'\')">'+h.assignedCardToken+'</span>':'<span style="color:#bbb">—</span>')+'</td>'+
+      '<td style="color:#4f00df;font-weight:700;font-size:14px">'+esc((h.skills||[]).slice(0,2).join(", "))+'</td>'+
+      '<td>'+(h.assignedCardToken?'<span class="pg-link" onclick="showCardDetail(\''+h.assignedCardToken+'\')">'+esc(h.assignedCardToken)+'</span>':'<span style="color:#bbb">—</span>')+'</td>'+
       '<td>'+(h.ratingAvg?Number(h.ratingAvg).toFixed(1)+' &#x2605;':'<span style="color:#bbb">—</span>')+'</td>'+
-      '<td>'+(h.ordersCompleted||0)+'</td>'+
+      '<td>'+(Number(h.ordersCompleted)||0)+'</td>'+
       '<td>'+bdg(h.status||"active")+'</td>'+
       '<td style="text-align:right"><button class="cd-action-btn" onclick="editHM(\''+h.id+'\')" title="Edit"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.6484 5.84219L14.157 2.35079C14.0555 2.24921 13.9349 2.16864 13.8022 2.11366C13.6695 2.05869 13.5272 2.0304 13.3836 2.0304C13.24 2.0304 13.0977 2.05869 12.965 2.11366C12.8323 2.16864 12.7117 2.24921 12.6102 2.35079L2.97656 11.9852C2.87479 12.0866 2.7941 12.2071 2.73912 12.3399C2.68415 12.4726 2.65599 12.6149 2.65625 12.7586V16.25C2.65625 16.5401 2.77149 16.8183 2.9766 17.0234C3.18172 17.2285 3.45992 17.3438 3.75 17.3438H7.24141C7.38508 17.344 7.52739 17.3159 7.66013 17.2609C7.79288 17.2059 7.91343 17.1252 8.01485 17.0234L17.6484 7.38907C17.75 7.2875 17.8306 7.16692 17.8856 7.03422C17.9405 6.90151 17.9688 6.75927 17.9688 6.61563C17.9688 6.47199 17.9405 6.32975 17.8856 6.19705C17.8306 6.06434 17.75 5.94376 17.6484 5.84219ZM7.35156 16.3602C7.3224 16.3895 7.28278 16.4061 7.24141 16.4063H3.75C3.70856 16.4063 3.66882 16.3898 3.63952 16.3605C3.61021 16.3312 3.59375 16.2914 3.59375 16.25V12.7586C3.59393 12.7172 3.6105 12.6776 3.63985 12.6484L10.625 5.66251L14.3367 9.37501L7.35156 16.3602ZM16.9852 6.72657L15 8.71172L11.2883 5.00001L13.2734 3.01407C13.288 2.99954 13.3052 2.98802 13.3242 2.98015C13.3431 2.97229 13.3635 2.96824 13.384 2.96824C13.4045 2.96824 13.4249 2.97229 13.4438 2.98015C13.4628 2.98802 13.48 2.99954 13.4945 3.01407L16.9852 6.50547C16.9997 6.51999 17.0112 6.53722 17.0191 6.55619C17.0269 6.57516 17.031 6.59549 17.031 6.61602C17.031 6.63655 17.0269 6.65689 17.0191 6.67586C17.0112 6.69482 16.9997 6.71206 16.9852 6.72657Z" fill="#343330"/></svg></button></td>'+
     '</tr>';
@@ -1555,7 +1556,7 @@ function renderHM(list){
 function searchHM(q){
   if(!q){renderHM();return;}
   q=q.toLowerCase();
-  renderHM(S.handymen.filter(function(h){return(esc(h.name) || "").toLowerCase().includes(q)||(esc(h.phone) || "").includes(q);}));
+  renderHM(S.handymen.filter(function(h){returnString(h.name||"").toLowerCase().includes(q)||String(h.phone||"").includes(q);}));
 }
 
 async function openAddHM(){
@@ -1702,7 +1703,7 @@ function renderCards(hmByToken){
       '<td class="cd-token">'+c.id+'</td>'+
       '<td><span style="font-family:monospace;font-size:12px;color:#858585;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">'+url+'</span></td>'+
       '<td>'+bdg(ds)+'</td>'+
-      '<td style="color:#858585">'+(hmByToken[c.id]||"—")+'</td>'+
+      '<td style="color:#858585">'+esc(hmByToken[c.id]||"—")+'</td>'+
       '<td style="color:#858585">'+(c.clientId||"—")+'</td>'+
       '<td style="color:#858585">'+fd(c.createdAt)+'</td>'+
       '<td style="text-align:right"><button class="cd-action-btn" title="View"><svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.3681 13.4307L15.0556 20.7432C14.9401 20.8508 14.7873 20.9094 14.6295 20.9066C14.4716 20.9039 14.321 20.8399 14.2093 20.7283C14.0977 20.6166 14.0337 20.466 14.0309 20.3081C14.0281 20.1502 14.0867 19.9975 14.1944 19.8819L20.4659 13.6094H4.0625C3.90088 13.6094 3.74589 13.5452 3.63161 13.431C3.51733 13.3167 3.45313 13.1617 3.45312 13.0001C3.45312 12.8384 3.51733 12.6834 3.63161 12.5692C3.74589 12.4549 3.90088 12.3907 4.0625 12.3907H20.4659L14.1944 6.11818C14.0867 6.00267 14.0281 5.84988 14.0309 5.69201C14.0337 5.53414 14.0977 5.38351 14.2093 5.27187C14.321 5.16022 14.4716 5.09626 14.6295 5.09348C14.7873 5.09069 14.9401 5.14929 15.0556 5.25693L22.3681 12.5694C22.4822 12.6837 22.5463 12.8386 22.5463 13.0001C22.5463 13.1615 22.4822 13.3164 22.3681 13.4307Z" fill="#4F00DF"/></svg></button></td>'+
@@ -1764,7 +1765,7 @@ function renderOrders(){
     return'<tr style="cursor:pointer" onclick="showOrderDetail(\''+o.id+'\')">'+
       '<td style="color:#858585">'+fd(o.createdAt)+'</td>'+
       '<td>'+(esc(cl.name) || "—")+'</td>'+
-      '<td>'+(hmMap[o.handymanId]||"—")+'</td>'+
+      '<td>'+esc(hmMap[o.handymanId]||"—")+'</td>'+
       '<td>'+(esc(o.category) || "—")+'</td>'+
       '<td>'+bdg(o.status||"new")+'</td>'+
       '<td>'+(o.clientRating?'<span style="color:#EF9F27">'+('&#x2605;').repeat(o.clientRating)+'</span>':"<span style='color:#bbb'>—</span>")+'</td>'+
@@ -1794,26 +1795,26 @@ function showOrderDetail(ordId){
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
           bdg(order.status||"new")+'<span style="color:#858585;font-size:14px">'+fd(order.createdAt)+'</span></div>'+
         '<div class="cd-title" style="font-size:26px">'+(esc(order.category) || "—")+'</div>'+
-        (order.description?'<div style="font-size:15px;color:#555;line-height:1.6;margin-top:10px">'+order.description+'</div>':"")+
+        (order.description?'<div style="font-size:15px;color:#555;line-height:1.6;margin-top:10px">'+esc(order.description)+'</div>':"")+
     '</div>'+
 
     '<div class="pg-card">'+
       '<div class="pg-info-grid">'+
       '<div><div class="pg-info-label" style="margin-bottom:10px">'+t("client_label")+'</div>'+
-        (cl.name?'<div style="display:flex;align-items:center;gap:10px"><div class="pg-av">'+ini(cl.name)+'</div><div><div style="font-size:14px;font-weight:600;color:#111">'+cl.name+'</div><div style="color:#858585;font-size:13px">'+(esc(cl.phone) || "")+'</div></div></div>':'<span style="color:#bbb">—</span>')+
+        (cl.name?'<div style="display:flex;align-items:center;gap:10px"><div class="pg-av">'+ini(cl.name)+'</div><div><div style="font-size:14px;font-weight:600;color:#111">'+esc(cl.name)+'</div><div style="color:#858585;font-size:13px">'+(esc(cl.phone) || "")+'</div></div></div>':'<span style="color:#bbb">—</span>')+
       '</div>'+
       '<div><div class="pg-info-label" style="margin-bottom:10px">'+t("handyman_label")+'</div>'+
-        (hm.name?'<div style="display:flex;align-items:center;gap:10px"><div class="pg-av">'+ini(hm.name)+'</div><div><div style="font-size:14px;font-weight:600;color:#111">'+hm.name+'</div><div style="color:#858585;font-size:13px">'+(esc(hm.phone) || "")+'</div></div></div>':'<span style="color:#bbb">—</span>')+
+        (hm.name?'<div style="display:flex;align-items:center;gap:10px"><div class="pg-av">'+ini(hm.name)+'</div><div><div style="font-size:14px;font-weight:600;color:#111">'+esc(hm.name)+'</div><div style="color:#858585;font-size:13px">'+(esc(hm.phone) || "")+'</div></div></div>':'<span style="color:#bbb">—</span>')+
       '</div>'+
       '</div>'+
     '</div>'+
 
     (photos.length?'<div class="pg-card"><div class="pg-section-title">'+t("photos_label")+'</div><div style="display:flex;gap:10px;flex-wrap:wrap">'+
-      photos.map(function(url){return'<img src="'+url+'" class="pg-photo" onclick="window.open(\''+url+'\',\'_blank\')">';}).join("")+'</div></div>':"")+
+      photos.map(safeUrl).filter(Boolean).map(function(url){return'<img src="'+esc(url)+'" data-url="'+esc(url)+'" class="pg-photo" onclick="window.open(this.dataset.url,\'_blank\',\'noopener\')">';}).join("")+'</div></div>':"")+
 
     (order.clientRating?'<div class="pg-card"><div class="pg-section-title">'+t("client_review_label")+'</div>'+
       '<div style="color:#EF9F27;font-size:20px;margin-bottom:8px">'+('&#x2605;').repeat(order.clientRating)+'<span style="color:#ddd">'+('&#x2605;').repeat(5-order.clientRating)+'</span></div>'+
-      (order.clientReview?'<div style="font-size:14px;color:#555;line-height:1.6">'+order.clientReview+'</div>':'<div style="color:#aaa">'+t("no_written_review")+'</div>')+
+      (order.clientReview?'<div style="font-size:14px;color:#555;line-height:1.6">'+esc(order.clientReview)+'</div>':'<div style="color:#aaa">'+t("no_written_review")+'</div>')+
     '</div>':"");
 }
 
@@ -1873,7 +1874,7 @@ function showCardDetail(cardId){
           '<td>'+esc(o.category||"—")+'</td>'+
           '<td>'+bdg(o.status||"new")+'</td>'+
           '<td>'+(o.clientRating?'<span style="color:#EF9F27">★ '+o.clientRating+'</span>':'<span style="color:#bbb">—</span>')+'</td>'+
-          '<td>'+(o.price?"$"+o.price:'<span style="color:#bbb">—</span>')+'</td>'+
+          '<td>'+(o.price?"$"+esc(o.price):'<span style="color:#bbb">—</span>')+'</td>'+
         '</tr>';
       }).join(""):'<tr><td colspan="5" class="pg-empty">No orders yet</td></tr>')+
       '</tbody></table>'+
@@ -1906,14 +1907,14 @@ function showHMDetail(hmId){
       '<div class="cd-stat"><div class="cd-stat-num">'+(Number(hm.ratingAvg)||0).toFixed(1)+' ★</div><div class="cd-stat-label">'+t("stat_rating")+'</div></div>'+
       '<div class="cd-stat"><div class="cd-stat-num">'+(hm.reviewCount||0)+'</div><div class="cd-stat-label">'+t("stat_reviews")+'</div></div>'+
       '<div class="cd-stat"><div class="cd-stat-num">'+completed+'</div><div class="cd-stat-label">'+t("stat_jobs_done")+'</div></div>'+
-      '<div class="cd-stat"><div class="cd-stat-num">'+(hm.experienceYears||0)+'</div><div class="cd-stat-label">'+t("stat_years_exp")+'</div></div>'+
+      '<div class="cd-stat"><div class="cd-stat-num">'+(Number(hm.experienceYears)||0)+'</div><div class="cd-stat-label">'+t("stat_years_exp")+'</div></div>'+
     '</div>'+
 
     '<div class="pg-card">'+
       '<div class="pg-section-title">'+t("info_title")+'</div>'+
       '<div class="pg-info-grid">'+
-        '<div><div class="pg-info-label">'+t("skills_label")+'</div><div class="pg-info-value">'+((hm.skills||[]).join(", ")||"—")+'</div></div>'+
-        '<div><div class="pg-info-label">'+t("card_token_label")+'</div><div class="pg-info-value" style="font-family:monospace">'+(hm.assignedCardToken||"—")+'</div></div>'+
+        '<div><div class="pg-info-label">'+t("skills_label")+'</div><div class="pg-info-value">'+esc((hm.skills||[]).join(", ")||"—")+'</div></div>'+
+        '<div><div class="pg-info-label">'+t("card_token_label")+'</div><div class="pg-info-value" style="font-family:monospace">'+esc(hm.assignedCardToken||"—")+'</div></div>'+
         '<div><div class="pg-info-label">'+t("status_label")+'</div><div class="pg-info-value">'+bdg(hm.status||"active")+'</div></div>'+
         '<div><div class="pg-info-label">'+t("added_label")+'</div><div class="pg-info-value">'+fd(hm.createdAt)+'</div></div>'+
       '</div>'+
@@ -1930,7 +1931,7 @@ function showHMDetail(hmId){
           '<td>'+esc(o.category||"—")+'</td>'+
           '<td>'+bdg(o.status||"new")+'</td>'+
           '<td>'+(o.clientRating?'<span style="color:#EF9F27">★ '+o.clientRating+'</span>':'<span style="color:#bbb">—</span>')+'</td>'+
-          '<td>'+(o.price?"$"+o.price:'<span style="color:#bbb">—</span>')+'</td>'+
+          '<td>'+(o.price?"$"+esc(o.price):'<span style="color:#bbb">—</span>')+'</td>'+
         '</tr>';
       }).join(""):'<tr><td colspan="6" class="pg-empty">'+t("empty_no_jobs")+'</td></tr>')+
       '</tbody></table>'+
