@@ -54,10 +54,7 @@ function updateCustomQty(){
 // The key below is only the gateway (anon) key; it grants no database access once the
 // tables are locked down server-side, so it is safe to ship in the page.
 var HC_PROD={url:"https://leiztsecokpeombovobc.supabase.co/functions/v1/public-api",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s"};
-// >>> PREVIEW-ONLY: remove this block and the HC_DEV branch of the line below before merging to main <<<
-var HC_DEV={url:"https://fmsmtabaulgankddiwqf.supabase.co/functions/v1/public-api",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtc210YWJhdWxnYW5rZGRpd3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MDk5MTMsImV4cCI6MjEwNzQ4NTkxM30.roAo-FTxoIqGKKoaG79eyB-425yXuIqZ69rhpgw9Xrg"};
-var API=(/\.vercel\.app$/.test(location.hostname)||location.hostname==="localhost")?HC_DEV:HC_PROD;
-// >>> END PREVIEW-ONLY <<<
+var API=HC_PROD;
 var verifyTicket=null;
 async function api(action,payload){
   var res;

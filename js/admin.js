@@ -1519,10 +1519,7 @@ var BURL = "https://app.handycat.us";
 // admin's Supabase Auth access token; the server checks it, the admin allow-list and two-factor (aal2).
 // The key below is only the gateway (anon) key and grants no database access by itself.
 var ADMIN_PROD = { url: "https://leiztsecokpeombovobc.supabase.co/functions/v1/admin-api", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlaXp0c2Vjb2twZW9tYm92b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzg2OTIsImV4cCI6MjEwMzgxNDY5Mn0.RIit75wOCwBAwMTrBjiY3MOF7ERqmPo_y1nx__rXk_s" };
-// >>> PREVIEW-ONLY: remove this block and the ADMIN_DEV branch of the line below before merging to main <<<
-var ADMIN_DEV = { url: "https://fmsmtabaulgankddiwqf.supabase.co/functions/v1/admin-api", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtc210YWJhdWxnYW5rZGRpd3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MDk5MTMsImV4cCI6MjEwNzQ4NTkxM30.roAo-FTxoIqGKKoaG79eyB-425yXuIqZ69rhpgw9Xrg" };
-var ADMIN_API = (/\.vercel\.app$/.test(location.hostname) || location.hostname === "localhost") ? ADMIN_DEV : ADMIN_PROD;
-// >>> END PREVIEW-ONLY <<<
+var ADMIN_API = ADMIN_PROD;
 // -- Supabase Auth (replaces Firebase): e-mail + password, then a TOTP code (two-factor). --
 var AUTH_BASE = new URL(ADMIN_API.url).origin + "/auth/v1";
 var AUTH_STORE = "hca_auth";
