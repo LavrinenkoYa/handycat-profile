@@ -414,6 +414,7 @@ var I18N = {
   "toast_restored_from_file": "✓ \"{name}\" restored from backup file!",
   "confirm_restore_from_archive": "Restore \"{name}\"?",
   "toast_could_not_remove_archive": "⚠️ Could not remove archive entry (check Firestore rules allow delete on archive)",
+  "toast_restore_partial": "⚠️ \"{name}\": {count} record(s) could not be restored. The archive entry was kept, try again.",
   "toast_restored_successfully": "✓ \"{name}\" restored successfully!",
   "confirm_delete_company": "Delete \"{name}\"?",
   "confirm_delete_company_sub": "{details}\n\nThe company will be archived for 30 days — you can restore it anytime.",
@@ -899,6 +900,7 @@ var I18N = {
   "toast_restored_from_file": "✓ «{name}» відновлено з резервної копії!",
   "confirm_restore_from_archive": "Відновити «{name}»?",
   "toast_could_not_remove_archive": "⚠️ Не вдалося видалити запис архіву (перевірте правила Firestore щодо видалення в archive)",
+  "toast_restore_partial": "⚠️ «{name}»: не вдалося відновити записів: {count}. Запис архіву збережено, спробуйте ще раз.",
   "toast_restored_successfully": "✓ «{name}» успішно відновлено!",
   "confirm_delete_company": "Видалити «{name}»?",
   "confirm_delete_company_sub": "{details}\n\nКомпанію буде заархівовано на 30 днів — ви зможете відновити її будь-коли.",
@@ -1384,6 +1386,7 @@ var I18N = {
   "toast_restored_from_file": "✓ «{name}» restaurada desde la copia de seguridad!",
   "confirm_restore_from_archive": "¿Restaurar «{name}»?",
   "toast_could_not_remove_archive": "⚠️ No se pudo eliminar la entrada del archivo (comprueba que las reglas de Firestore permitan eliminar en archive)",
+  "toast_restore_partial": "⚠️ «{name}»: no se pudieron restaurar {count} registro(s). La entrada del archivo se conservó, inténtalo de nuevo.",
   "toast_restored_successfully": "✓ «{name}» restaurada correctamente!",
   "confirm_delete_company": "¿Eliminar «{name}»?",
   "confirm_delete_company_sub": "{details}\n\nLa empresa se archivará durante 30 días — podrás restaurarla en cualquier momento.",
@@ -4980,6 +4983,32 @@ function downloadArchiveBackup(archiveId) {
   });
 }
 
+// Re-creates an archived/backed-up company with its cards and handymen, keeping every value's
+// original type (arrays, numbers, booleans, null). Card and handyman rows can reference each other,
+// so rows that fail are retried once after all the others. Returns how many rows could not be written.
+async function restoreCompanyRows(co, cards, handymen, btn) {
+  function fieldsOf(row) {
+    var f = {};
+    Object.keys(row).forEach(function(k) { if (k !== "id" && row[k] !== undefined) f[k] = row[k]; });
+    return f;
+  }
+  if (btn) btn.textContent = t("toast_restoring_company");
+  if (!(await fsP("companies", co.id, fieldsOf(co)))) return 1 + cards.length + handymen.length;   // nothing can reference a missing company
+
+  var jobs = cards.map(function(c, i) { return { table: "nfc_cards", row: c, label: tf("toast_restoring_cards", {done: i + 1, total: cards.length}) }; })
+    .concat(handymen.map(function(h, i) { return { table: "handymen", row: h, label: tf("toast_restoring_handymen", {done: i + 1, total: handymen.length}) }; }));
+  var failed = [];
+  for (var i = 0; i < jobs.length; i++) {
+    if (btn) btn.textContent = jobs[i].label;
+    if (!(await fsP(jobs[i].table, jobs[i].row.id, fieldsOf(jobs[i].row)))) failed.push(jobs[i]);
+  }
+  var still = 0;
+  for (var j = 0; j < failed.length; j++) {
+    if (!(await fsP(failed[j].table, failed[j].row.id, fieldsOf(failed[j].row)))) still++;
+  }
+  return still;
+}
+
 async function restoreFromJSON(input) {
   var file = input.files[0];
   if (!file) return;
@@ -5002,33 +5031,9 @@ async function restoreFromJSON(input) {
   cfm(tf("confirm_restore_from_file", {name: name}),
     tf("restore_will_be_recreated", {cards: (restoreCards ? " + " + cards.length + " cards" : ""), handymen: (restoreHM ? " + " + handymen.length + " handymen" : "")}),
     async function(btn) {
-      if (btn) btn.textContent = t("toast_restoring_company");
-      var coFields = {};
-      Object.keys(co).forEach(function(k) { if (k !== "id") coFields[k] = sv(String(co[k] === null || co[k] === undefined ? "" : co[k])); });
-      await fsP("companies", co.id, coFields);
-
-      if (restoreCards) {
-        for (var i = 0; i < cards.length; i++) {
-          if (btn) btn.textContent = tf("toast_restoring_cards", {done: i+1, total: cards.length});
-          var c = cards[i];
-          var cf = {};
-          Object.keys(c).forEach(function(k) { if (k !== "id") cf[k] = sv(String(c[k] === null || c[k] === undefined ? "" : c[k])); });
-          await fsP("nfc_cards", c.id, cf);
-        }
-      }
-
-      if (restoreHM) {
-        for (var i = 0; i < handymen.length; i++) {
-          if (btn) btn.textContent = tf("toast_restoring_handymen", {done: i+1, total: handymen.length});
-          var h = handymen[i];
-          var hf = {};
-          Object.keys(h).forEach(function(k) { if (k !== "id") hf[k] = sv(String(h[k] === null || h[k] === undefined ? "" : h[k])); });
-          await fsP("handymen", h.id, hf);
-        }
-      }
-
+      var failed = await restoreCompanyRows(co, restoreCards ? cards : [], restoreHM ? handymen : [], btn);
       closeModal("mConfirm");
-      toast(tf("toast_restored_from_file", {name: name}));
+      toast(failed ? tf("toast_restore_partial", {name: name, count: failed}) : tf("toast_restored_from_file", {name: name}));
       if (document.getElementById("page-archive").classList.contains("active")) loadArchive();
     }
   );
@@ -5049,33 +5054,13 @@ async function restoreFromArchive(archiveId) {
   cfm(tf("confirm_restore_from_archive", {name: name}),
     tf("restore_this_will_recreate", {cards: (restoreCards ? ", " + cards.length + " cards" : ""), handymen: (restoreHM ? ", " + handymen.length + " handymen" : "")}),
     async function(btn) {
-      if (btn) btn.textContent = t("toast_restoring_company");
-
-      // Restore company
-      var coFields = {};
-      Object.keys(co).forEach(function(k) { if (k !== "id") coFields[k] = sv(co[k]); });
-      await fsP("companies", co.id, coFields);
-
-      // Restore cards
-      if (restoreCards) {
-        for (var i = 0; i < cards.length; i++) {
-          if (btn) btn.textContent = tf("toast_restoring_cards", {done: i+1, total: cards.length});
-          var c = cards[i];
-          var cf = {};
-          Object.keys(c).forEach(function(k) { if (k !== "id") cf[k] = sv(c[k]); });
-          await fsP("nfc_cards", c.id, cf);
-        }
-      }
-
-      // Restore handymen
-      if (restoreHM) {
-        for (var i = 0; i < handymen.length; i++) {
-          if (btn) btn.textContent = tf("toast_restoring_handymen", {done: i+1, total: handymen.length});
-          var h = handymen[i];
-          var hf = {};
-          Object.keys(h).forEach(function(k) { if (k !== "id") hf[k] = sv(h[k]); });
-          await fsP("handymen", h.id, hf);
-        }
+      var failed = await restoreCompanyRows(co, restoreCards ? cards : [], restoreHM ? handymen : [], btn);
+      if (failed) {
+        // Keep the archive entry: it is the only copy of what could not be written.
+        closeModal("mConfirm");
+        toast(tf("toast_restore_partial", {name: name, count: failed}));
+        await loadArchive();
+        return;
       }
 
       // Delete archive entry after successful restore
