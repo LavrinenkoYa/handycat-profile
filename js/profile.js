@@ -84,6 +84,7 @@ var I18N = {
   "worked_before": "Worked before",
   "toast_max_photos": "Max 4 photos allowed",
   "toast_photo_too_large": "Photo too large (max 5MB)",
+  "toast_photo_upload_failed": "Could not upload {count} photo(s). Please try again.",
   "photo_added": "Photo added!",
   "photos_added": "Photos added!",
   "toast_select_category": "Please select a category",
@@ -197,6 +198,7 @@ var I18N = {
   "worked_before": "Вже працювали",
   "toast_max_photos": "Максимум 4 фото",
   "toast_photo_too_large": "Фото завелике (макс. 5 МБ)",
+  "toast_photo_upload_failed": "Не вдалося завантажити фото ({count}). Спробуйте ще раз.",
   "photo_added": "Фото додано!",
   "photos_added": "Фото додано!",
   "toast_select_category": "Будь ласка, оберіть категорію",
@@ -310,6 +312,7 @@ var I18N = {
   "worked_before": "Trabajó antes",
   "toast_max_photos": "Máximo 4 fotos permitidas",
   "toast_photo_too_large": "Foto demasiado grande (máx. 5 MB)",
+  "toast_photo_upload_failed": "No se pudieron subir {count} foto(s). Inténtalo de nuevo.",
   "photo_added": "¡Foto añadida!",
   "photos_added": "¡Fotos añadidas!",
   "toast_select_category": "Por favor selecciona una categoría",
@@ -393,7 +396,7 @@ function setLang(lang){
   renderLangSwitcher();
   // Re-render whatever dynamic content is currently on screen so it picks up the new language
   if (typeof S !== "undefined" && S.client) {
-    if (document.getElementById("s-new-order").classList.contains("active")) showNewOrder();
+    if (document.getElementById("s-new-order").classList.contains("active")) relabelNewOrder();
     else if (document.getElementById("s-order-detail").classList.contains("active") && S.currentOrderId) showOrderDetail(S.currentOrderId);
     else if (document.getElementById("s-rate").classList.contains("active") && S.ratingOrderId) showRate(S.ratingOrderId);
     else renderOrderFeed(S._curOrderFilter||"all");
@@ -780,17 +783,11 @@ async function showNewOrder(){
   S.selCat=null;S.selHMId=null;S.photoFiles=[];
   document.getElementById("ordDesc").value="";
   document.getElementById("otherCat").value="";
-  document.getElementById("photoPreviews").innerHTML="";
+  renderPhotoPreviews();
   document.getElementById("otherWrap").style.display="none";
   document.getElementById("newOrderBackBtn").style.display=S.isDemoOrder?"none":"";
   document.getElementById("demoBanner").style.display=S.isDemoOrder?"block":"none";
-  // Build categories (recomputed each time so labels follow the current language)
-  CATS=getCats();
-  var grid=document.getElementById("catGrid");
-  grid.innerHTML=CATS.map(function(c){
-    return'<button class="cat-btn" id="cat-'+c.id+'" onclick="selCat(\''+c.id+'\')">'+
-      '<span class="cat-icon">'+c.icon+'</span>'+c.label+'</button>';
-  }).join("");
+  renderCatGrid();
   // Build HM picker with loading
   var list=document.getElementById("hmPickerList");
   list.innerHTML='<div style="text-align:center;padding:16px;color:#aaa"><div class="spinner" style="margin:0 auto 8px;width:24px;height:24px;border-width:2px"></div>Loading...</div>';
@@ -810,6 +807,21 @@ async function showNewOrder(){
   });
   S.allHM=allHM;
   renderHMPicker(allHM);
+}
+
+// Categories are recomputed each time so labels follow the current language; the selection is kept.
+function renderCatGrid(){
+  CATS=getCats();
+  var grid=document.getElementById("catGrid");
+  grid.innerHTML=CATS.map(function(c){
+    return'<button class="cat-btn'+(S.selCat===c.id?" sel":"")+'" id="cat-'+c.id+'" onclick="selCat(\''+c.id+'\')">'+
+      '<span class="cat-icon">'+c.icon+'</span>'+c.label+'</button>';
+  }).join("");
+}
+// Language switch on the New request screen: relabel, but keep everything the client entered.
+function relabelNewOrder(){
+  renderCatGrid();
+  renderHMPicker(S.allHM||[]);
 }
 
 function selCat(id){
@@ -860,26 +872,26 @@ function handlePhotos(input){
   files.forEach(function(file){
     if(file.size>5*1024*1024){toast(t("toast_photo_too_large"));return;}
     S.photoFiles.push(file);
-    var reader=new FileReader();
-    reader.onload=function(e){
-      var idx=S.photoFiles.indexOf(file);
-      var prev=document.getElementById("photoPreviews");
-      var div=document.createElement("div");div.className="photo-preview";div.id="prev-"+idx;
-      div.innerHTML='<img src="'+e.target.result+'"/><button class="remove-photo" onclick="removePhoto('+idx+')">✕</button>';
-      prev.appendChild(div);
-    };
-    reader.readAsDataURL(file);
   });
   input.value="";
+  renderPhotoPreviews();
+}
+
+// Previews are rebuilt from S.photoFiles, so the ✕ on a preview always removes that same file.
+function renderPhotoPreviews(){
+  var prev=document.getElementById("photoPreviews");
+  prev.querySelectorAll("img").forEach(function(img){URL.revokeObjectURL(img.src);});
+  prev.innerHTML="";
+  S.photoFiles.forEach(function(file,idx){
+    var div=document.createElement("div");div.className="photo-preview";div.id="prev-"+idx;
+    div.innerHTML='<img src="'+URL.createObjectURL(file)+'"/><button class="remove-photo" onclick="removePhoto('+idx+')">✕</button>';
+    prev.appendChild(div);
+  });
 }
 
 function removePhoto(idx){
   S.photoFiles.splice(idx,1);
-  var prev=document.getElementById("prev-"+idx);
-  if(prev)prev.remove();
-  // Renumber remaining
-  var previews=document.querySelectorAll(".photo-preview");
-  previews.forEach(function(el,i){el.id="prev-"+i;el.querySelector(".remove-photo").setAttribute("onclick","removePhoto("+i+")");});
+  renderPhotoPreviews();
 }
 
 async function submitOrder(){
@@ -894,7 +906,14 @@ async function submitOrder(){
   var photoPaths=[];
   if(S.photoFiles.length){
     toast(t("toast_uploading_photos"));
-    for(var i=0;i<S.photoFiles.length;i++){var p=await uploadPhoto(S.photoFiles[i]);if(p)photoPaths.push(p);}
+    var failed=0;
+    for(var i=0;i<S.photoFiles.length;i++){
+      var f=S.photoFiles[i];
+      if(!f._hcPath)f._hcPath=await uploadPhoto(f);   // remembered, so a retry does not upload the same photo twice
+      if(f._hcPath)photoPaths.push(f._hcPath);else failed++;
+    }
+    // Do not create the order without the photos the client attached: keep the form so they can retry.
+    if(failed){setLoading(btn,false);toast(tf("toast_photo_upload_failed",{count:failed}));return;}
   }
   var isDemo=!!S.isDemoOrder;
   // The server derives client, company, status and counters; it only takes what the person chose.
