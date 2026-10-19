@@ -670,6 +670,8 @@ function unlockForm(email){
   document.getElementById("s-verify").classList.remove("active");
   document.getElementById("s-existing-company").classList.remove("active");
   document.getElementById("step-1").classList.add("active");
+  // Re-verification (after email_not_verified) can come from any step: start the walk over at step 1, fields keep their values.
+  currentStep=1;updateProgress();
   var emailField=document.getElementById("f-email");
   if(emailField){emailField.value=email;emailField.readOnly=true;}
   toast(t("toast_email_verified"));
