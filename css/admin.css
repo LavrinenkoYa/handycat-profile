@@ -95,6 +95,17 @@
     .co-search{display:flex;align-items:center;gap:14px;border:1.5px solid #eceae6;border-radius:10px;padding:9px 14px;width:100%;box-sizing:border-box}
     .co-search input{border:none;outline:none;font-size:15px;color:#333;font-family:'Inter',sans-serif;background:transparent;flex:1}
     .co-search input::placeholder{color:#858585}
+    /* Card order page: company / Print ID range filters and sortable headers */
+    .pbd-filters{border-top:1px solid #f1eeee;padding-top:14px;flex-wrap:wrap;gap:10px}
+    .pbd-field{padding:9px 14px;border-radius:10px;border:1.5px solid #eceae6;font-family:'Inter',sans-serif;font-size:14px;color:#333;background:#fff;box-sizing:border-box}
+    .pbd-field:focus{outline:none;border-color:#164e23}
+    .pbd-range{width:140px}
+    #pbdCompany{min-width:200px;cursor:pointer}
+    .pbd-dash{color:#858585}
+    .pbd-count{margin-left:auto;color:#858585;font-size:14px}
+    .pbd-sort{cursor:pointer;user-select:none;white-space:nowrap}
+    .pbd-sort:hover{color:#111}
+    .pbd-sort-ind{margin-left:6px;color:#164e23}
     .co-add-btn{background:#32e682;border:1px solid #1ea95c;border-radius:10px;padding:0 24px;height:44px;font-size:15px;font-family:'Inter',sans-serif;color:#111;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;transition:background .2s,color .2s}
     .co-add-btn:hover{background:#164e23;color:#fff;border-color:#164e23}
     .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-bottom:20px}
@@ -395,6 +406,9 @@
       .pool-filter-mobile{display:block !important;width:100%}
       .pool-toolbar{flex-wrap:wrap;gap:10px}
       .pool-toolbar .co-search{width:100% !important}
+      .pbd-filters #pbdCompany{width:100%}
+      .pbd-range{flex:1 1 0;min-width:0;width:auto}
+      .pbd-count{margin-left:0;width:100%}
 
       /* All pages: action buttons full width at bottom */
       .pg-header .pg-toprow .cd-add-cards-btn,
