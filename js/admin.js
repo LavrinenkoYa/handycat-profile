@@ -1,6 +1,8 @@
 // Declared first: checkSession() runs while this file is still being evaluated and can load data
 // (apiFetchAll reads the cache synchronously) before later top-level lines have executed.
 var LIST_CACHE_TTL = 30000, listCache = {};
+// Also set during checkSession(): the signed-in admin's role, and the token from an invitation link.
+var adminRoleName = null, inviteAccessToken = null;
 
 var I18N = {
  en: {
@@ -26,6 +28,32 @@ var I18N = {
   "nav_handymen": "Handymen",
   "nav_notifications": "Notifications",
   "nav_archive": "Archive",
+  "nav_admins": "Admins",
+  "admins_title": "Admins",
+  "admins_sub": "People with access to this admin panel. Only the owner can invite or remove admins.",
+  "admins_invite_title": "Invite an admin",
+  "ph_admin_email": "name@example.com",
+  "btn_send_invite": "Send invite",
+  "th_role": "Role",
+  "th_added": "Added",
+  "role_owner": "Owner",
+  "role_admin": "Admin",
+  "admin_status_invited": "Invited",
+  "admins_owner_only": "Only the owner can manage admins.",
+  "toast_admin_invited": "Invitation sent to {email}",
+  "toast_admin_invite_mail_failed": "Admin added, but the invitation e-mail could not be sent",
+  "toast_already_admin": "This person is already an admin",
+  "toast_bad_email": "Enter a valid e-mail address",
+  "confirm_remove_admin": "Remove {email} from admins? They lose access immediately.",
+  "toast_admin_removed": "Admin removed",
+  "setpw_hint": "Welcome! Choose a password for your admin account. After that you will sign in and set up two-step sign-in.",
+  "ph_new_password": "New password",
+  "ph_repeat_password": "Repeat password",
+  "btn_set_password": "Set password",
+  "setpw_too_short": "Use at least 10 characters",
+  "setpw_mismatch": "The passwords do not match",
+  "setpw_link_invalid": "This link is invalid or has expired. Ask the owner to send a new invitation.",
+  "setpw_done": "Password set. Now sign in with it.",
   "sb_signout": "Sign out",
   "companies_title": "Companies",
   "companies_sub": "Manage client companies",
@@ -517,6 +545,32 @@ var I18N = {
   "nav_handymen": "Майстри",
   "nav_notifications": "Сповіщення",
   "nav_archive": "Архів",
+  "nav_admins": "Адміни",
+  "admins_title": "Адміни",
+  "admins_sub": "Люди з доступом до адмін-панелі. Запрошувати й видаляти адмінів може лише власник.",
+  "admins_invite_title": "Запросити адміна",
+  "ph_admin_email": "name@example.com",
+  "btn_send_invite": "Надіслати запрошення",
+  "th_role": "Роль",
+  "th_added": "Додано",
+  "role_owner": "Власник",
+  "role_admin": "Адмін",
+  "admin_status_invited": "Запрошено",
+  "admins_owner_only": "Керувати адмінами може лише власник.",
+  "toast_admin_invited": "Запрошення надіслано на {email}",
+  "toast_admin_invite_mail_failed": "Адміна додано, але лист-запрошення не вдалося надіслати",
+  "toast_already_admin": "Ця людина вже адмін",
+  "toast_bad_email": "Введіть коректну адресу e-mail",
+  "confirm_remove_admin": "Видалити {email} з адмінів? Доступ зникне одразу.",
+  "toast_admin_removed": "Адміна видалено",
+  "setpw_hint": "Вітаємо! Задайте пароль для свого адмін-акаунта. Потім увійдіть і налаштуйте двоетапний вхід.",
+  "ph_new_password": "Новий пароль",
+  "ph_repeat_password": "Повторіть пароль",
+  "btn_set_password": "Задати пароль",
+  "setpw_too_short": "Щонайменше 10 символів",
+  "setpw_mismatch": "Паролі не збігаються",
+  "setpw_link_invalid": "Посилання недійсне або застаріло. Попросіть власника надіслати нове запрошення.",
+  "setpw_done": "Пароль задано. Тепер увійдіть з ним.",
   "sb_signout": "Вийти",
   "companies_title": "Компанії",
   "companies_sub": "Керування компаніями-клієнтами",
@@ -1008,6 +1062,32 @@ var I18N = {
   "nav_handymen": "Profesionales",
   "nav_notifications": "Notificaciones",
   "nav_archive": "Archivo",
+  "nav_admins": "Administradores",
+  "admins_title": "Administradores",
+  "admins_sub": "Personas con acceso a este panel. Solo el propietario puede invitar o eliminar administradores.",
+  "admins_invite_title": "Invitar a un administrador",
+  "ph_admin_email": "name@example.com",
+  "btn_send_invite": "Enviar invitación",
+  "th_role": "Rol",
+  "th_added": "Añadido",
+  "role_owner": "Propietario",
+  "role_admin": "Administrador",
+  "admin_status_invited": "Invitado",
+  "admins_owner_only": "Solo el propietario puede gestionar administradores.",
+  "toast_admin_invited": "Invitación enviada a {email}",
+  "toast_admin_invite_mail_failed": "Administrador añadido, pero no se pudo enviar el correo de invitación",
+  "toast_already_admin": "Esta persona ya es administrador",
+  "toast_bad_email": "Introduce un correo válido",
+  "confirm_remove_admin": "¿Quitar a {email} de los administradores? Perderá el acceso de inmediato.",
+  "toast_admin_removed": "Administrador eliminado",
+  "setpw_hint": "¡Bienvenido! Elige una contraseña para tu cuenta de administrador. Después inicia sesión y configura el acceso en dos pasos.",
+  "ph_new_password": "Nueva contraseña",
+  "ph_repeat_password": "Repite la contraseña",
+  "btn_set_password": "Guardar contraseña",
+  "setpw_too_short": "Usa al menos 10 caracteres",
+  "setpw_mismatch": "Las contraseñas no coinciden",
+  "setpw_link_invalid": "El enlace no es válido o ha caducado. Pide al propietario una nueva invitación.",
+  "setpw_done": "Contraseña guardada. Ahora inicia sesión con ella.",
   "sb_signout": "Cerrar sesión",
   "companies_title": "Empresas",
   "companies_sub": "Gestiona las empresas clientes",
@@ -1797,6 +1877,63 @@ function showApp() {
   }
   loadNotifications();
   loadArchiveBadge();
+  loadAdminRole();
+}
+
+// The role comes from admin-api (whoami); the Admins section is shown to the owner only.
+async function loadAdminRole() {
+  var r = await adminApi("whoami");
+  adminRoleName = r.ok ? r.role || null : null;
+  var nb = document.getElementById("navAdmins");
+  if (nb) nb.style.display = adminRoleName === "owner" ? "" : "none";
+  if (r.ok && r.email) document.getElementById("sbAdminEmail").textContent = r.email;
+}
+
+// ── ADMINS (owner only; admin-api refuses these actions for everyone else) ──
+async function loadAdmins() {
+  var tb = document.getElementById("adminsBody");
+  tb.innerHTML = '<tr><td colspan="5" class="pg-empty">' + t("loading_text") + '</td></tr>';
+  var r = await adminApi("admins-list");
+  if (!r.ok) {
+    tb.innerHTML = '<tr><td colspan="5" class="pg-empty">' + esc(r.error === "owner_only" ? t("admins_owner_only") : t("toast_error_loading")) + '</td></tr>';
+    return;
+  }
+  var rows = (r.admins || []).map(function(a) {
+    var role = a.role === "owner" ? t("role_owner") : t("role_admin");
+    var st = a.pending
+      ? '<span class="pg-badge pg-badge-yellow">' + t("admin_status_invited") + '</span>'
+      : '<span class="pg-badge pg-badge-green">' + t("status_active") + '</span>';
+    var rm = a.role === "owner" ? "" :
+      '<button class="cd-action-btn" data-id="' + esc(a.user_id) + '" data-email="' + esc(a.email) + '" onclick="removeAdmin(this.dataset.id, this.dataset.email)" title="✕">✕</button>';
+    return '<tr><td>' + esc(a.email) + '</td><td>' + role + '</td><td>' + st + '</td>' +
+      '<td style="color:#858585">' + fd(a.created_at) + '</td><td style="text-align:right">' + rm + '</td></tr>';
+  });
+  tb.innerHTML = rows.join("") || '<tr><td colspan="5" class="pg-empty">—</td></tr>';
+}
+
+async function inviteAdmin() {
+  var inp = document.getElementById("adminInviteEmail");
+  var email = inp.value.trim();
+  if (!/^[^\s@<>"',;]+@[^\s@<>"',;]+\.[^\s@<>"',;]+$/.test(email)) { toast(t("toast_bad_email")); return; }
+  var btn = document.getElementById("adminInviteBtn");
+  btn.disabled = true;
+  var r = await adminApi("admins-invite", { email: email });
+  btn.disabled = false;
+  if (!r.ok) {
+    toast(r.error === "already_admin" ? t("toast_already_admin") : r.error === "bad_email" ? t("toast_bad_email") : tf("toast_error_colon", {msg: r.error || "?"}));
+    return;
+  }
+  inp.value = "";
+  toast(r.mail_sent ? tf("toast_admin_invited", {email: email}) : t("toast_admin_invite_mail_failed"));
+  loadAdmins();
+}
+
+async function removeAdmin(userId, email) {
+  if (!confirm(tf("confirm_remove_admin", {email: email}))) return;
+  var r = await adminApi("admins-remove", { user_id: userId });
+  if (!r.ok) { toast(tf("toast_error_colon", {msg: r.error || "?"})); return; }
+  toast(t("toast_admin_removed"));
+  loadAdmins();
 }
 
 async function logout() {
@@ -1808,8 +1945,57 @@ async function logout() {
   location.reload();
 }
 
+// An invitation (or password reset) link from admin-api lands here as
+// #access_token=…&type=invite|recovery, or #error=…&error_description=… when it is expired or used.
+// Function declaration on purpose: it runs from checkSession() below, before later lines execute.
+function handleAuthRedirect() {
+  if (!location.hash || location.hash.length < 2) return false;
+  var p = new URLSearchParams(location.hash.slice(1));
+  var tok = p.get("access_token"), type = p.get("type"), err = p.get("error_description") || p.get("error");
+  if (!tok && !err) return false;
+  history.replaceState(null, "", location.pathname + location.search);   // never leave a token in the address bar
+  if (err) { showAuthErr(t("setpw_link_invalid")); return true; }
+  if (type !== "invite" && type !== "recovery") return false;
+  inviteAccessToken = tok;
+  try {
+    var part = tok.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    var claims = JSON.parse(atob(part + "===".slice((part.length + 3) % 4)));
+    if (claims.email) document.getElementById("authEmail").value = claims.email;
+  } catch (e) {}
+  showSetPasswordStep(true);
+  return true;
+}
+function showSetPasswordStep(on) {
+  ["authEmail", "authPass"].forEach(function(id) { document.getElementById(id).closest(".login-input-wrap").style.display = on ? "none" : ""; });
+  document.getElementById("loginBtn").style.display = on ? "none" : "";
+  document.getElementById("setPwStep").style.display = on ? "flex" : "none";
+  if (on) { try { document.getElementById("setPw1").focus(); } catch (e) {} }
+}
+async function setInvitedPassword() {
+  var p1 = document.getElementById("setPw1").value, p2 = document.getElementById("setPw2").value;
+  if (p1.length < 10) { showAuthErr(t("setpw_too_short")); return; }
+  if (p1 !== p2) { showAuthErr(t("setpw_mismatch")); return; }
+  var btn = document.getElementById("setPwBtn");
+  btn.disabled = true;
+  var r = await gotrue("/user", { password: p1 }, inviteAccessToken, "PUT");
+  btn.disabled = false;
+  if (!r.ok) {
+    var msg = r.status === 401 || r.status === 403 ? t("setpw_link_invalid") : ((r.data && (r.data.msg || r.data.message)) || t("auth_err_failed"));
+    showAuthErr(msg);
+    return;
+  }
+  // Done with the link: continue with the normal sign-in (password, then setting up 2FA).
+  inviteAccessToken = null;
+  document.getElementById("setPw1").value = ""; document.getElementById("setPw2").value = "";
+  document.getElementById("authErr").style.display = "none";
+  showSetPasswordStep(false);
+  toast(t("setpw_done"));
+  try { document.getElementById("authPass").focus(); } catch (e) {}
+}
+
 (async function checkSession() {
   sessionStorage.removeItem("hca_token"); sessionStorage.removeItem("hca_expiry");     // old Firebase session keys
+  if (handleAuthRedirect()) return;
   var a = authGet();
   if (!a) return;
   if (Date.now() < a.exp) { currentIdToken = a.access; showApp(); return; }
@@ -1921,7 +2107,7 @@ function nav(n, skipHistory) {
   document.querySelectorAll(".nb").forEach(function(b) { b.classList.remove("active"); });
   document.getElementById("page-" + n).classList.add("active");
   // activate sidebar nav item matching this route
-  var mainRoutes = ["companies","handymen","nfc-pool","notifications","archive"];
+  var mainRoutes = ["companies","handymen","nfc-pool","notifications","archive","admins"];
   if (mainRoutes.indexOf(n) !== -1) {
     document.querySelectorAll(".nb").forEach(function(b) {
       if (b.dataset.route === n) b.classList.add("active");
@@ -1936,6 +2122,7 @@ function nav(n, skipHistory) {
   if (n === "applications") loadApps();
   if (n === "notifications") loadNotifications();
   if (n === "archive") loadArchive();
+  if (n === "admins") loadAdmins();
   if (n === "co-detail") { /* already loaded */ }
   if (n === "card-detail") { /* loaded by showCardDetail */ }
   if (n === "order-detail") { /* loaded by showOrderDetail */ }
