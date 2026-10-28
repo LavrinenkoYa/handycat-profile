@@ -1,3 +1,7 @@
+// Declared first: checkSession() runs while this file is still being evaluated and can load data
+// (apiFetchAll reads the cache synchronously) before later top-level lines have executed.
+var LIST_CACHE_TTL = 30000, listCache = {};
+
 var I18N = {
  en: {
   "loading_text": "Loading...",
@@ -1832,7 +1836,7 @@ async function fsGet(c, id) {
 // Short-lived cache of list reads: switching pages, or several panels loading the same table at
 // once (cards, notifications, pool), no longer re-downloads it. Any other admin-api call (every
 // write goes through one) clears it, so the admin always sees their own changes immediately.
-var LIST_CACHE_TTL = 30000, listCache = {};
+// (LIST_CACHE_TTL and listCache are declared at the top of this file.)
 function listCacheClear() { listCache = {}; }
 // The server returns at most 1000 rows per call, so larger tables (nfc_cards!) are fetched page by page.
 async function apiFetchAll(table, filters, lim) {
