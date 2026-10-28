@@ -399,6 +399,7 @@ var I18N = {
   "confirm_reject_card_request": "Reject this card request?",
   "toast_request_rejected": "Request rejected",
   "confirm_reject_application": "Reject this application?",
+  "confirm_approve_application": "Approve this application? The company is created and a sign-in link is e-mailed.",
   "toast_approved_email_sent": "✓ Approved! Email sent to {email}",
   "toast_email_sent_revision": "Email sent — needs revision",
   "toast_email_sent_rejected": "Email sent — application rejected",
@@ -889,6 +890,7 @@ var I18N = {
   "confirm_reject_card_request": "Відхилити цей запит на картки?",
   "toast_request_rejected": "Запит відхилено",
   "confirm_reject_application": "Відхилити цю заявку?",
+  "confirm_approve_application": "Схвалити цю заявку? Буде створено компанію та надіслано посилання для входу.",
   "toast_approved_email_sent": "✓ Схвалено! Лист надіслано на {email}",
   "toast_email_sent_revision": "Лист надіслано — потребує доопрацювання",
   "toast_email_sent_rejected": "Лист надіслано — заявку відхилено",
@@ -1379,6 +1381,7 @@ var I18N = {
   "confirm_reject_card_request": "¿Rechazar esta solicitud de tarjetas?",
   "toast_request_rejected": "Solicitud rechazada",
   "confirm_reject_application": "¿Rechazar esta solicitud?",
+  "confirm_approve_application": "¿Aprobar esta solicitud? Se creará la empresa y se enviará un enlace de acceso por correo.",
   "toast_approved_email_sent": "✓ ¡Aprobado! Correo enviado a {email}",
   "toast_email_sent_revision": "Correo enviado — necesita revisión",
   "toast_email_sent_rejected": "Correo enviado — solicitud rechazada",
@@ -2191,13 +2194,14 @@ function renderCoPending() {
 }
 
 async function coApproveApp(id) {
-  await updateAppStatus(id, "approved");
+  if (!confirm(t("confirm_approve_application"))) return;
+  await updateAppStatus(id, "approved", true);
   loadCos();
   loadNotifications();
 }
 async function coRejectApp(id) {
   if (!confirm(t("confirm_reject_application"))) return;
-  await updateAppStatus(id, "rejected");
+  await updateAppStatus(id, "rejected", true);
   loadCos();
   loadNotifications();
 }
@@ -4676,8 +4680,55 @@ async function showAppDetail(appId) {
     })();
 }
 
-async function updateAppStatus(appId, newStatus) {
-  var msg = document.getElementById("appMsg") ? document.getElementById("appMsg").value.trim() : "";
+// Creates everything an approved application needs and returns the company's one-time sign-in link.
+// Safe to re-run after a partial failure: the company is merged and the card request id is fixed per application.
+async function provisionApprovedCompany(app, inline) {
+  var companyId = app.id.toLowerCase();
+  // Bonus leads: use the admin-editable field if present, else fall back to
+  // the auto-grant formula (2 free leads per 10 cards requested)
+  var leadsInput = inline ? null : document.getElementById("appBonusLeads");
+  var bonusLeadsGrant = leadsInput ? parseInt(leadsInput.value, 10) : NaN;
+  if (isNaN(bonusLeadsGrant) || bonusLeadsGrant < 0) bonusLeadsGrant = Math.floor((app.requestedCards || 0) / 10) * 2;
+  var companyOk = await fsMerge("companies", companyId, {
+    name: sv(app.companyName), email: sv(app.email), phone: sv(app.phone),
+    location: sv(app.region), status: sv("active"), applicationId: sv(app.id),
+    requestedCards: app.requestedCards || 0,
+    bonusLeads: nv(bonusLeadsGrant),
+    createdAt: sv(new Date().toISOString())
+  });
+  // Stop here if the company record failed to write — otherwise the
+  // token/card-request inserts below would fail their FK check against
+  // companies(id) with confusing "409 Conflict" errors that mask the
+  // real problem.
+  if (!companyOk) throw new Error("Failed to create company record for " + companyId);
+  // One-time sign-in link (7 days), created and stored (hashed) by the server
+  var link = await adminApi("issue-company-link", { company_id: companyId });
+  if (!link.ok || !link.url) throw new Error("Failed to create sign-in link for " + companyId);
+  // Auto-create a pending card request for the cards they asked for on
+  // signup, so it shows up immediately in both the company's own dashboard
+  // (pending banner) and the admin Cards > Requests tab, ready to fulfill —
+  // instead of silently requiring the admin to remember to assign cards later.
+  if ((app.requestedCards || 0) > 0) {
+    var initialReqId = "cardreq-signup-" + companyId;
+    if (!(await fsGet("card_requests", initialReqId))) {
+      var reqOk = await fsP("card_requests", initialReqId, {
+        companyId: sv(companyId), companyName: sv(app.companyName || ""),
+        email: sv(app.email || ""),
+        count: app.requestedCards,
+        notes: sv(t("note_initial_cards_from_signup")),
+        status: sv("pending"),
+        createdAt: sv(new Date().toISOString())
+      });
+      if (!reqOk) throw new Error("Failed to create the initial card request for " + companyId);
+    }
+  }
+  return link.url;
+}
+
+// inline: called from the Companies page, where the application-detail inputs (#appMsg, #appBonusLeads)
+// may belong to another application, so they are not read.
+async function updateAppStatus(appId, newStatus, inline) {
+  var msg = !inline && document.getElementById("appMsg") ? document.getElementById("appMsg").value.trim() : "";
   var app = allApps.find(function(a) { return a.id === appId; });
   if (!app) {
     // allApps is only populated by loadApps() (the Company Applications list page).
@@ -4700,6 +4751,22 @@ async function updateAppStatus(appId, newStatus) {
   if (clickedBtn) clickedBtn.textContent = newStatus === "approved" ? t("btn_approving_progress") : t("btn_processing_progress");
   toast(t("toast_processing_request"));
 
+  function restoreButtons() {
+    ["approveBtn", "revisionBtn", "rejectBtn"].forEach(function(id) {
+      var b = document.getElementById(id);
+      if (b) b.disabled = false;
+    });
+    if (clickedBtn) clickedBtn.textContent = newStatus === "approved" ? t("btn_approve_send") : (newStatus === "needs_revision" ? t("btn_needs_revision") : t("btn_reject"));
+  }
+
+  // Approval: create the company, its sign-in link and the initial card request BEFORE the status
+  // changes. If any of it fails the application stays as it was, so the admin can simply retry.
+  var dashLink = "";
+  if (newStatus === "approved") {
+    try { dashLink = await provisionApprovedCompany(app, inline); }
+    catch (e) { console.error("Approval failed:", e); toast(t("toast_error_updating_status")); restoreButtons(); return; }
+  }
+
   // Update status in Supabase
   var wrOk = await fsMerge("company_applications", appId, {
     status: newStatus,
@@ -4708,67 +4775,21 @@ async function updateAppStatus(appId, newStatus) {
   });
   if (!wrOk) {
     toast(t("toast_error_updating_status"));
-    ["approveBtn", "revisionBtn", "rejectBtn"].forEach(function(id) {
-      var b = document.getElementById(id);
-      if (b) b.disabled = false;
-    });
-    if (clickedBtn) clickedBtn.textContent = newStatus === "approved" ? t("btn_approve_send") : (newStatus === "needs_revision" ? t("btn_needs_revision") : t("btn_reject"));
+    restoreButtons();
     return;
   }
 
   app.status = newStatus; app.adminMessage = msg;
 
-  // Send email based on status
+  // Send email based on status (sendEmail reports failure as {ok:false}, it does not throw)
   try {
-    if (newStatus === "approved") {
-      // Create company record and generate magic link token
-      var companyId = app.id.toLowerCase();
-      var dashLink = "";
-      // Bonus leads: use the admin-editable field if present, else fall back to
-      // the auto-grant formula (2 free leads per 10 cards requested)
-      var leadsInput = document.getElementById("appBonusLeads");
-      var bonusLeadsGrant = leadsInput ? parseInt(leadsInput.value, 10) : NaN;
-      if (isNaN(bonusLeadsGrant) || bonusLeadsGrant < 0) bonusLeadsGrant = Math.floor((app.requestedCards || 0) / 10) * 2;
-      var companyOk = await fsMerge("companies", companyId, {
-        name: sv(app.companyName), email: sv(app.email), phone: sv(app.phone),
-        location: sv(app.region), status: sv("active"), applicationId: sv(app.id),
-        requestedCards: app.requestedCards || 0,
-        bonusLeads: nv(bonusLeadsGrant),
-        createdAt: sv(new Date().toISOString())
-      });
-      // Stop here if the company record failed to write — otherwise the
-      // token/card-request inserts below would fail their FK check against
-      // companies(id) with confusing "409 Conflict" errors that mask the
-      // real problem.
-      if (!companyOk) throw new Error("Failed to create company record for " + companyId);
-      // One-time sign-in link (7 days), created and stored (hashed) by the server
-      var link = await adminApi("issue-company-link", { company_id: companyId });
-      if (!link.ok || !link.url) throw new Error("Failed to create sign-in link for " + companyId);
-      dashLink = link.url;
-      // Auto-create a pending card request for the cards they asked for on
-      // signup, so it shows up immediately in both the company's own dashboard
-      // (pending banner) and the admin Cards > Requests tab, ready to fulfill —
-      // instead of silently requiring the admin to remember to assign cards later.
-      if ((app.requestedCards || 0) > 0) {
-        var initialReqId = "cardreq-signup-" + Date.now().toString(36);
-        await fsP("card_requests", initialReqId, {
-          companyId: sv(companyId), companyName: sv(app.companyName || ""),
-          email: sv(app.email || ""),
-          count: app.requestedCards,
-          notes: sv(t("note_initial_cards_from_signup")),
-          status: sv("pending"),
-          createdAt: sv(new Date().toISOString())
-        });
-      }
-      await emailApproved(Object.assign({}, app, { adminMessage: msg }), dashLink);
-      toast(tf("toast_approved_email_sent", {email: app.email}));
-    } else if (newStatus === "needs_revision") {
-      await emailRevision(Object.assign({}, app, { adminMessage: msg }));
-      toast(t("toast_email_sent_revision"));
-    } else if (newStatus === "rejected") {
-      await emailRejected(Object.assign({}, app, { adminMessage: msg }));
-      toast(t("toast_email_sent_rejected"));
-    }
+    var mailApp = Object.assign({}, app, { adminMessage: msg });
+    var mail = newStatus === "approved" ? await emailApproved(mailApp, dashLink)
+      : newStatus === "needs_revision" ? await emailRevision(mailApp)
+      : await emailRejected(mailApp);
+    if (!mail || !mail.ok) throw new Error("send-mail failed: " + ((mail && mail.error) || "unknown"));
+    toast(newStatus === "approved" ? tf("toast_approved_email_sent", {email: app.email})
+      : newStatus === "needs_revision" ? t("toast_email_sent_revision") : t("toast_email_sent_rejected"));
   } catch(e) {
     console.error("Email error:", e);
     toast(t("toast_status_updated_email_failed"));
