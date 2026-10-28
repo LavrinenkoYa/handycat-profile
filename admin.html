@@ -619,10 +619,19 @@
           <input id="pbdSearchInput" placeholder="Search by token or print ID..." oninput="renderPoolDetail()" data-i18n-ph="ph_search_token_printid"/>
         </div>
       </div>
+      <div class="pg-table-toolbar pool-toolbar pbd-filters">
+        <select id="pbdCompany" class="pbd-field" onchange="renderPoolDetail()">
+          <option value="" data-i18n="filter_all_companies">All companies</option>
+        </select>
+        <input id="pbdFrom" class="pbd-field pbd-range" type="number" min="0" inputmode="numeric" placeholder="Print ID from" data-i18n-ph="ph_print_id_from" oninput="renderPoolDetail()"/>
+        <span class="pbd-dash">–</span>
+        <input id="pbdTo" class="pbd-field pbd-range" type="number" min="0" inputmode="numeric" placeholder="to" data-i18n-ph="ph_print_id_to" oninput="renderPoolDetail()"/>
+        <span id="pbdCount" class="pbd-count"></span>
+      </div>
       <div style="overflow-x:auto">
         <table class="pg-table" style="min-width:580px">
           <thead><tr>
-            <th data-i18n="th_token">Token</th><th data-i18n="th_print_id">Print ID</th><th data-i18n="th_url">URL</th><th data-i18n="th_status">Status</th><th data-i18n="th_company">Company</th><th data-i18n="th_created">Created</th>
+            <th class="pbd-sort" onclick="sortPoolDetail('printId')"><span data-i18n="th_print_id">Print ID</span><span class="pbd-sort-ind" data-key="printId"></span></th><th class="pbd-sort" onclick="sortPoolDetail('id')"><span data-i18n="th_token">Token</span><span class="pbd-sort-ind" data-key="id"></span></th><th data-i18n="th_url">URL</th><th data-i18n="th_status">Status</th><th data-i18n="th_company">Company</th><th class="pbd-sort" onclick="sortPoolDetail('createdAt')"><span data-i18n="th_created">Created</span><span class="pbd-sort-ind" data-key="createdAt"></span></th>
           </tr></thead>
           <tbody id="pbdBody"></tbody>
         </table>

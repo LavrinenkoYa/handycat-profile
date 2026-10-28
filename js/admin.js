@@ -175,6 +175,10 @@ var I18N = {
   "empty_no_orders_click_generate": "No orders yet. Click Generate Cards to create the first one.",
   "badge_stock": "Stock",
   "ph_search_token_printid": "Search by token or print ID...",
+  "filter_all_companies": "All companies",
+  "ph_print_id_from": "Print ID from",
+  "ph_print_id_to": "to",
+  "label_showing_n_of_m": "Showing {shown} of {total}",
   "empty_no_cards_found": "No cards found",
   "empty_no_cards_match_filter": "No cards match this filter",
   "status_ordered": "Ordered",
@@ -660,6 +664,10 @@ var I18N = {
   "empty_no_orders_click_generate": "Ще немає замовлень. Натисніть «Згенерувати картки», щоб створити перше.",
   "badge_stock": "Склад",
   "ph_search_token_printid": "Пошук за токеном або Print ID...",
+  "filter_all_companies": "Усі компанії",
+  "ph_print_id_from": "Print ID від",
+  "ph_print_id_to": "до",
+  "label_showing_n_of_m": "Показано {shown} з {total}",
   "empty_no_cards_found": "Карток не знайдено",
   "empty_no_cards_match_filter": "Немає карток за цим фільтром",
   "status_ordered": "Замовлено",
@@ -1145,6 +1153,10 @@ var I18N = {
   "empty_no_orders_click_generate": "Aún no hay pedidos. Haz clic en «Generar tarjetas» para crear el primero.",
   "badge_stock": "Stock",
   "ph_search_token_printid": "Buscar por token o Print ID...",
+  "filter_all_companies": "Todas las empresas",
+  "ph_print_id_from": "Print ID desde",
+  "ph_print_id_to": "hasta",
+  "label_showing_n_of_m": "Mostrando {shown} de {total}",
   "empty_no_cards_found": "No se encontraron tarjetas",
   "empty_no_cards_match_filter": "Ninguna tarjeta coincide con este filtro",
   "status_ordered": "Pedido",
@@ -3811,6 +3823,8 @@ function poolBatchSetPageSize(v) { poolBatchPageSize = parseInt(v, 10); poolBatc
 function poolBatchGoPage(p) { poolBatchPage = p; renderPoolBatches(); }
 var pbdBatchId = null;
 var pbdFilter = 'all';
+var pbdCards = [];                              // every card of the open order
+var pbdSort = { key: 'printId', dir: 1 };       // default: Print ID ascending
 
 function switchPoolTab(tab) {
   document.getElementById('poolTabOrders').classList.toggle('active', tab === 'orders');
@@ -3993,19 +4007,83 @@ async function openBatchDetail(batchId) {
   document.querySelectorAll('#page-pool-batch-detail .pg-pill').forEach(function(x){ x.classList.remove('active'); });
   var firstPill = document.querySelector('#page-pool-batch-detail .pg-pill');
   if (firstPill) firstPill.classList.add('active');
-  var searchInput = document.getElementById('pbdSearchInput');
-  if (searchInput) searchInput.value = '';
+  ['pbdSearchInput', 'pbdFrom', 'pbdTo', 'pbdCompany'].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
+  var mobileSel = document.querySelector('#page-pool-batch-detail .pool-filter-mobile');
+  if (mobileSel) mobileSel.value = 'all';
+  pbdSort = { key: 'printId', dir: 1 };
 
-  var batchCards = poolAllCards.filter(function(c){ return c.batchId === batchId; });
-  var stock = batchCards.filter(function(c){ return !c.companyId || c.companyId===''; }).length;
-  var assigned = batchCards.length - stock;
-  document.getElementById('pbdStats').innerHTML =
-    '<div class="cd-stat"><div class="cd-stat-num">'+batchCards.length+'</div><div class="cd-stat-label">' + t("stat_total_cards_short") + '</div></div>' +
-    '<div class="cd-stat"><div class="cd-stat-num" style="color:#164e23">'+stock+'</div><div class="cd-stat-label">' + t("stat_in_stock") + '</div></div>' +
-    '<div class="cd-stat"><div class="cd-stat-num" style="color:#4f00df">'+assigned+'</div><div class="cd-stat-label">' + t("stat_assigned") + '</div></div>';
-
+  // Show what the pool already has right away, then load the whole order: the pool list is capped
+  // (5000 rows), so for a large pool it can hold only part of this order.
+  pbdCards = poolAllCards.filter(function(c){ return c.batchId === batchId; });
   nav('pool-batch-detail');
   renderPoolDetail();
+  var loaded = await fsQ('nfc_cards', [{ field: 'batchId', value: batchId }], 20000);
+  if (pbdBatchId !== batchId) return;           // another order was opened meanwhile
+  var byId = {};
+  pbdCards.concat(loaded).forEach(function(c) { byId[c.id] = c; });   // a failed/partial read never loses cards
+  pbdCards = Object.keys(byId).map(function(id) { return byId[id]; });
+  renderPoolDetail();
+}
+
+function isStockCard(c) { return !c.companyId || c.companyId === ''; }
+
+function renderPoolDetailStats() {
+  var stock = pbdCards.filter(isStockCard).length;
+  var assigned = pbdCards.length - stock;
+  document.getElementById('pbdStats').innerHTML =
+    '<div class="cd-stat"><div class="cd-stat-num">'+pbdCards.length+'</div><div class="cd-stat-label">' + t("stat_total_cards_short") + '</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num" style="color:#164e23">'+stock+'</div><div class="cd-stat-label">' + t("stat_in_stock") + '</div></div>' +
+    '<div class="cd-stat"><div class="cd-stat-num" style="color:#4f00df">'+assigned+'</div><div class="cd-stat-label">' + t("stat_assigned") + '</div></div>';
+}
+
+// Company filter lists only the companies that actually hold cards of this order.
+function renderPoolDetailCompanies() {
+  var sel = document.getElementById('pbdCompany');
+  if (!sel) return;
+  var cur = sel.value, seen = {};
+  pbdCards.forEach(function(c) { if (!isStockCard(c)) seen[c.companyId] = ((CC.cos[c.companyId] || {}).name) || c.companyId; });
+  var ids = Object.keys(seen).sort(function(a, b) { return String(seen[a]).localeCompare(String(seen[b])); });
+  sel.innerHTML = '<option value="">' + t("filter_all_companies") + '</option>' +
+    ids.map(function(id) { return '<option value="' + esc(id) + '">' + esc(seen[id]) + '</option>'; }).join('');
+  sel.value = seen[cur] ? cur : '';
+}
+
+function printIdNum(c) { var n = parseInt(c.printId, 10); return isNaN(n) ? null : n; }
+
+function sortPoolDetail(key) {
+  pbdSort = pbdSort.key === key ? { key: key, dir: -pbdSort.dir } : { key: key, dir: 1 };
+  renderPoolDetail();
+}
+
+// The rows the table shows (and the CSV exports): status pill + company + Print ID range + search, sorted.
+function poolDetailRows() {
+  var q = (document.getElementById('pbdSearchInput')||{value:''}).value.trim().toLowerCase();
+  var co = (document.getElementById('pbdCompany')||{value:''}).value;
+  var from = parseInt((document.getElementById('pbdFrom')||{value:''}).value, 10);
+  var to = parseInt((document.getElementById('pbdTo')||{value:''}).value, 10);
+  var fil = pbdCards.filter(function(c) {
+    if (pbdFilter === 'stock' && !isStockCard(c)) return false;
+    if (pbdFilter === 'assigned' && isStockCard(c)) return false;
+    if (co && c.companyId !== co) return false;
+    if (!isNaN(from) || !isNaN(to)) {
+      var n = printIdNum(c);
+      if (n === null || (!isNaN(from) && n < from) || (!isNaN(to) && n > to)) return false;
+    }
+    if (q && !String(c.id||'').toLowerCase().includes(q) && !String(c.printId||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  var k = pbdSort.key, dir = pbdSort.dir;
+  return fil.sort(function(a, b) {
+    var r;
+    if (k === 'printId') {
+      var x = printIdNum(a), y = printIdNum(b);
+      if (x === null || y === null) return x === y ? 0 : (x === null ? 1 : -1);   // cards without a Print ID always last
+      r = x - y;
+    } else {
+      r = String(a[k]||'').localeCompare(String(b[k]||''));
+    }
+    return (r * dir) || String(a.id).localeCompare(String(b.id));
+  });
 }
 
 function filterPoolDetail(f, btn) {
@@ -4021,30 +4099,28 @@ function filterPoolDetailMobile(sel) {
 }
 
 function renderPoolDetail() {
-  var q = (document.getElementById('pbdSearchInput')||{value:''}).value.trim().toLowerCase();
-  var fil = poolAllCards.filter(function(card) { return card.batchId === pbdBatchId; });
-  if (pbdFilter === 'stock')    fil = fil.filter(function(c){ return !c.companyId || c.companyId===''; });
-  if (pbdFilter === 'assigned') fil = fil.filter(function(c){ return !!(c.companyId && c.companyId!==''); });
-  if (q) {
-    fil = fil.filter(function(card){
-      return (card.id||'').toLowerCase().includes(q) ||
-             (card.printId||'').toLowerCase().includes(q);
-    });
-  }
+  renderPoolDetailStats();
+  renderPoolDetailCompanies();
+  document.querySelectorAll('#page-pool-batch-detail .pbd-sort-ind').forEach(function(el) {
+    el.textContent = el.dataset.key === pbdSort.key ? (pbdSort.dir > 0 ? '↑' : '↓') : '';
+  });
+  var fil = poolDetailRows();
+  var cnt = document.getElementById('pbdCount');
+  if (cnt) cnt.textContent = tf("label_showing_n_of_m", {shown: fil.length, total: pbdCards.length});
   var tb = document.getElementById('pbdBody');
   if (!fil.length) { tb.innerHTML = '<tr><td colspan="6" class="pg-empty">' + t("empty_no_cards_found") + '</td></tr>'; return; }
 
   var BASE_URL = 'https://app.handycat.us/c/';
   tb.innerHTML = fil.map(function(card) {
     var coName = (card.companyId && CC.cos[card.companyId]) ? CC.cos[card.companyId].name : '';
-    var badge = (!card.companyId || card.companyId === '')
+    var badge = isStockCard(card)
       ? '<span class="pg-badge pg-badge-yellow">' + t("badge_stock") + '</span>'
       : '<span class="pg-badge pg-badge-green">' + t("status_assigned") + '</span>';
     var url = BASE_URL + card.id;
     return '<tr>' +
-      '<td class="cd-token">' + esc(card.id) + '</td>' +
       '<td style="font-weight:600;color:#4f00df">' + esc(card.printId || '—') + '</td>' +
-      '<td><span style="font-size:12px;color:#858585;font-family:monospace">' + url + '</span></td>' +
+      '<td class="cd-token">' + esc(card.id) + '</td>' +
+      '<td><span style="font-size:12px;color:#858585;font-family:monospace">' + esc(url) + '</span></td>' +
       '<td>' + badge + '</td>' +
       '<td style="color:#858585">' + esc(coName || '—') + '</td>' +
       '<td style="color:#858585">' + fd(card.createdAt) + '</td>' +
@@ -4052,20 +4128,24 @@ function renderPoolDetail() {
   }).join('');
 }
 
+// Exports exactly what the table shows: same filters, same order. Company is the last column so the
+// existing columns keep their positions for whatever reads these files.
 function exportBatchCSV() {
-  var toExport = poolAllCards.filter(function(c){ return c.batchId === pbdBatchId; });
+  var toExport = poolDetailRows();
   if (!toExport.length) { toast(t('toast_no_cards_in_order')); return; }
 
+  function csvCell(v) { v = String(v == null ? '' : v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
   var BASE_URL = 'https://app.handycat.us/c/';
-  var header = 'Print ID,Token,URL,Status,Created';
+  var header = 'Print ID,Token,URL,Status,Created,Company';
   var rows = toExport.map(function(card) {
     return [
       card.printId || '',
       card.id,
       BASE_URL + card.id,
-      (!card.companyId || card.companyId === '') ? 'stock' : 'assigned',
-      card.createdAt ? new Date(card.createdAt).toISOString().split('T')[0] : ''
-    ].join(',');
+      isStockCard(card) ? 'stock' : 'assigned',
+      card.createdAt ? new Date(card.createdAt).toISOString().split('T')[0] : '',
+      isStockCard(card) ? '' : (((CC.cos[card.companyId] || {}).name) || card.companyId)
+    ].map(csvCell).join(',');
   });
 
   var csv = [header].concat(rows).join('\n');
