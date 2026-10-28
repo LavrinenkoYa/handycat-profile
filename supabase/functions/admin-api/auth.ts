@@ -45,13 +45,30 @@ export async function verifyAccessToken(token: unknown): Promise<AdminUser | nul
   return user;
 }
 
-/** Admin = user id on ADMIN_USER_IDS (if set), otherwise a confirmed e-mail on ADMIN_EMAILS. */
-export function isAdmin(u: AdminUser): boolean {
+export type AdminRole = "owner" | "admin";
+
+/** On the secrets list: user id on ADMIN_USER_IDS (if set), otherwise a confirmed e-mail on ADMIN_EMAILS. */
+function onSecretsList(u: AdminUser): boolean {
   const ids = (Deno.env.get("ADMIN_USER_IDS") || "").split(",").map((s) => s.trim()).filter(Boolean);
   if (ids.length) return ids.includes(u.uid);
   const emails = (Deno.env.get("ADMIN_EMAILS") || "designlavrinenko@gmail.com")
     .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
   return u.confirmed && !!u.email && emails.includes(u.email);
+}
+
+/**
+ * The user's admin role, or null if they are not an admin.
+ * The secrets list always means owner: it is the break-glass access that keeps working even if
+ * public.admin_users is empty or unreadable. Everyone else must be in public.admin_users.
+ * Looked up on every call (no cache), so removing an admin takes effect on their next request.
+ */
+export async function adminRole(u: AdminUser): Promise<AdminRole | null> {
+  if (onSecretsList(u)) return "owner";
+  if (!u.confirmed) return null;
+  const { data, error } = await db.from("admin_users").select("role").eq("user_id", u.uid).maybeSingle();
+  if (error) { console.error("admin_users lookup", error.message); return null; }
+  if (!data) return null;
+  return data.role === "owner" ? "owner" : "admin";
 }
 
 /** Two-factor is required unless explicitly switched off (ADMIN_REQUIRE_MFA=false). */

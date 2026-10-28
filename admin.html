@@ -70,6 +70,18 @@
         <button id="mfaBtn" onclick="verifyMfa()" class="login-btn"><span data-i18n="mfa_verify_btn">Verify</span></button>
       </div>
 
+      <!-- Set password (opened from an admin invitation / reset link) -->
+      <div id="setPwStep" style="display:none;flex-direction:column;gap:12px">
+        <div style="font-size:14px;color:#555" data-i18n="setpw_hint">Welcome! Choose a password for your admin account. After that you will sign in and set up two-step sign-in.</div>
+        <div class="login-input-wrap">
+          <input type="password" id="setPw1" autocomplete="new-password" placeholder="New password" data-i18n-ph="ph_new_password" class="login-input-field"/>
+        </div>
+        <div class="login-input-wrap">
+          <input type="password" id="setPw2" autocomplete="new-password" placeholder="Repeat password" data-i18n-ph="ph_repeat_password" class="login-input-field" onkeydown="if(event.key==='Enter')setInvitedPassword()"/>
+        </div>
+        <button id="setPwBtn" onclick="setInvitedPassword()" class="login-btn"><span data-i18n="btn_set_password">Set password</span></button>
+      </div>
+
     </div>
   </div>
 </div>
@@ -135,6 +147,14 @@
             </span>
             <span class="nb-label" data-i18n="nav_archive">Archive</span>
             <span id="archiveBadge" class="nb-badge" style="display:none;background:#7C3AED"></span>
+          </button>
+
+          <!-- Owner only: shown by loadAdminRole() -->
+          <button class="nb" data-route="admins" id="navAdmins" onclick="nav('admins')" style="display:none">
+            <span class="nb-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.25L4.5 5.25V11.25C4.5 16.05 7.65 19.95 12 21.75C16.35 19.95 19.5 16.05 19.5 11.25V5.25L12 2.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12L11 14L15 10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="nb-label" data-i18n="nav_admins">Admins</span>
           </button>
         </nav>
       </div>
@@ -783,6 +803,35 @@
       </div>
     </div>
     <div id="archiveList"></div>
+  </div>
+
+  <!-- ADMINS (owner only) -->
+  <div class="page" id="page-admins">
+    <div class="pg-header">
+      <div class="pg-toprow">
+        <div>
+          <div class="pg-title" data-i18n="admins_title">Admins</div>
+          <div class="pg-sub" data-i18n="admins_sub">People with access to this admin panel. Only the owner can invite or remove admins.</div>
+        </div>
+      </div>
+    </div>
+    <div class="pg-card">
+      <div class="pg-section-title" data-i18n="admins_invite_title">Invite an admin</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <input id="adminInviteEmail" type="email" class="pbd-field" style="flex:1;min-width:220px" placeholder="name@example.com" data-i18n-ph="ph_admin_email" onkeydown="if(event.key==='Enter')inviteAdmin()"/>
+        <button id="adminInviteBtn" class="cd-add-cards-btn" style="margin:0" onclick="inviteAdmin()"><span data-i18n="btn_send_invite">Send invite</span></button>
+      </div>
+    </div>
+    <div class="pg-table-wrap">
+      <div style="overflow-x:auto">
+        <table class="pg-table" style="min-width:560px">
+          <thead><tr>
+            <th data-i18n="th_email">Email</th><th data-i18n="th_role">Role</th><th data-i18n="th_status">Status</th><th data-i18n="th_added">Added</th><th></th>
+          </tr></thead>
+          <tbody id="adminsBody"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
 </div>

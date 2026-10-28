@@ -9,8 +9,11 @@
 //   db                 { op: get|list|upsert|merge|delete, table, id?, row?, filters?, from?, to? }
 //   issue-company-link { company_id }            → one-time sign-in link for a company (7 days)
 //   send-mail          { to, subject, html }     → only to addresses already known to the system
+//   admins-list                                  → owner only: who has access to the admin panel
+//   admins-invite      { email }                 → owner only: e-mails a link to set a password
+//   admins-remove      { user_id }               → owner only: revokes access (not for owners)
 import { allow, audit, clientIp, db, hmacHex, hmacShort, json, originAllowed, preflight, randomToken } from "./lib.ts";
-import { isAdmin, mfaSatisfied, verifyAccessToken, type AdminUser } from "./auth.ts";
+import { adminRole, mfaSatisfied, verifyAccessToken, type AdminRole, type AdminUser } from "./auth.ts";
 import { mailMode, sendMail } from "./mail.ts";
 
 type Body = Record<string, unknown>;
@@ -202,6 +205,72 @@ async function sendMailAction(b: Body, admin: AdminUser, ip: string, origin: str
   return r.ok ? json(200, { ok: true }, origin) : fail(502, "mail_failed", origin);
 }
 
+// ── admins (owner only) ──────────────────────────────────────────────────────
+const EMAIL_RE = /^[^\s@<>"',;]+@[^\s@<>"',;]+\.[^\s@<>"',;]+$/;
+const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
+
+async function adminsList(origin: string | null): Promise<Response> {
+  const { data, error } = await db.from("admin_users").select("user_id,email,role,created_at").order("created_at");
+  if (error) { console.error("admins-list", error.message); return fail(500, "server_error", origin); }
+  // "pending" = invited, has not set a password and signed in yet
+  const { data: users } = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const seen = new Map<string, string | null>();
+  for (const u of users?.users ?? []) seen.set(u.id, u.last_sign_in_at ?? null);
+  const admins = (data ?? []).map((a: Row) => ({ ...a, last_sign_in_at: seen.get(a.user_id) ?? null, pending: !seen.get(a.user_id) }));
+  return json(200, { ok: true, admins }, origin);
+}
+
+async function adminsInvite(b: Body, admin: AdminUser, ip: string, origin: string | null): Promise<Response> {
+  const email = typeof b.email === "string" ? b.email.trim().toLowerCase() : "";
+  if (!EMAIL_RE.test(email) || email.length > 254) return fail(400, "bad_email", origin);
+  if (!(await allow(`admin-invite:${admin.uid}`, 86400, 20))) return fail(429, "rate_limited", origin);
+
+  const { data: existing } = await db.from("admin_users").select("user_id").ilike("email", email.replace(/[\\%_]/g, "\\$&")).maybeSingle();
+  if (existing) return fail(409, "already_admin", origin);
+
+  // The link opens admin.html, which lets the person choose a password; 2FA is set up at their first sign-in.
+  const redirectTo = `${origin && originAllowed(origin) ? origin : APP_BASE_URL}/admin.html`;
+  let link = await db.auth.admin.generateLink({ type: "invite", email, options: { redirectTo } });
+  if (link.error) {
+    // Already has an account (e.g. signed up before): send a "set password" link for it instead.
+    link = await db.auth.admin.generateLink({ type: "recovery", email, options: { redirectTo } });
+  }
+  const userId = link.data?.user?.id;
+  const actionLink = link.data?.properties?.action_link;
+  if (link.error || !userId || !actionLink) { console.error("generateLink", link.error?.message); return fail(500, "invite_failed", origin); }
+
+  const ins = await db.from("admin_users").insert({ user_id: userId, email, role: "admin", created_by: admin.uid });
+  if (ins.error) { console.error("admin_users insert", ins.error.message); return fail(500, "server_error", origin); }
+
+  const mail = await sendMail(email, {
+    subject: "You've been invited to the HandyCat admin panel",
+    html: "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px'>" +
+      "<h2 style='color:#185FA5'>HandyCat</h2>" +
+      `<p>${escHtml(admin.email)} invited you to the HandyCat admin panel.</p>` +
+      "<p>Click the button to choose your password. At your first sign-in you will also set up two-factor authentication with an authenticator app.</p>" +
+      `<div style='margin:24px 0'><a href='${escHtml(actionLink)}' style='display:inline-block;background:#185FA5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px'>Set my password</a></div>` +
+      "<p style='font-size:13px;color:#888'>The link can be used once and expires in 24 hours. If you did not expect this e-mail, ignore it.</p></div>",
+  });
+  await audit(`admin:${admin.uid}`, "admin_invited", userId, ip, { mail: mail.ok });
+  return json(200, { ok: true, user_id: userId, mail_sent: mail.ok }, origin);
+}
+
+async function adminsRemove(b: Body, admin: AdminUser, ip: string, origin: string | null): Promise<Response> {
+  const userId = typeof b.user_id === "string" ? b.user_id : "";
+  if (!/^[0-9a-f-]{36}$/i.test(userId)) return fail(400, "bad_id", origin);
+  if (userId === admin.uid) return fail(409, "cannot_remove_self", origin);
+  const { data: row } = await db.from("admin_users").select("role").eq("user_id", userId).maybeSingle();
+  if (!row) return fail(404, "not_found", origin);
+  if (row.role === "owner") return fail(409, "cannot_remove_owner", origin);
+  const del = await db.from("admin_users").delete().eq("user_id", userId);
+  if (del.error) { console.error("admins-remove", del.error.message); return fail(500, "server_error", origin); }
+  // Their account exists only for the admin panel: delete it, so the password and 2FA are gone too.
+  const du = await db.auth.admin.deleteUser(userId);
+  if (du.error) console.error("deleteUser", du.error.message);
+  await audit(`admin:${admin.uid}`, "admin_removed", userId, ip);
+  return json(200, { ok: true }, origin);
+}
+
 // ── router ───────────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
@@ -229,15 +298,23 @@ Deno.serve(async (req) => {
       if (!(await allow(`admin-badtoken:ip:${ipKey}`, 3600, 60))) return fail(429, "rate_limited", origin);
       return fail(401, "token_invalid", origin);
     }
-    if (!isAdmin(user)) {
+    const role: AdminRole | null = await adminRole(user);
+    if (!role) {
       await audit(`user:${user.uid}`, "admin_denied", null, ip);
       return fail(403, "not_authorized", origin);
     }
     if (!mfaSatisfied(user)) return fail(403, "mfa_required", origin);
     if (!(await allow(`admin:${user.uid}`, 3600, 20000))) return fail(429, "rate_limited", origin);
 
+    if (typeof body.action === "string" && body.action.startsWith("admins-") && role !== "owner") {
+      await audit(`admin:${user.uid}`, "owner_action_denied", body.action, ip);
+      return fail(403, "owner_only", origin);
+    }
     switch (body.action) {
-      case "whoami": return json(200, { ok: true, uid: user.uid, email: user.email, aal: user.aal }, origin);
+      case "whoami": return json(200, { ok: true, uid: user.uid, email: user.email, aal: user.aal, role }, origin);
+      case "admins-list": return await adminsList(origin);
+      case "admins-invite": return await adminsInvite(body, user, ip, origin);
+      case "admins-remove": return await adminsRemove(body, user, ip, origin);
       case "db": return await dbOp(body, user, ip, origin);
       case "issue-company-link": return await issueCompanyLink(body, user, ip, origin);
       case "send-mail": return await sendMailAction(body, user, ip, origin);
