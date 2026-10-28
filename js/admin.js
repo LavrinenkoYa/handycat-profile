@@ -1607,6 +1607,10 @@ function resetLoginUi() {
   var mb = document.getElementById("mfaBtn"); if (mb) mb.disabled = false;
 }
 async function login() {
+  // Enter on the password field must not restart sign-in while one is running or the 2FA step is shown
+  // (on first sign-in that would delete the factor the admin is scanning and enroll a new one).
+  var lb = document.getElementById("loginBtn");
+  if (lb.disabled || lb.style.display === "none") return;
   var email = document.getElementById("authEmail").value.trim();
   var pass = document.getElementById("authPass").value;
   if (!email || !pass) { showAuthErr(t("auth_err_missing")); return; }
@@ -1996,9 +2000,15 @@ function cfm(title, sub, cb) {
   openModal("mConfirm");
   btn.onclick = async function() {
     btn.disabled = true;
-    await cb(btn);
-    btn.textContent = t("btn_confirm");
-    btn.disabled = false;
+    try {
+      await cb(btn);
+    } catch (e) {
+      console.error(e);
+      toast(tf("toast_error_colon", {msg: (e && e.message) || e}));
+    } finally {
+      btn.textContent = t("btn_confirm");
+      btn.disabled = false;
+    }
   };
 }
 function bdg(status) {
