@@ -716,7 +716,7 @@ async function bootstrapSession(){
   S.company=rowToCamel(r.company);S.companyId=S.company.id;
   S.email=r.email||"";
   S.siblingCompanies=r.siblings||[];
-  await loadApp();
+  try{await loadApp();}catch(e){console.error(e);return false;}   // callers show the error screen, the session is kept
   return true;
 }
 
@@ -742,7 +742,7 @@ async function selectCompany(id){
     toast(t("err_account_not_found_title"));show("s-app");return;
   }
   S.company=rowToCamel(r.company);S.companyId=S.company.id;
-  await loadApp();
+  try{await loadApp();}catch(e){console.error(e);showError(t("err_generic_title"),t("err_generic_msg"));}
 }
 
 function coInputFocus(input){
